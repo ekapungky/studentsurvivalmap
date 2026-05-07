@@ -1,0 +1,3051 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebGIS Student Survival Map</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+  <style>
+    :root{
+      --navy:#071a3d;
+      --navy-2:#0c2a5f;
+      --navy-3:#123b7a;
+      --navy-4:#1a2f57;
+
+      --orange:#ff6a00;
+      --orange-2:#ff8a1d;
+      --orange-soft:#fff0e6;
+
+      --blue:#2f80ed;
+      --blue-2:#63b0ff;
+      --blue-soft:#dbeafe;
+
+      --white:#ffffff;
+      --soft:#f7f9fc;
+      --soft-2:#eef4fb;
+      --soft-3:#f3f7fd;
+      --text:#10213b;
+      --muted:#6e7f9b;
+      --muted-light:rgba(255,255,255,.84);
+
+      --danger:#e45f5f;
+      --success:#30b56d;
+      --success-2:#5fd38f;
+
+      --shadow-xl:0 32px 90px rgba(0,0,0,.24);
+      --shadow-lg:0 18px 42px rgba(0,0,0,.14);
+      --shadow-md:0 10px 24px rgba(0,0,0,.12);
+      --shadow-sm:0 6px 16px rgba(0,0,0,.08);
+
+      --radius-xl:34px;
+      --radius-lg:24px;
+      --radius-md:18px;
+      --radius-sm:14px;
+    }
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:"Inter","Segoe UI",Arial,sans-serif;
+    }
+
+    html,body{
+      height:100%;
+      scroll-behavior:smooth;
+    }
+
+    body{
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(99,176,255,.10), transparent 24%),
+        radial-gradient(circle at 90% 15%, rgba(255,106,0,.08), transparent 18%),
+        linear-gradient(135deg, #07172f 0%, #0b2550 55%, #143d7d 100%);
+    }
+
+    .hidden{display:none !important;}
+
+    .app{
+      width:100%;
+      min-height:100vh;
+      background:var(--soft);
+    }
+
+    /* ================= ANIMATIONS ================= */
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(34px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
+    @keyframes fadeLeft{
+      from{opacity:0;transform:translateX(-34px);}
+      to{opacity:1;transform:translateX(0);}
+    }
+
+    @keyframes fadeRight{
+      from{opacity:0;transform:translateX(34px);}
+      to{opacity:1;transform:translateX(0);}
+    }
+
+    @keyframes softZoom{
+      from{opacity:0;transform:scale(.94);}
+      to{opacity:1;transform:scale(1);}
+    }
+
+    @keyframes floatSlow{
+      0%,100%{transform:translateY(0);}
+      50%{transform:translateY(-10px);}
+    }
+
+    @keyframes pulseGlow{
+      0%,100%{box-shadow:0 0 0 0 rgba(255,106,0,.0);}
+      50%{box-shadow:0 0 0 12px rgba(255,106,0,.10);}
+    }
+
+    @keyframes sheen{
+      0%{transform:translateX(-130%) skewX(-22deg);}
+      100%{transform:translateX(180%) skewX(-22deg);}
+    }
+
+    .reveal{
+      opacity:0;
+      transform:translateY(34px);
+      transition:opacity .8s ease, transform .8s ease;
+      will-change:transform, opacity;
+    }
+
+    .reveal-left{
+      opacity:0;
+      transform:translateX(-34px);
+      transition:opacity .8s ease, transform .8s ease;
+      will-change:transform, opacity;
+    }
+
+    .reveal-right{
+      opacity:0;
+      transform:translateX(34px);
+      transition:opacity .8s ease, transform .8s ease;
+      will-change:transform, opacity;
+    }
+
+    .reveal.in-view,
+    .reveal-left.in-view,
+    .reveal-right.in-view{
+      opacity:1;
+      transform:translate(0,0);
+    }
+
+    .delay-1{transition-delay:.08s;}
+    .delay-2{transition-delay:.16s;}
+    .delay-3{transition-delay:.24s;}
+    .delay-4{transition-delay:.32s;}
+    .delay-5{transition-delay:.40s;}
+
+    /* ================= LANDING ================= */
+    .landing{
+      width:100%;
+      min-height:100vh;
+      background:var(--soft);
+    }
+
+    .landing-navbar{
+      position:sticky;
+      top:0;
+      z-index:999;
+      height:78px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      padding:0 40px;
+      background:linear-gradient(90deg, rgba(7,26,61,.98), rgba(18,59,122,.96));
+      backdrop-filter:blur(10px);
+      box-shadow:var(--shadow-sm);
+      animation:fadeUp .8s ease both;
+    }
+
+    .brand-wrap{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:max-content;
+    }
+
+    .logo-stack{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo,
+    .secondary-logo{
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      overflow:hidden;
+      background:#fff;
+      border:2px solid rgba(255,255,255,.30);
+      box-shadow:var(--shadow-sm);
+      flex-shrink:0;
+      animation:floatSlow 4.8s ease-in-out infinite;
+    }
+
+    .secondary-logo{
+      animation-delay:.6s;
+    }
+
+    .brand-logo img,
+    .secondary-logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .brand-copy h1{
+      color:#fff;
+      font-size:24px;
+      font-weight:900;
+      line-height:1.05;
+      letter-spacing:-.5px;
+    }
+
+    .brand-copy p{
+      color:rgba(255,255,255,.88);
+      font-size:12px;
+      margin-top:4px;
+    }
+
+    .nav-menu{
+      display:flex;
+      align-items:center;
+      gap:30px;
+      flex-wrap:wrap;
+    }
+
+    .nav-menu a{
+      text-decoration:none;
+      color:#fff;
+      font-size:15px;
+      font-weight:700;
+      position:relative;
+      padding:6px 0;
+      transition:.25s ease;
+    }
+
+    .nav-menu a:hover{
+      color:#ffd2b5;
+      transform:translateY(-1px);
+    }
+
+    .nav-menu a::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-4px;
+      width:0;
+      height:2px;
+      background:var(--orange);
+      transition:.25s ease;
+    }
+
+    .nav-menu a:hover::after{
+      width:100%;
+    }
+
+    .hero{
+      min-height:calc(100vh - 78px);
+      display:grid;
+      grid-template-columns:1.04fr .96fr;
+      align-items:center;
+      gap:28px;
+      padding:44px 52px;
+      background:
+        linear-gradient(90deg, rgba(7,26,61,.90) 0%, rgba(12,42,95,.78) 42%, rgba(255,106,0,.16) 100%),
+        url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1800&q=80") center/cover no-repeat;
+      color:#fff;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(115deg, rgba(0,0,0,.34), transparent 55%),
+        radial-gradient(circle at 18% 35%, rgba(99,176,255,.18), transparent 30%);
+      pointer-events:none;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      width:420px;
+      height:420px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(255,106,0,.15), transparent 65%);
+      top:-120px;
+      right:-100px;
+      animation:floatSlow 7s ease-in-out infinite;
+      pointer-events:none;
+    }
+
+    .hero-content,
+    .hero-visual{
+      position:relative;
+      z-index:2;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      height:42px;
+      padding:0 16px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      font-size:14px;
+      font-weight:800;
+      margin-bottom:18px;
+      backdrop-filter:blur(10px);
+      animation:fadeLeft .8s ease .1s both;
+    }
+
+    .hero-title{
+      font-size:clamp(42px, 5vw, 74px);
+      line-height:1.02;
+      font-weight:950;
+      letter-spacing:-1.8px;
+      margin-bottom:18px;
+      max-width:740px;
+      text-shadow:0 6px 18px rgba(0,0,0,.20);
+      animation:fadeLeft .9s ease .18s both;
+    }
+
+    .hero-title span{
+      color:var(--orange-2);
+      text-shadow:0 0 18px rgba(255,138,29,.25);
+    }
+
+    .hero-subtitle{
+      max-width:720px;
+      font-size:18px;
+      line-height:1.8;
+      color:rgba(255,255,255,.92);
+      margin-bottom:28px;
+      animation:fadeLeft 1s ease .28s both;
+    }
+
+    .hero-buttons{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:28px;
+      animation:fadeUp 1s ease .38s both;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-orange{
+      height:52px;
+      padding:0 24px;
+      border:none;
+      border-radius:999px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      transition:transform .25s ease, box-shadow .25s ease, filter .25s ease;
+      text-decoration:none;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .btn-primary::before,
+    .btn-secondary::before,
+    .btn-orange::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,.28) 45%, transparent 100%);
+      transform:translateX(-130%) skewX(-22deg);
+    }
+
+    .btn-primary:hover::before,
+    .btn-secondary:hover::before,
+    .btn-orange:hover::before{
+      animation:sheen .9s ease;
+    }
+
+    .btn-primary{
+      color:#fff;
+      background:linear-gradient(135deg, var(--orange), var(--orange-2));
+      box-shadow:0 12px 26px rgba(255,106,0,.26);
+    }
+
+    .btn-secondary{
+      color:#fff;
+      background:linear-gradient(135deg, #1d4ed8, #2563eb);
+      box-shadow:0 12px 26px rgba(37,99,235,.24);
+    }
+
+    .btn-orange{
+      color:#fff;
+      background:linear-gradient(135deg, #0c2a5f, #123b7a);
+      box-shadow:0 12px 26px rgba(12,42,95,.28);
+    }
+
+    .btn-primary:hover,
+    .btn-secondary:hover,
+    .btn-orange:hover{
+      transform:translateY(-3px) scale(1.01);
+      filter:saturate(1.08);
+    }
+
+    .hero-stats{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:14px;
+    }
+
+    .stat-box{
+      min-height:104px;
+      padding:16px;
+      border-radius:22px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(10px);
+      transition:.28s ease;
+      animation:fadeUp .9s ease both;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .stat-box:nth-child(1){animation-delay:.46s;}
+    .stat-box:nth-child(2){animation-delay:.56s;}
+    .stat-box:nth-child(3){animation-delay:.66s;}
+    .stat-box:nth-child(4){animation-delay:.76s;}
+
+    .stat-box::after{
+      content:"";
+      position:absolute;
+      inset:auto -20% -60% auto;
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(255,106,0,.14), transparent 70%);
+      transition:.3s ease;
+    }
+
+    .stat-box:hover{
+      transform:translateY(-5px);
+      background:rgba(255,255,255,.16);
+    }
+
+    .stat-box:hover::after{
+      transform:scale(1.15);
+    }
+
+    .stat-box h3{
+      font-size:26px;
+      font-weight:950;
+      margin-bottom:6px;
+    }
+
+    .stat-box p{
+      font-size:12px;
+      line-height:1.48;
+      color:rgba(255,255,255,.82);
+    }
+
+    .hero-visual{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+      animation:fadeRight 1s ease .18s both;
+    }
+
+    .hero-info-card{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:26px;
+      padding:22px;
+      backdrop-filter:blur(14px);
+      box-shadow:var(--shadow-lg);
+      min-height:180px;
+      transition:.28s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero-info-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg, rgba(255,255,255,.06), transparent 55%);
+      pointer-events:none;
+    }
+
+    .hero-info-card:hover{
+      transform:translateY(-5px) scale(1.01);
+      background:rgba(255,255,255,.16);
+    }
+
+    .hero-info-card.big{
+      grid-column:span 2;
+      min-height:220px;
+      background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.10));
+    }
+
+    .hero-info-card .icon{
+      width:56px;
+      height:56px;
+      border-radius:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:16px;
+      font-size:24px;
+      color:#fff;
+      box-shadow:var(--shadow-sm);
+      animation:pulseGlow 3.2s ease-in-out infinite;
+    }
+
+    .hero-info-card .icon.orange{
+      background:linear-gradient(135deg, var(--orange), var(--orange-2));
+    }
+
+    .hero-info-card .icon.blue{
+      background:linear-gradient(135deg, #2f80ed, #63b0ff);
+      animation-delay:.6s;
+    }
+
+    .hero-info-card .icon.navy{
+      background:linear-gradient(135deg, #0c2a5f, #123b7a);
+      animation-delay:1.2s;
+    }
+
+    .hero-info-card h3{
+      font-size:22px;
+      font-weight:900;
+      color:#fff;
+      margin-bottom:10px;
+      line-height:1.25;
+    }
+
+    .hero-info-card p{
+      font-size:14px;
+      line-height:1.75;
+      color:rgba(255,255,255,.88);
+    }
+
+    .hero-mini-list{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .hero-mini-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:14px;
+      color:#fff;
+      font-weight:700;
+      transition:.25s ease;
+    }
+
+    .hero-mini-item:hover{
+      transform:translateX(6px);
+    }
+
+    .hero-mini-item i{
+      color:var(--orange-2);
+    }
+
+    .section{
+      padding:78px 52px;
+    }
+
+    .section-light{
+      background:#f7fafc;
+    }
+
+    .section-soft{
+      background:#f3f7fd;
+    }
+
+    .section-title{
+      text-align:center;
+      margin-bottom:16px;
+      color:#123b7a;
+      font-size:52px;
+      font-weight:900;
+      letter-spacing:-1.2px;
+    }
+
+    .section-subtitle{
+      max-width:860px;
+      margin:0 auto 42px;
+      text-align:center;
+      color:#607088;
+      font-size:17px;
+      line-height:1.8;
+    }
+
+    .about-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:28px;
+      align-items:center;
+    }
+
+    .about-left{
+      display:grid;
+      gap:18px;
+    }
+
+    .about-card{
+      background:#fff;
+      border-radius:24px;
+      padding:24px;
+      box-shadow:var(--shadow-md);
+      border:1px solid rgba(16,33,59,.05);
+      transition:.28s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .about-card::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      height:4px;
+      background:linear-gradient(90deg, var(--orange), transparent);
+      opacity:0;
+      transition:.28s ease;
+    }
+
+    .about-card:hover{
+      transform:translateY(-5px);
+    }
+
+    .about-card:hover::before{
+      opacity:1;
+    }
+
+    .about-card h3{
+      color:#123b7a;
+      font-size:24px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+
+    .about-card p{
+      color:#5f6f87;
+      line-height:1.8;
+      font-size:15px;
+    }
+
+    .about-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .about-list div{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      color:#485a73;
+      line-height:1.7;
+      font-size:15px;
+      transition:.25s ease;
+    }
+
+    .about-list div:hover{
+      transform:translateX(4px);
+    }
+
+    .about-right{
+      background:#fff;
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:var(--shadow-lg);
+      border:1px solid rgba(16,33,59,.05);
+      transition:.3s ease;
+    }
+
+    .about-right:hover{
+      transform:translateY(-5px);
+    }
+
+    .about-image{
+      height:430px;
+      background:
+        linear-gradient(180deg, rgba(13,64,120,.10), rgba(13,64,120,.16)),
+        url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;
+      position:relative;
+      transition:transform 1.2s ease;
+    }
+
+    .about-right:hover .about-image{
+      transform:scale(1.05);
+    }
+
+    .about-overlay{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      right:20px;
+      background:rgba(12,42,95,.94);
+      color:#fff;
+      border-radius:20px;
+      padding:18px 18px;
+      box-shadow:var(--shadow-md);
+      animation:floatSlow 6s ease-in-out infinite;
+    }
+
+    .about-overlay h4{
+      font-size:22px;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .about-overlay p{
+      font-size:14px;
+      line-height:1.7;
+      color:rgba(255,255,255,.90);
+    }
+
+    .feature-showcase{
+      display:grid;
+      grid-template-columns:320px 1fr 320px;
+      gap:24px;
+      align-items:start;
+    }
+
+    .feature-column{
+      display:grid;
+      gap:18px;
+    }
+
+    .feature-tile{
+      background:#fff;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:var(--shadow-md);
+      border-top:5px solid var(--orange);
+      transition:.28s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .feature-tile::after{
+      content:"";
+      position:absolute;
+      width:100px;
+      height:100px;
+      right:-24px;
+      bottom:-36px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(255,106,0,.12), transparent 70%);
+      transition:.28s ease;
+    }
+
+    .feature-tile:hover{
+      transform:translateY(-6px);
+    }
+
+    .feature-tile:hover::after{
+      transform:scale(1.2);
+    }
+
+    .feature-tile h4{
+      font-size:20px;
+      color:#25364f;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .feature-tile p{
+      font-size:15px;
+      line-height:1.75;
+      color:#5c6c85;
+    }
+
+    .feature-icon{
+      width:58px;
+      height:58px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--orange-soft);
+      color:var(--orange);
+      font-size:26px;
+      margin-bottom:14px;
+      transition:.28s ease;
+    }
+
+    .feature-tile:hover .feature-icon{
+      transform:rotate(-6deg) scale(1.08);
+    }
+
+    .feature-center{
+      background:#fff;
+      border-radius:30px;
+      box-shadow:var(--shadow-lg);
+      overflow:hidden;
+      border:1px solid rgba(16,33,59,.05);
+      transition:.3s ease;
+    }
+
+    .feature-center:hover{
+      transform:translateY(-6px);
+    }
+
+    .feature-center-image{
+      height:620px;
+      background:
+        linear-gradient(180deg, rgba(10,25,54,.08), rgba(10,25,54,.14)),
+        url("https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;
+      position:relative;
+      transition:transform 1.2s ease;
+    }
+
+    .feature-center:hover .feature-center-image{
+      transform:scale(1.04);
+    }
+
+    .feature-center-badge{
+      position:absolute;
+      left:24px;
+      top:24px;
+      background:#fff;
+      color:#123b7a;
+      border-radius:999px;
+      padding:10px 16px;
+      font-size:13px;
+      font-weight:800;
+      box-shadow:var(--shadow-sm);
+      animation:fadeUp .9s ease .2s both;
+    }
+
+    .feature-center-caption{
+      position:absolute;
+      left:24px;
+      right:24px;
+      bottom:24px;
+      background:rgba(12,42,95,.94);
+      color:#fff;
+      border-radius:22px;
+      padding:20px;
+      box-shadow:var(--shadow-md);
+      animation:fadeUp 1s ease .28s both;
+    }
+
+    .feature-center-caption h3{
+      font-size:30px;
+      margin-bottom:8px;
+      font-weight:900;
+    }
+
+    .feature-center-caption p{
+      font-size:15px;
+      line-height:1.8;
+      color:rgba(255,255,255,.92);
+    }
+
+    .benefit-wrap{
+      display:grid;
+      grid-template-columns:1fr 140px 1fr;
+      gap:26px;
+      align-items:start;
+    }
+
+    .benefit-side h3{
+      text-align:center;
+      color:#123b7a;
+      font-size:24px;
+      font-weight:900;
+      margin-bottom:22px;
+    }
+
+    .benefit-card{
+      border-radius:24px;
+      padding:28px;
+      min-height:180px;
+      box-shadow:var(--shadow-md);
+      margin-bottom:20px;
+      transition:.28s ease;
+    }
+
+    .benefit-card:hover{
+      transform:translateY(-6px) scale(1.01);
+    }
+
+    .benefit-card.left{
+      background:linear-gradient(135deg, #ff8a1d, #ff6a00);
+      color:#fff;
+    }
+
+    .benefit-card.right{
+      background:linear-gradient(135deg, #123b7a, #0c2a5f);
+      color:#fff;
+    }
+
+    .benefit-card h4{
+      font-size:18px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+
+    .benefit-card p{
+      line-height:1.8;
+      font-size:15px;
+    }
+
+    .benefit-middle{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:48px;
+      padding-top:86px;
+      color:var(--orange);
+      font-size:54px;
+    }
+
+    .benefit-middle i{
+      animation:floatSlow 4.6s ease-in-out infinite;
+    }
+
+    .benefit-middle i:last-child{
+      animation-delay:.8s;
+    }
+
+    .team-layout{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:30px;
+    }
+
+    .team-banner{
+      background:
+        linear-gradient(180deg, rgba(5,18,42,.82), rgba(8,24,55,.88)),
+        url("assets/Gambar/bg-team.jpg") center/cover no-repeat;
+      border-radius:30px;
+      overflow:hidden;
+      box-shadow:var(--shadow-lg);
+      position:relative;
+      min-height:280px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:30px;
+      transition:.3s ease;
+    }
+
+    .team-banner:hover{
+      transform:translateY(-5px);
+    }
+
+    .team-banner::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at center, rgba(255,106,0,.10), transparent 35%);
+      pointer-events:none;
+    }
+
+    .team-banner-content{
+      position:relative;
+      z-index:2;
+    }
+
+    .team-banner h2{
+      font-size:clamp(42px, 5vw, 82px);
+      line-height:1.04;
+      letter-spacing:-1.5px;
+      font-weight:950;
+      color:#fff;
+      margin-bottom:12px;
+      animation:fadeUp .9s ease both;
+    }
+
+    .team-banner h2 span{
+      color:var(--orange);
+      text-shadow:0 0 18px rgba(255,106,0,.22);
+    }
+
+    .team-banner p{
+      max-width:860px;
+      margin:auto;
+      color:rgba(255,255,255,.90);
+      line-height:1.8;
+      font-size:16px;
+      animation:fadeUp 1s ease .12s both;
+    }
+
+    .team-photo-wrap{
+      background:#fff;
+      border-radius:28px;
+      padding:24px;
+      box-shadow:var(--shadow-md);
+      text-align:center;
+      transition:.28s ease;
+    }
+
+    .team-photo-wrap:hover{
+      transform:translateY(-5px);
+    }
+
+    .team-photo-wrap h3{
+      color:#123b7a;
+      font-size:28px;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .team-photo{
+      width:100%;
+      max-width:900px;
+      margin:auto;
+      border-radius:24px;
+      border:8px solid #f4f7fb;
+      box-shadow:var(--shadow-md);
+      display:block;
+      object-fit:cover;
+      background:#eef3f8;
+      transition:transform .4s ease, box-shadow .4s ease;
+    }
+
+    .team-photo:hover{
+      transform:scale(1.015);
+    }
+
+    .member-grid{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:18px;
+    }
+
+    .member-card{
+      background:#fff;
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:var(--shadow-md);
+      transition:.28s ease;
+      border:1px solid rgba(16,33,59,.05);
+      position:relative;
+    }
+
+    .member-card::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      height:4px;
+      background:linear-gradient(90deg, var(--orange), var(--blue));
+      transform:scaleX(0);
+      transform-origin:left;
+      transition:.3s ease;
+      z-index:2;
+    }
+
+    .member-card:hover{
+      transform:translateY(-6px);
+    }
+
+    .member-card:hover::before{
+      transform:scaleX(1);
+    }
+
+    .member-photo{
+      width:100%;
+      aspect-ratio:3/4;
+      object-fit:cover;
+      display:block;
+      background:#edf3f9;
+      transition:transform .45s ease;
+    }
+
+    .member-card:hover .member-photo{
+      transform:scale(1.05);
+    }
+
+    .member-info{
+      padding:18px 16px 20px;
+      text-align:center;
+    }
+
+    .member-info h4{
+      font-size:18px;
+      font-weight:900;
+      color:#22344d;
+      margin-bottom:6px;
+      line-height:1.35;
+    }
+
+    .member-info p{
+      font-size:14px;
+      color:#5d6d86;
+      line-height:1.7;
+    }
+
+    .member-role{
+      margin-top:10px;
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--orange-soft);
+      color:var(--orange);
+      font-size:12px;
+      font-weight:800;
+      transition:.25s ease;
+    }
+
+    .member-card:hover .member-role{
+      transform:translateY(-2px);
+    }
+
+    .cta-box{
+      max-width:1000px;
+      margin:0 auto;
+      background:linear-gradient(135deg, #0c2a5f, #123b7a);
+      color:#fff;
+      border-radius:30px;
+      padding:34px;
+      text-align:center;
+      box-shadow:var(--shadow-lg);
+      position:relative;
+      overflow:hidden;
+      transition:.3s ease;
+    }
+
+    .cta-box:hover{
+      transform:translateY(-5px);
+    }
+
+    .cta-box::before{
+      content:"";
+      position:absolute;
+      width:260px;
+      height:260px;
+      border-radius:50%;
+      background:rgba(255,106,0,.14);
+      top:-100px;
+      right:-60px;
+      animation:floatSlow 7s ease-in-out infinite;
+    }
+
+    .cta-box h3,
+    .cta-box p,
+    .cta-box button{
+      position:relative;
+      z-index:2;
+    }
+
+    .cta-box h3{
+      font-size:38px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+
+    .cta-box p{
+      font-size:16px;
+      line-height:1.8;
+      color:rgba(255,255,255,.92);
+      margin-bottom:22px;
+    }
+
+    .footer{
+      background:#eaf1fb;
+      padding:48px 52px;
+      border-top:4px solid var(--orange);
+    }
+
+    .footer-grid{
+      display:grid;
+      grid-template-columns:1.2fr 1fr 1fr;
+      gap:28px;
+      align-items:start;
+    }
+
+    .footer-card{
+      transition:.25s ease;
+    }
+
+    .footer-card:hover{
+      transform:translateY(-3px);
+    }
+
+    .footer-card h3{
+      color:#123b7a;
+      font-size:22px;
+      font-weight:900;
+      margin-bottom:14px;
+    }
+
+    .footer-card p,
+    .footer-card li{
+      color:#4f6078;
+      line-height:1.8;
+      font-size:15px;
+    }
+
+    .footer-card ul{
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .footer-social{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .footer-social a{
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#fff;
+      color:var(--orange);
+      font-size:18px;
+      text-decoration:none;
+      box-shadow:var(--shadow-sm);
+      transition:.25s ease;
+      border:1px solid #f1dfd2;
+    }
+
+    .footer-social a:hover{
+      transform:translateY(-3px) scale(1.06);
+    }
+
+    .map-page{
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(6,20,47,.98), rgba(10,31,68,.98));
+    }
+
+    .topbar{
+      min-height:78px;
+      height:78px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:0 22px;
+      background:linear-gradient(90deg, rgba(7,24,58,.98), rgba(18,59,122,.95));
+      color:#fff;
+      border-bottom:2px solid rgba(255,106,0,.35);
+      backdrop-filter:blur(12px);
+    }
+
+    .brand-map{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .brand-map-title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .brand-map-title h1{
+      font-size:19px;
+      font-weight:900;
+      letter-spacing:-.2px;
+    }
+
+    .brand-map-title p{
+      font-size:11px;
+      color:rgba(255,255,255,.62);
+    }
+
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .avatar{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:var(--shadow-md);
+      backdrop-filter:blur(10px);
+      color:#fff;
+      animation:floatSlow 4.8s ease-in-out infinite;
+    }
+
+    .content{
+      flex:1;
+      min-height:0;
+      padding:10px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(234,241,249,.88), rgba(220,230,244,.82));
+    }
+
+    .map-shell{
+      position:relative;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      border-radius:28px;
+      background:#162131;
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:var(--shadow-xl);
+    }
+
+    #map{
+      width:100%;
+      height:100%;
+      z-index:1;
+    }
+
+    .map-overlay{
+      position:absolute;
+      inset:0;
+      z-index:2;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at top right, rgba(99,176,255,.08), transparent 18%),
+        linear-gradient(180deg, rgba(6,14,28,.04), transparent 22%);
+    }
+
+    .floating-actions{
+      position:absolute;
+      top:14px;
+      left:14px;
+      z-index:1003;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .toggle-btn,
+    .search-btn,
+    .back-btn,
+    .top-select,
+    .search-box,
+    .left-panel,
+    .right-panel,
+    #openInfoPanel,
+    .legend-text{
+      backdrop-filter:blur(18px);
+    }
+
+    .toggle-btn{
+      height:48px;
+      min-width:48px;
+      padding:0 15px;
+      border:none;
+      border-radius:16px;
+      background:rgba(10,26,58,.72);
+      border:1px solid rgba(255,255,255,.13);
+      color:#fff;
+      font-size:13px;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      box-shadow:var(--shadow-md);
+      transition:transform .25s ease, background .25s ease;
+    }
+
+    .toggle-btn:hover{
+      transform:translateY(-2px) scale(1.02);
+      background:rgba(16,39,79,.86);
+    }
+
+    .top-controls{
+      position:absolute;
+      top:72px;
+      left:14px;
+      z-index:1001;
+      display:flex;
+      gap:10px;
+      width:900px;
+      max-width:calc(100% - 28px);
+      flex-wrap:wrap;
+      opacity:1;
+      transform:translateY(0);
+      transition:.25s ease;
+    }
+
+    .top-controls.collapsed{
+      opacity:0;
+      transform:translateY(-12px);
+      pointer-events:none;
+    }
+
+    .search-box{
+      flex:1;
+      min-width:240px;
+      height:48px;
+      padding:0 16px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.13);
+      background:rgba(10,26,58,.72);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:#fff;
+      box-shadow:var(--shadow-md);
+      transition:.25s ease;
+    }
+
+    .search-box:focus-within{
+      transform:translateY(-1px);
+      border-color:rgba(255,106,0,.45);
+      box-shadow:0 12px 28px rgba(255,106,0,.14);
+    }
+
+    .search-box input{
+      width:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:#fff;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    .search-box input::placeholder{
+      color:rgba(255,255,255,.72);
+    }
+
+    .search-btn,
+    .back-btn{
+      width:48px;
+      height:48px;
+      border:none;
+      border-radius:16px;
+      background:rgba(10,26,58,.72);
+      border:1px solid rgba(255,255,255,.13);
+      color:#fff;
+      font-size:17px;
+      cursor:pointer;
+      box-shadow:var(--shadow-md);
+      transition:transform .25s ease, background .25s ease;
+    }
+
+    .search-btn:hover,
+    .back-btn:hover{
+      transform:translateY(-2px) scale(1.02);
+      background:rgba(16,39,79,.86);
+    }
+
+    .top-select{
+      height:48px;
+      min-width:140px;
+      padding:0 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.13);
+      background:rgba(10,26,58,.72);
+      color:#fff;
+      font-size:13px;
+      font-weight:800;
+      outline:none;
+      cursor:pointer;
+      box-shadow:var(--shadow-md);
+      transition:.25s ease;
+    }
+
+    .top-select:hover{
+      transform:translateY(-1px);
+    }
+
+    .top-select option{
+      color:#111827;
+      background:#fff;
+    }
+
+    .left-panel{
+      position:absolute;
+      top:72px;
+      left:14px;
+      width:302px;
+      max-height:calc(100% - 136px);
+      padding:14px;
+      z-index:1001;
+      overflow-y:auto;
+      overflow-x:hidden;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(6,19,49,.86), rgba(4,13,33,.82));
+      color:#fff;
+      box-shadow:var(--shadow-lg);
+      transform:translateX(0);
+      opacity:1;
+      transition:.25s ease, top .25s ease, max-height .25s ease;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.24) transparent;
+    }
+
+    .left-panel.shifted{
+      top:128px;
+      max-height:calc(100% - 192px);
+    }
+
+    .left-panel.collapsed{
+      transform:translateX(-18px);
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .left-panel::-webkit-scrollbar{width:8px;}
+    .left-panel::-webkit-scrollbar-thumb{
+      background:rgba(255,255,255,.24);
+      border-radius:999px;
+    }
+
+    .panel-title{
+      position:sticky;
+      top:0;
+      z-index:2;
+      margin-bottom:10px;
+      padding-bottom:10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:20px;
+      font-weight:900;
+      background:linear-gradient(180deg, rgba(6,19,49,.98), rgba(6,19,49,.88));
+    }
+
+    .filter-list{
+      border-top:1px solid rgba(255,255,255,.07);
+      padding-top:6px;
+    }
+
+    .filter-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 8px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      border-radius:12px;
+      cursor:pointer;
+      transition:background .25s ease, transform .25s ease;
+    }
+
+    .filter-item:hover{
+      background:rgba(255,255,255,.05);
+      transform:translateX(4px);
+    }
+
+    .filter-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .cat-icon{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-size:13px;
+      flex-shrink:0;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+      transition:.25s ease;
+    }
+
+    .filter-item:hover .cat-icon{
+      transform:scale(1.08) rotate(-5deg);
+    }
+
+    .cat-label{
+      font-size:13px;
+      font-weight:800;
+      line-height:1.25;
+    }
+
+    .cat-count{
+      margin-left:3px;
+      font-size:11px;
+      color:rgba(255,255,255,.72);
+    }
+
+    .check{
+      font-size:20px;
+      font-weight:900;
+      color:#7fe29c;
+      opacity:.28;
+      transition:.25s ease;
+    }
+
+    .filter-item.active .check{opacity:1;}
+
+    .chip-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+      padding-bottom:8px;
+    }
+
+    .chip{
+      height:42px;
+      padding:0 10px;
+      border:none;
+      border-radius:14px;
+      background:rgba(99,176,255,.16);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      transition:transform .25s ease, background .25s ease, box-shadow .25s ease;
+    }
+
+    .chip:hover{
+      transform:translateY(-2px);
+      background:rgba(99,176,255,.23);
+    }
+
+    .chip.active{
+      outline:2px solid rgba(255,255,255,.16);
+      background:rgba(255,106,0,.22);
+      box-shadow:0 10px 22px rgba(255,106,0,.12);
+    }
+
+    .chip-wide{grid-column:span 2;}
+    .chip.network{background:rgba(59,130,246,.18);}
+    .chip.emergency{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:rgba(228,95,95,.16);
+    }
+
+    .badge{
+      min-width:34px;
+      padding:4px 8px;
+      border-radius:8px;
+      background:rgba(228,95,95,.96);
+      font-size:11px;
+      font-weight:900;
+      text-align:center;
+      animation:pulseGlow 3s ease-in-out infinite;
+    }
+
+    .reset-btn{
+      width:100%;
+      height:44px;
+      margin-top:10px;
+      border:none;
+      border-radius:14px;
+      background:linear-gradient(135deg, var(--orange), var(--orange-2));
+      color:#fff;
+      font-size:13px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(255,106,0,.24);
+      transition:transform .25s ease, filter .25s ease;
+    }
+
+    .reset-btn:hover{
+      transform:translateY(-2px);
+      filter:saturate(1.08);
+    }
+
+    .right-panel{
+      position:absolute;
+      right:14px;
+      bottom:14px;
+      width:315px;
+      max-height:calc(100% - 28px);
+      padding:16px;
+      z-index:1001;
+      overflow:hidden;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.10));
+      color:#fff;
+      box-shadow:var(--shadow-lg);
+      animation:fadeUp .7s ease both;
+    }
+
+    .right-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:12px;
+    }
+
+    .right-header h3{
+      font-size:18px;
+      font-weight:900;
+    }
+
+    .close-btn{
+      width:36px;
+      height:36px;
+      border:none;
+      border-radius:14px;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      font-size:18px;
+      cursor:pointer;
+      transition:background .25s ease, transform .25s ease;
+    }
+
+    .close-btn:hover{
+      background:rgba(255,255,255,.22);
+      transform:rotate(90deg);
+    }
+
+    .preview{
+      width:100%;
+      height:164px;
+      object-fit:cover;
+      border-radius:16px;
+      margin-bottom:12px;
+      box-shadow:var(--shadow-md);
+      transition:transform .35s ease;
+    }
+
+    .right-panel:hover .preview{
+      transform:scale(1.03);
+    }
+
+    .place-title{
+      font-size:18px;
+      font-weight:900;
+      line-height:1.3;
+      margin-bottom:4px;
+    }
+
+    .distance{
+      font-size:12px;
+      font-weight:700;
+      color:rgba(255,255,255,.75);
+    }
+
+    .price{
+      margin:8px 0 12px;
+      font-size:18px;
+      font-weight:950;
+      letter-spacing:-.2px;
+      color:#ffd1b0;
+    }
+
+    .meta{
+      display:grid;
+      gap:8px;
+      margin-bottom:14px;
+      font-size:12px;
+      font-weight:700;
+      color:rgba(255,255,255,.94);
+    }
+
+    .detail-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .detail-btn,
+    .route-btn{
+      height:42px;
+      border:none;
+      border-radius:14px;
+      color:#fff;
+      font-size:13px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .25s ease, filter .25s ease;
+    }
+
+    .detail-btn{
+      background:linear-gradient(135deg, var(--orange), var(--orange-2));
+      box-shadow:0 10px 24px rgba(255,106,0,.24);
+    }
+
+    .route-btn{
+      background:linear-gradient(135deg, var(--blue-2), var(--blue));
+      box-shadow:0 10px 24px rgba(47,128,237,.30);
+    }
+
+    .detail-btn:hover,
+    .route-btn:hover{
+      transform:translateY(-2px);
+      filter:saturate(1.08);
+    }
+
+    .legend-text{
+      position:absolute;
+      left:14px;
+      bottom:12px;
+      z-index:1000;
+      padding:9px 13px;
+      border-radius:14px;
+      background:rgba(7,22,56,.62);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      font-size:11px;
+      font-weight:700;
+      box-shadow:var(--shadow-md);
+      animation:fadeUp .9s ease .2s both;
+    }
+
+    #openInfoPanel{
+      position:absolute;
+      right:14px;
+      bottom:14px;
+      z-index:1002;
+      height:44px;
+      padding:0 15px;
+      border:none;
+      border-radius:14px;
+      background:rgba(7,22,56,.72);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      font-size:13px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:var(--shadow-md);
+      transition:.25s ease;
+    }
+
+    #openInfoPanel:hover{
+      transform:translateY(-2px);
+    }
+
+    .custom-div-icon{
+      background:transparent;
+      border:none;
+    }
+
+    .marker-wrap{
+      width:42px;
+      height:42px;
+      border-radius:15px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-size:15px;
+      border:2px solid rgba(255,255,255,.92);
+      box-shadow:0 12px 26px rgba(0,0,0,.28);
+      position:relative;
+      backdrop-filter:blur(4px);
+      animation:floatSlow 3.8s ease-in-out infinite;
+    }
+
+    .marker-wrap i{
+      position:relative;
+      z-index:2;
+    }
+
+    .marker-wrap::after{
+      content:"";
+      position:absolute;
+      bottom:-6px;
+      left:50%;
+      transform:translateX(-50%) rotate(45deg);
+      width:12px;
+      height:12px;
+      background:inherit;
+      border-right:2px solid rgba(255,255,255,.92);
+      border-bottom:2px solid rgba(255,255,255,.92);
+      z-index:1;
+    }
+
+    .leaflet-top.leaflet-right{
+      top:14px;
+      right:14px;
+    }
+
+    .leaflet-control-zoom{
+      border:none !important;
+      margin:0 !important;
+      box-shadow:var(--shadow-md) !important;
+      animation:fadeUp .8s ease .15s both;
+    }
+
+    .leaflet-control-zoom a{
+      width:40px !important;
+      height:40px !important;
+      line-height:40px !important;
+      font-size:20px !important;
+      background:rgba(255,255,255,.96) !important;
+      color:#162131 !important;
+      border:none !important;
+      transition:.25s ease !important;
+    }
+
+    .leaflet-control-zoom a:hover{
+      background:#fff5ef !important;
+      color:var(--orange) !important;
+    }
+
+    .leaflet-routing-container{
+      display:none !important;
+    }
+
+    @media (max-width:1300px){
+      .member-grid{
+        grid-template-columns:repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width:1180px){
+      .hero{
+        grid-template-columns:1fr;
+      }
+
+      .about-grid,
+      .feature-showcase,
+      .benefit-wrap,
+      .footer-grid{
+        grid-template-columns:1fr;
+      }
+
+      .benefit-middle{
+        flex-direction:row;
+        justify-content:center;
+        padding-top:0;
+      }
+
+      .feature-center-image{
+        height:420px;
+      }
+    }
+
+    @media (max-width:1000px){
+      .landing-navbar{
+        height:auto;
+        padding:18px;
+        align-items:flex-start;
+      }
+
+      .nav-menu{
+        gap:18px;
+      }
+
+      .hero,
+      .section,
+      .footer{
+        padding:24px 18px;
+      }
+
+      .hero-stats{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .hero-visual{
+        grid-template-columns:1fr;
+      }
+
+      .hero-info-card.big{
+        grid-column:span 1;
+      }
+
+      .member-grid{
+        grid-template-columns:repeat(2, 1fr);
+      }
+
+      .map-page{
+        height:auto;
+        min-height:100vh;
+      }
+
+      .content{
+        overflow:visible;
+      }
+
+      .map-shell{
+        min-height:920px;
+      }
+
+      .top-controls{
+        width:calc(100% - 28px);
+      }
+
+      .top-select{
+        flex:1;
+        min-width:140px;
+      }
+
+      .left-panel,
+      .right-panel{
+        position:static;
+        width:100%;
+        max-height:unset;
+        margin-top:12px;
+        overflow:visible;
+      }
+
+      .left-panel.shifted{
+        top:auto;
+        max-height:unset;
+      }
+
+      .left-panel.collapsed,
+      .top-controls.collapsed{
+        opacity:1;
+        transform:none;
+        pointer-events:auto;
+      }
+
+      #map{
+        height:520px;
+      }
+
+      #openInfoPanel{
+        position:static;
+        margin-top:12px;
+      }
+
+      .floating-actions,
+      .top-controls{
+        position:static;
+        margin-bottom:12px;
+      }
+
+      .topbar{
+        flex-direction:column;
+        height:auto;
+        gap:12px;
+        padding:18px;
+      }
+    }
+
+    @media (max-width:680px){
+      .hero-stats,
+      .detail-actions,
+      .member-grid{
+        grid-template-columns:1fr;
+      }
+
+      .section-title{
+        font-size:36px;
+      }
+
+      .hero-title{
+        font-size:44px;
+      }
+
+      .brand-copy h1{
+        font-size:20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <section id="landingPage" class="landing">
+      <header class="landing-navbar">
+        <div class="brand-wrap">
+          <div class="logo-stack">
+            <div class="brand-logo">
+              <img src="assets/Gambar/LOGO UPN.png" alt="Logo UPN" />
+            </div>
+            <div class="secondary-logo">
+              <img src="assets/Gambar/LOGO SURVIVAL MAP.jpeg" alt="Logo Survival Map" />
+            </div>
+          </div>
+
+          <div class="brand-copy">
+            <h1>WebGIS Student Survival Map</h1>
+            <p>Platform informasi fasilitas mahasiswa & emergency response sekitar UPN Jogja</p>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="#beranda">Beranda</a>
+          <a href="#tentang">Tentang</a>
+          <a href="#fitur">Fitur</a>
+          <a href="#manfaat">Manfaat</a>
+          <a href="#tim">Kelompok 1</a>
+          <a href="#kontak">Kontak</a>
+        </nav>
+      </header>
+
+      <section id="beranda" class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="fa-solid fa-layer-group"></i>
+            Geodesign Project WebGIS Mahasiswa
+          </div>
+
+          <h1 class="hero-title">
+            Student Survival <span>Map</span><br>UPN Jogja
+          </h1>
+
+          <p class="hero-subtitle">
+            WebGIS ini dirancang untuk membantu mahasiswa menemukan kost, warung makan murah,
+            laundry, print/fotokopi, minimarket, ATM, apotek/klinik, serta lokasi emergency
+            response di sekitar kampus UPN Jogja secara cepat, praktis, dan interaktif.
+          </p>
+
+          <div class="hero-buttons">
+            <button class="btn-primary" id="enterMapBtn">
+              <i class="fa-solid fa-map-location-dot"></i> Buka WebGIS
+            </button>
+            <a href="#fitur" class="btn-secondary">
+              <i class="fa-solid fa-table-cells-large"></i> Lihat Fitur
+            </a>
+            <a href="#tim" class="btn-orange">
+              <i class="fa-solid fa-users"></i> Tentang Kami
+            </a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-box">
+              <h3>7+</h3>
+              <p>Kategori fasilitas penting untuk kebutuhan mahasiswa</p>
+            </div>
+            <div class="stat-box">
+              <h3>4</h3>
+              <p>Pilihan radius analisis: &lt;5, 5, 7, dan 10 km</p>
+            </div>
+            <div class="stat-box">
+              <h3>Route</h3>
+              <p>Network analysis menuju lokasi yang dipilih</p>
+            </div>
+            <div class="stat-box">
+              <h3>Fast</h3>
+              <p>Peta kebutuhan mahasiswa yang ringkas dan mudah dipakai</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-info-card big">
+            <div class="icon orange"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3>Platform Informasi Mahasiswa</h3>
+            <p>
+              Mengintegrasikan kebutuhan harian mahasiswa dan informasi respon darurat
+              dalam satu tampilan dashboard peta interaktif yang lebih rapi, jelas, dan relevan.
+            </p>
+            <div class="hero-mini-list">
+              <div class="hero-mini-item"><i class="fa-solid fa-check"></i> Kost, makan murah, laundry, print, ATM, apotek</div>
+              <div class="hero-mini-item"><i class="fa-solid fa-check"></i> Emergency response dan radius analysis</div>
+              <div class="hero-mini-item"><i class="fa-solid fa-check"></i> Network analysis menuju lokasi pilihan</div>
+            </div>
+          </div>
+
+          <div class="hero-info-card">
+            <div class="icon blue"><i class="fa-solid fa-location-dot"></i></div>
+            <h3>Berbasis Lokasi</h3>
+            <p>Informasi ditampilkan dalam peta interaktif agar mahasiswa lebih cepat menentukan pilihan.</p>
+          </div>
+
+          <div class="hero-info-card">
+            <div class="icon navy"><i class="fa-solid fa-shield-heart"></i></div>
+            <h3>Emergency Ready</h3>
+            <p>Menyediakan akses titik darurat terdekat sebagai nilai tambah untuk kebutuhan mahasiswa.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tentang" class="section section-light">
+        <h2 class="section-title reveal">Tentang Aplikasi</h2>
+        <p class="section-subtitle reveal delay-1">
+          Student Survival Map merupakan rancangan WebGIS terapan yang fokus pada kebutuhan
+          mahasiswa sekitar UPN Jogja. Aplikasi ini menggabungkan data spasial, filter tematik,
+          radius analisis, dan fitur rute untuk mendukung akses informasi yang lebih efisien.
+        </p>
+
+        <div class="about-grid">
+          <div class="about-left">
+            <div class="about-card reveal-left">
+              <h3>Tujuan Utama</h3>
+              <p>
+                Membantu mahasiswa baru maupun mahasiswa aktif dalam menemukan fasilitas penting
+                seperti kost, warung makan murah, laundry, tempat print, minimarket, ATM,
+                apotek/klinik, dan titik emergency terdekat dari kampus.
+              </p>
+            </div>
+
+            <div class="about-card reveal-left delay-1">
+              <h3>Keunggulan</h3>
+              <div class="about-list">
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Peta interaktif yang mudah dipahami</div>
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Filter murah, 24 jam, dekat kampus, dan emergency</div>
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Analisis radius dari Rektorat UPN</div>
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Network analysis untuk melihat rute lokasi</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-right reveal-right">
+            <div class="about-image">
+              <div class="about-overlay">
+                <h4>WebGIS Berbasis Kebutuhan Nyata Mahasiswa</h4>
+                <p>
+                  Dirancang sebagai media informasi spasial yang relevan, fungsional, dan dekat
+                  dengan aktivitas harian mahasiswa UPN Jogja.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fitur" class="section section-soft">
+        <h2 class="section-title reveal">Fitur Utama</h2>
+        <p class="section-subtitle reveal delay-1">
+          Rancangan ini menampilkan solusi WebGIS yang sederhana namun fungsional untuk mendukung
+          kebutuhan informasi mahasiswa di sekitar kampus.
+        </p>
+
+        <div class="feature-showcase">
+          <div class="feature-column">
+            <div class="feature-tile reveal-left">
+              <div class="feature-icon"><i class="fa-solid fa-house"></i></div>
+              <h4>Peta Fasilitas Mahasiswa</h4>
+              <p>Menampilkan lokasi kost, warung makan murah, laundry, print/fotokopi, minimarket, ATM, dan apotek/klinik.</p>
+            </div>
+
+            <div class="feature-tile reveal-left delay-1">
+              <div class="feature-icon"><i class="fa-solid fa-filter"></i></div>
+              <h4>Filter Interaktif</h4>
+              <p>Pengguna dapat memfilter data berdasarkan kategori fasilitas, harga murah, buka 24 jam, dan dekat kampus.</p>
+            </div>
+
+            <div class="feature-tile reveal-left delay-2">
+              <div class="feature-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <h4>Emergency Response</h4>
+              <p>Menyediakan titik fasilitas darurat seperti rumah sakit, klinik, atau layanan penting yang bisa diakses mahasiswa.</p>
+            </div>
+          </div>
+
+          <div class="feature-center reveal">
+            <div class="feature-center-image">
+              <div class="feature-center-badge">Dashboard WebGIS Mahasiswa</div>
+              <div class="feature-center-caption">
+                <h3>Student Survival Map</h3>
+                <p>
+                  Solusi peta kebutuhan mahasiswa sekitar UPN Jogja yang menggabungkan data spasial,
+                  informasi lokasi, filter, dan analisis rute dalam satu platform.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-column">
+            <div class="feature-tile reveal-right">
+              <div class="feature-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+              <h4>Radius Analysis</h4>
+              <p>Pengguna dapat memilih batas radius &lt;5 km, 5 km, 7 km, dan 10 km dari Rektorat UPN sebagai pusat analisis.</p>
+            </div>
+
+            <div class="feature-tile reveal-right delay-1">
+              <div class="feature-icon"><i class="fa-solid fa-route"></i></div>
+              <h4>Network Analysis</h4>
+              <p>Fitur rute membantu pengguna melihat jalur dari titik pusat kampus menuju lokasi fasilitas yang dipilih.</p>
+            </div>
+
+            <div class="feature-tile reveal-right delay-2">
+              <div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div>
+              <h4>Basemap Variatif</h4>
+              <p>Tersedia pilihan basemap dark, streets, light, dan satellite agar visualisasi peta lebih fleksibel.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="manfaat" class="section section-light">
+        <h2 class="section-title reveal">Manfaat Aplikasi</h2>
+        <p class="section-subtitle reveal delay-1">
+          Student Survival Map tidak hanya menampilkan peta, tetapi juga membantu mahasiswa
+          mengambil keputusan lebih cepat terkait kebutuhan harian di sekitar kampus.
+        </p>
+
+        <div class="benefit-wrap">
+          <div class="benefit-side">
+            <h3 class="reveal-left">Sebelum Ada WebGIS</h3>
+            <div class="benefit-card left reveal-left delay-1">
+              <h4>Informasi Terpisah</h4>
+              <p>Mahasiswa harus mencari kost, warung makan, laundry, atau fasilitas darurat secara manual dari banyak sumber berbeda.</p>
+            </div>
+            <div class="benefit-card left reveal-left delay-2">
+              <h4>Kurang Efisien</h4>
+              <p>Proses pencarian lokasi sering memakan waktu dan kurang akurat karena tidak terintegrasi dalam satu sistem spasial.</p>
+            </div>
+          </div>
+
+          <div class="benefit-middle reveal delay-1">
+            <i class="fa-solid fa-wifi"></i>
+            <i class="fa-solid fa-forward-fast"></i>
+          </div>
+
+          <div class="benefit-side">
+            <h3 class="reveal-right">Dengan Student Survival Map</h3>
+            <div class="benefit-card right reveal-right delay-1">
+              <h4>Akses Cepat dan Terpusat</h4>
+              <p>Mahasiswa bisa menemukan berbagai fasilitas penting secara cepat dalam satu platform berbasis peta interaktif.</p>
+            </div>
+            <div class="benefit-card right reveal-right delay-2">
+              <h4>Lebih Tepat dan Praktis</h4>
+              <p>Filter, radius, dan network analysis membantu pengguna memilih lokasi yang paling sesuai dengan kebutuhan mereka.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tim" class="section section-soft">
+        <div class="team-layout">
+          <div class="team-banner reveal">
+            <div class="team-banner-content">
+              <h2>ANGGOTA <span>KELOMPOK 1</span></h2>
+              <p>
+                Tim pengembang WebGIS Student Survival Map yang berfokus pada pemetaan fasilitas mahasiswa
+                dan emergency response sekitar UPN Jogja.
+              </p>
+            </div>
+          </div>
+
+          <div class="team-photo-wrap reveal delay-1">
+            <h3>Tentang Kami</h3>
+            <img class="team-photo" src="assets/Gambar/anggota-kelompok.png.jpeg" alt="Anggota Kelompok 1" />
+          </div>
+
+          <div>
+            <h2 class="section-title reveal">Profil Anggota</h2>
+            <p class="section-subtitle reveal delay-1">
+              Kelompok 1 merupakan tim perancang WebGIS Student Survival Map yang berfokus pada
+              pemetaan fasilitas mahasiswa dan emergency response sekitar UPN Jogja.
+            </p>
+
+            <div class="member-grid">
+              <div class="member-card reveal delay-1">
+                <img class="member-photo" src="assets/Gambar/imelda.jpeg" alt="Imeldha Nuradharani" />
+                <div class="member-info">
+                  <h4>Imeldha Nuradharani</h4>
+                  <p>117230002</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-2">
+                <img class="member-photo" src="assets/Gambar/delima.jpeg" alt="Delima Arsiti Maemunah" />
+                <div class="member-info">
+                  <h4>Delima Arsiti Maemunah</h4>
+                  <p>117230016</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-3">
+                <img class="member-photo" src="assets/Gambar/eka.jpg" alt="Eka Pungky Aprillia" />
+                <div class="member-info">
+                  <h4>Eka Pungky Aprillia</h4>
+                  <p>117230034</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-4">
+                <img class="member-photo" src="assets/Gambar/firda.jpeg" alt="Firda Auliya Rahma" />
+                <div class="member-info">
+                  <h4>Firda Auliya Rahma</h4>
+                  <p>117230060</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-5">
+                <img class="member-photo" src="assets/Gambar/ariyel.jpeg" alt="Ariyel Kunaka Gustama" />
+                <div class="member-info">
+                  <h4>Ariyel Kunaka Gustama</h4>
+                  <p>117230076</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-light">
+        <div class="cta-box reveal">
+          <h3>Tertarik Menjelajahi WebGIS?</h3>
+          <p>
+            Buka dashboard peta interaktif untuk melihat fasilitas mahasiswa, emergency response,
+            radius analysis, dan network analysis sekitar UPN Jogja.
+          </p>
+          <button class="btn-primary" id="enterMapBtnBottom">
+            <i class="fa-solid fa-map"></i> Masuk ke WebGIS
+          </button>
+        </div>
+      </section>
+
+      <footer id="kontak" class="footer">
+        <div class="footer-grid">
+          <div class="footer-card reveal-left">
+            <h3>Kontak Proyek</h3>
+            <p>
+              Student Survival Map merupakan proyek WebGIS terapan berbasis kebutuhan mahasiswa
+              sekitar UPN Jogja.
+            </p>
+            <p style="margin-top:10px;">
+              Email: <b>ekapungky11@gmail.com</b><br />
+              Lokasi Studi: UPN “Veteran” Yogyakarta
+            </p>
+          </div>
+
+          <div class="footer-card reveal delay-1">
+            <h3>Menu Cepat</h3>
+            <ul>
+              <li><a href="#beranda" style="color:inherit;text-decoration:none;">Beranda</a></li>
+              <li><a href="#tentang" style="color:inherit;text-decoration:none;">Tentang</a></li>
+              <li><a href="#fitur" style="color:inherit;text-decoration:none;">Fitur</a></li>
+              <li><a href="#tim" style="color:inherit;text-decoration:none;">Kelompok 1</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-card reveal-right delay-2">
+            <h3>Media Sosial</h3>
+            <p>Tambahkan link media sosial kelompok jika diperlukan.</p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+              <a href="#"><i class="fa-brands fa-google"></i></a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <section id="mapPage" class="map-page hidden">
+      <header class="topbar">
+        <div class="brand-map">
+          <div class="logo-stack">
+            <div class="brand-logo">
+              <img src="assets/Gambar/LOGO UPN.png" alt="Logo UPN" />
+            </div>
+            <div class="secondary-logo" style="width:46px;height:46px;">
+              <img src="assets/Gambar/LOGO SURVIVAL MAP.jpeg" alt="Logo Survival Map" />
+            </div>
+          </div>
+
+          <div class="brand-map-title">
+            <h1>WebGIS STUDENT SURVIVAL MAP</h1>
+            <p>Student Support & Emergency Map</p>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <span>UPN Jogja</span>
+          <span>⌄</span>
+          <div class="avatar"><i class="fa-solid fa-user"></i></div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="map-shell">
+          <div class="map-overlay"></div>
+
+          <div class="floating-actions">
+            <button class="toggle-btn" id="toggleTopPanel">
+              <i class="fa-solid fa-layer-group"></i> Atas
+            </button>
+            <button class="toggle-btn" id="toggleLeftPanel">
+              <i class="fa-solid fa-filter"></i> Filter
+            </button>
+          </div>
+
+          <div class="top-controls collapsed" id="topControls">
+            <button class="back-btn" id="backHomeBtn" title="Kembali ke Beranda">
+              <i class="fa-solid fa-house"></i>
+            </button>
+
+            <div class="search-box">
+              <span style="font-size:18px;color:rgba(255,255,255,0.9);">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </span>
+              <input id="searchInput" type="text" placeholder="Cari lokasi atau fasilitas..." />
+            </div>
+
+            <button class="search-btn" id="searchBtn" title="Cari">
+              <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+
+            <select id="basemapSelect" class="top-select" title="Pilih basemap">
+              <option value="dark">Dark</option>
+              <option value="streets">Streets</option>
+              <option value="satellite">Satellite</option>
+              <option value="light">Light</option>
+            </select>
+
+            <select id="radiusSelect" class="top-select" title="Pilih radius">
+              <option value="4000">&lt; 5 km</option>
+              <option value="5000" selected>5 km</option>
+              <option value="7000">7 km</option>
+              <option value="10000">10 km</option>
+            </select>
+          </div>
+
+          <aside class="left-panel collapsed" id="leftPanel">
+            <div class="panel-title"><i class="fa-solid fa-sliders"></i> Filter</div>
+            <div class="filter-list" id="filterList"></div>
+
+            <div class="chip-grid">
+              <button class="chip" data-chip="murah"><i class="fa-solid fa-tags"></i> Murah</button>
+              <button class="chip" data-chip="24jam"><i class="fa-regular fa-clock"></i> 24 Jam</button>
+              <button class="chip chip-wide" data-chip="dekat"><i class="fa-solid fa-location-dot"></i> Dekat Kampus</button>
+              <button class="chip chip-wide network" data-chip="network"><i class="fa-solid fa-route"></i> Network</button>
+              <button class="chip chip-wide emergency" data-chip="emergency">
+                <span><i class="fa-solid fa-triangle-exclamation"></i> Emergency</span>
+                <span class="badge" id="emergencyCount">0</span>
+              </button>
+            </div>
+
+            <button class="reset-btn" id="resetBtn">Reset Filter</button>
+          </aside>
+
+          <div id="map"></div>
+
+          <aside class="right-panel" id="infoPanel">
+            <div class="right-header">
+              <h3>Informasi Lokasi</h3>
+              <button class="close-btn" id="closeInfoPanel">×</button>
+            </div>
+
+            <img
+              id="detailImage"
+              class="preview"
+              src="https://images.unsplash.com/photo-1560185008-b033106af5c3?auto=format&fit=crop&w=900&q=80"
+              alt="Lokasi"
+            />
+
+            <div class="place-title">
+              <span id="detailTitle">Kost Mawar</span>
+              <span class="distance" id="detailDistance">(200 m)</span>
+            </div>
+
+            <div class="price" id="detailPrice">Rp 600,000 / bulan</div>
+
+            <div class="meta" id="detailMeta">
+              <div>💸 Murah</div>
+              <div>📍 Dekat Kampus</div>
+            </div>
+
+            <div class="detail-actions">
+              <button class="detail-btn" id="detailButton">Detail Kost</button>
+              <button class="route-btn" id="routeButton">Lihat Rute</button>
+            </div>
+          </aside>
+
+          <button id="openInfoPanel" class="hidden">
+            <i class="fa-solid fa-circle-info"></i> Info Lokasi
+          </button>
+
+          <div class="legend-text" id="legendText">Radius aktif: 5 km dari Rektorat UPN</div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+  <script>
+    const landingPage = document.getElementById("landingPage");
+    const mapPage = document.getElementById("mapPage");
+    const enterMapBtn = document.getElementById("enterMapBtn");
+    const enterMapBtnBottom = document.getElementById("enterMapBtnBottom");
+    const backHomeBtn = document.getElementById("backHomeBtn");
+    const basemapSelect = document.getElementById("basemapSelect");
+    const radiusSelect = document.getElementById("radiusSelect");
+    const legendText = document.getElementById("legendText");
+    const routeButton = document.getElementById("routeButton");
+
+    const infoPanel = document.getElementById("infoPanel");
+    const closeInfoPanel = document.getElementById("closeInfoPanel");
+    const openInfoPanel = document.getElementById("openInfoPanel");
+
+    const topControls = document.getElementById("topControls");
+    const leftPanel = document.getElementById("leftPanel");
+    const toggleTopPanel = document.getElementById("toggleTopPanel");
+    const toggleLeftPanel = document.getElementById("toggleLeftPanel");
+
+    const upnLatLng = [-7.7620236, 110.4092470];
+
+    const categories = {
+      kost: { label: "Kost", color: "#d6a034", icon: "fa-solid fa-house" },
+      makan: { label: "Warung Makan Murah", color: "#db8a2e", icon: "fa-solid fa-utensils" },
+      laundry: { label: "Laundry", color: "#2374d8", icon: "fa-solid fa-shirt" },
+      print: { label: "Print/Fotokopi", color: "#d64d65", icon: "fa-solid fa-print" },
+      minimarket: { label: "Minimarket", color: "#24a8c8", icon: "fa-solid fa-basket-shopping" },
+      atm: { label: "ATM", color: "#20b2aa", icon: "fa-solid fa-credit-card" },
+      apotek: { label: "Apotek/Klinik", color: "#2f89d5", icon: "fa-solid fa-pills" },
+      emergency: { label: "Emergency", color: "#c94b47", icon: "fa-solid fa-triangle-exclamation" }
+    };
+
+    const places = [
+      { id: 1, name: "Kost Mawar", category: "kost", lat: -7.7607, lng: 110.4113, price: "Rp 600,000 / bulan", address: "Babarsari, Depok, Sleman", contact: "0812-1111-2222", open: "24 jam", cheap: true, open24: true, nearCampus: true, image: "https://images.unsplash.com/photo-1560185008-b033106af5c3?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Kost" },
+      { id: 2, name: "Warung Hemat Bu Rini", category: "makan", lat: -7.7515, lng: 110.3996, price: "Mulai Rp 10,000", address: "Seturan, Depok, Sleman", contact: "0813-4444-2121", open: "07.00 - 22.00", cheap: true, open24: false, nearCampus: false, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Warung" },
+      { id: 3, name: "Laundry Express Seturan", category: "laundry", lat: -7.7701, lng: 110.3878, price: "Rp 6,000 / kg", address: "Seturan Raya", contact: "0812-9088-1122", open: "08.00 - 21.00", cheap: true, open24: false, nearCampus: false, image: "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Laundry" },
+      { id: 4, name: "Print Cepat Babarsari", category: "print", lat: -7.7758, lng: 110.4206, price: "Print mulai Rp 300", address: "Babarsari", contact: "0811-7373-900", open: "08.00 - 23.00", cheap: true, open24: false, nearCampus: true, image: "https://images.unsplash.com/photo-1562564055-71e051d33c19?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Print" },
+      { id: 5, name: "Minimarket 24 Jam", category: "minimarket", lat: -7.7818, lng: 110.4026, price: "Kebutuhan harian", address: "Ringroad Utara", contact: "0274-998877", open: "24 jam", cheap: false, open24: true, nearCampus: false, image: "https://images.unsplash.com/photo-1604719312566-8912e9c8a213?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Minimarket" },
+      { id: 6, name: "ATM Center Babarsari", category: "atm", lat: -7.7719, lng: 110.4279, price: "Layanan ATM", address: "Babarsari", contact: "-", open: "24 jam", cheap: false, open24: true, nearCampus: true, image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail ATM" },
+      { id: 7, name: "Klinik Sehat UPN", category: "apotek", lat: -7.7571, lng: 110.3988, price: "Layanan kesehatan", address: "Depok, Sleman", contact: "0274-123456", open: "08.00 - 21.00", cheap: false, open24: false, nearCampus: true, image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Klinik" },
+      { id: 8, name: "Rumah Sakit JIH", category: "emergency", lat: -7.7586, lng: 110.4012, price: "IGD 24 jam", address: "Jl. Ring Road Utara", contact: "0274-4463535", open: "24 jam", cheap: false, open24: true, nearCampus: true, image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80", detailLabel: "Layanan Darurat" },
+      { id: 9, name: "Polsek Depok Barat", category: "emergency", lat: -7.7949, lng: 110.3854, price: "Polisi terdekat", address: "Depok Barat", contact: "110", open: "24 jam", cheap: false, open24: true, nearCampus: false, image: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=900&q=80", detailLabel: "Layanan Darurat" },
+      { id: 10, name: "Apotek 24 Jam Condongcatur", category: "emergency", lat: -7.7447, lng: 110.4328, price: "Obat & layanan cepat", address: "Condongcatur", contact: "0812-8899-2233", open: "24 jam", cheap: false, open24: true, nearCampus: false, image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=900&q=80", detailLabel: "Layanan Darurat" }
+    ];
+
+    const state = {
+      categories: new Set(["kost", "makan", "laundry", "print", "minimarket", "atm", "apotek"]),
+      cheap: false,
+      open24: false,
+      nearCampus: false,
+      emergencyOnly: false,
+      networkOn: false,
+      search: ""
+    };
+
+    let mapInitialized = false;
+    let map;
+    let layers = {};
+    let currentBaseLayer;
+    let radiusCircle;
+    let routeControl = null;
+    let selectedPlace = null;
+
+    const detailTitle = document.getElementById("detailTitle");
+    const detailDistance = document.getElementById("detailDistance");
+    const detailPrice = document.getElementById("detailPrice");
+    const detailImage = document.getElementById("detailImage");
+    const detailMeta = document.getElementById("detailMeta");
+    const detailButton = document.getElementById("detailButton");
+
+    const baseMaps = {
+      dark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+      }),
+      streets: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+      }),
+      satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        attribution: "Tiles &copy; Esri"
+      }),
+      light: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+      })
+    };
+
+    function setBasemap(type) {
+      if (!map) return;
+      if (currentBaseLayer) map.removeLayer(currentBaseLayer);
+      currentBaseLayer = baseMaps[type];
+      currentBaseLayer.addTo(map);
+    }
+
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function createIcon(category) {
+      const cfg = categories[category];
+      return L.divIcon({
+        className: "custom-div-icon",
+        html: `<div class="marker-wrap" style="background:${cfg.color};"><i class="${cfg.icon}"></i></div>`,
+        iconSize: [42, 48],
+        iconAnchor: [21, 42],
+        popupAnchor: [0, -36]
+      });
+    }
+
+    function updateRadiusCircle(radiusValue) {
+      if (!map) return;
+      const radius = Number(radiusValue);
+      if (radiusCircle) map.removeLayer(radiusCircle);
+
+      radiusCircle = L.circle(upnLatLng, {
+        radius: radius,
+        color: "#ff8a1d",
+        weight: 2,
+        fillColor: "#ff8a1d",
+        fillOpacity: 0.08
+      }).addTo(map);
+
+      const radiusText = radius === 4000 ? "< 5 km" : `${radius / 1000} km`;
+      legendText.textContent = `Radius aktif: ${radiusText} dari Rektorat UPN`;
+    }
+
+    function clearRoute() {
+      if (routeControl) {
+        map.removeControl(routeControl);
+        routeControl = null;
+      }
+    }
+
+    function drawRouteTo(place) {
+      if (!map || !place) return;
+      clearRoute();
+
+      routeControl = L.Routing.control({
+        waypoints: [
+          L.latLng(upnLatLng[0], upnLatLng[1]),
+          L.latLng(place.lat, place.lng)
+        ],
+        routeWhileDragging: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        show: false,
+        createMarker: function() { return null; },
+        lineOptions: {
+          styles: [
+            { color: "#ff8a1d", opacity: 0.95, weight: 5 },
+            { color: "#ffd1a6", opacity: 0.55, weight: 8 }
+          ]
+        }
+      }).addTo(map);
+    }
+
+    function updateDetail(place) {
+      infoPanel.classList.remove("hidden");
+      openInfoPanel.classList.add("hidden");
+
+      const dist = distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng);
+      selectedPlace = place;
+      detailTitle.textContent = place.name;
+      detailDistance.textContent = `(${Math.round(dist * 1000)} m)`;
+      detailPrice.textContent = place.price;
+      detailImage.src = place.image;
+      detailButton.textContent = place.detailLabel;
+
+      detailMeta.innerHTML = `
+        <div>📍 ${place.address}</div>
+        <div>🕒 ${place.open}</div>
+        <div>☎️ ${place.contact}</div>
+        ${place.cheap ? "<div>💸 Murah</div>" : ""}
+        ${place.nearCampus ? "<div>📍 Dekat Kampus</div>" : ""}
+      `;
+
+      if (state.networkOn) {
+        drawRouteTo(place);
+      }
+    }
+
+    function filteredPlaces() {
+      const radius = Number(radiusSelect.value);
+
+      return places.filter(place => {
+        const matchSearch =
+          !state.search ||
+          place.name.toLowerCase().includes(state.search) ||
+          place.address.toLowerCase().includes(state.search);
+
+        const matchCategory = state.emergencyOnly
+          ? place.category === "emergency"
+          : state.categories.has(place.category) || place.category === "emergency";
+
+        const matchCheap = !state.cheap || place.cheap;
+        const match24 = !state.open24 || place.open24;
+        const matchNear = !state.nearCampus || place.nearCampus;
+
+        const distMeters = distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000;
+        const matchRadius = distMeters <= radius;
+
+        return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+      });
+    }
+
+    function renderMarkers() {
+      Object.values(layers).forEach(layer => layer.clearLayers());
+
+      const visiblePlaces = filteredPlaces();
+
+      visiblePlaces.forEach(place => {
+        const marker = L.marker([place.lat, place.lng], {
+          icon: createIcon(place.category)
+        })
+          .bindPopup(`<b>${place.name}</b><br>${place.address}<br>${place.price}`)
+          .on("click", () => updateDetail(place));
+
+        layers[place.category].addLayer(marker);
+      });
+
+      if (visiblePlaces.length > 0) {
+        updateDetail(visiblePlaces[0]);
+      } else {
+        detailTitle.textContent = "Tidak ada data";
+        detailDistance.textContent = "";
+        detailPrice.textContent = "Coba ubah filter atau radius";
+        detailMeta.innerHTML = `<div>Data tidak ditemukan pada radius/filter aktif.</div>`;
+        clearRoute();
+      }
+
+      document.getElementById("emergencyCount").textContent =
+        places.filter(p => p.category === "emergency").length;
+    }
+
+    function renderFilterList() {
+      const filterList = document.getElementById("filterList");
+      const keys = ["kost", "makan", "laundry", "print", "minimarket", "atm", "apotek"];
+
+      filterList.innerHTML = keys.map(key => {
+        const cfg = categories[key];
+        const count = places.filter(p => p.category === key).length;
+        const active = state.categories.has(key) ? "active" : "";
+
+        return `
+          <div class="filter-item ${active}" data-category="${key}">
+            <div class="filter-left">
+              <div class="cat-icon" style="background:${cfg.color};"><i class="${cfg.icon}"></i></div>
+              <div class="cat-label">${cfg.label}<span class="cat-count">(${count})</span></div>
+            </div>
+            <div class="check">✓</div>
+          </div>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".filter-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const key = item.dataset.category;
+          if (state.categories.has(key)) {
+            state.categories.delete(key);
+          } else {
+            state.categories.add(key);
+          }
+          renderFilterList();
+          renderMarkers();
+        });
+      });
+    }
+
+    function syncChips() {
+      document.querySelectorAll("[data-chip]").forEach(btn => {
+        const key = btn.dataset.chip;
+        const active =
+          (key === "murah" && state.cheap) ||
+          (key === "24jam" && state.open24) ||
+          (key === "dekat" && state.nearCampus) ||
+          (key === "emergency" && state.emergencyOnly) ||
+          (key === "network" && state.networkOn);
+
+        btn.classList.toggle("active", active);
+      });
+    }
+
+    function syncPanelPositions() {
+      const topOpen = !topControls.classList.contains("collapsed");
+      const leftOpen = !leftPanel.classList.contains("collapsed");
+
+      if (topOpen && leftOpen) {
+        leftPanel.classList.add("shifted");
+      } else {
+        leftPanel.classList.remove("shifted");
+      }
+    }
+
+    function initRevealAnimations() {
+      const items = document.querySelectorAll(".reveal, .reveal-left, .reveal-right");
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+          }
+        });
+      }, {
+        threshold: 0.12
+      });
+
+      items.forEach(item => observer.observe(item));
+    }
+
+    function initMap() {
+      if (mapInitialized) return;
+
+      map = L.map("map", { zoomControl: false }).setView(upnLatLng, 15);
+      L.control.zoom({ position: "topright" }).addTo(map);
+
+      setBasemap("dark");
+      updateRadiusCircle(radiusSelect.value);
+
+      L.marker(upnLatLng, {
+        icon: L.divIcon({
+          className: "custom-div-icon",
+          html: '<div class="marker-wrap" style="background:#ff6a00;"><i class="fa-solid fa-building-columns"></i></div>',
+          iconSize: [42, 48],
+          iconAnchor: [21, 42]
+        })
+      }).addTo(map).bindPopup("<b>Rektorat UPN Jogja</b>");
+
+      Object.keys(categories).forEach(key => {
+        layers[key] = L.layerGroup().addTo(map);
+      });
+
+      renderFilterList();
+      syncChips();
+      renderMarkers();
+      syncPanelPositions();
+
+      basemapSelect.addEventListener("change", function () {
+        setBasemap(this.value);
+      });
+
+      radiusSelect.addEventListener("change", function () {
+        updateRadiusCircle(this.value);
+        renderMarkers();
+      });
+
+      mapInitialized = true;
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+    }
+
+    function openMapPage() {
+      landingPage.classList.add("hidden");
+      mapPage.classList.remove("hidden");
+      initMap();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    enterMapBtn.addEventListener("click", openMapPage);
+    enterMapBtnBottom.addEventListener("click", openMapPage);
+
+    backHomeBtn.addEventListener("click", () => {
+      mapPage.classList.add("hidden");
+      landingPage.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    toggleTopPanel.addEventListener("click", () => {
+      topControls.classList.toggle("collapsed");
+      syncPanelPositions();
+    });
+
+    toggleLeftPanel.addEventListener("click", () => {
+      leftPanel.classList.toggle("collapsed");
+      syncPanelPositions();
+    });
+
+    closeInfoPanel.addEventListener("click", () => {
+      infoPanel.classList.add("hidden");
+      openInfoPanel.classList.remove("hidden");
+    });
+
+    openInfoPanel.addEventListener("click", () => {
+      infoPanel.classList.remove("hidden");
+      openInfoPanel.classList.add("hidden");
+    });
+
+    document.querySelectorAll("[data-chip]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.chip;
+
+        if (key === "murah") state.cheap = !state.cheap;
+        if (key === "24jam") state.open24 = !state.open24;
+        if (key === "dekat") state.nearCampus = !state.nearCampus;
+        if (key === "emergency") state.emergencyOnly = !state.emergencyOnly;
+        if (key === "network") {
+          state.networkOn = !state.networkOn;
+          if (!state.networkOn) {
+            clearRoute();
+          } else if (selectedPlace) {
+            drawRouteTo(selectedPlace);
+          }
+        }
+
+        syncChips();
+        renderMarkers();
+      });
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      state.categories = new Set(["kost", "makan", "laundry", "print", "minimarket", "atm", "apotek"]);
+      state.cheap = false;
+      state.open24 = false;
+      state.nearCampus = false;
+      state.emergencyOnly = false;
+      state.networkOn = false;
+      state.search = "";
+      document.getElementById("searchInput").value = "";
+      basemapSelect.value = "dark";
+      radiusSelect.value = "5000";
+      setBasemap("dark");
+      updateRadiusCircle("5000");
+      clearRoute();
+      renderFilterList();
+      syncChips();
+      renderMarkers();
+      map.setView(upnLatLng, 15);
+      infoPanel.classList.remove("hidden");
+      openInfoPanel.classList.add("hidden");
+      syncPanelPositions();
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      state.search = document.getElementById("searchInput").value.trim().toLowerCase();
+      renderMarkers();
+    });
+
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        state.search = document.getElementById("searchInput").value.trim().toLowerCase();
+        renderMarkers();
+      }
+    });
+
+    routeButton.addEventListener("click", () => {
+      if (selectedPlace) {
+        state.networkOn = true;
+        syncChips();
+        drawRouteTo(selectedPlace);
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initRevealAnimations();
+    });
+  </script>
+</body>
+</html>
