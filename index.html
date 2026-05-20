@@ -2147,7 +2147,2018 @@
         height:380px;
       }
     }
-  </style>
+
+/* THEME + BASEMAP ADAPTIVE UI - CLEAN VERSION */
+.theme-toggle-btn{
+  min-width:132px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+/* DEFAULT DARK */
+body.theme-dark,
+body.force-dark,
+body.basemap-dark,
+body.basemap-satellite{
+  --panel-bg:rgba(7, 18, 42, .88);
+  --panel-bg-2:rgba(10, 31, 68, .84);
+  --panel-text:#ffffff;
+  --panel-muted:rgba(255,255,255,.78);
+  --panel-border:rgba(255,255,255,.16);
+  --control-bg:rgba(8, 22, 50, .88);
+  --control-text:#ffffff;
+  --control-border:rgba(255,255,255,.16);
+  --meta-bg:rgba(255,255,255,.08);
+  --chip-bg:rgba(47,128,237,.18);
+  --chip-text:#ffffff;
+  --map-content-bg:linear-gradient(180deg, rgba(7,18,42,.96), rgba(12,32,68,.92));
+}
+
+/* CLEAN LIGHT */
+body.theme-light,
+body.force-light,
+body.basemap-streets,
+body.basemap-light{
+  --panel-bg:rgba(255,255,255,.88);
+  --panel-bg-2:rgba(255,255,255,.78);
+  --panel-text:#10213b;
+  --panel-muted:#5f6f87;
+  --panel-border:rgba(16,33,59,.13);
+  --control-bg:rgba(255,255,255,.88);
+  --control-text:#10213b;
+  --control-border:rgba(16,33,59,.12);
+  --meta-bg:rgba(248,250,252,.72);
+  --chip-bg:rgba(230,239,252,.82);
+  --chip-text:#10213b;
+  --map-content-bg:linear-gradient(180deg, rgba(241,245,249,.86), rgba(226,232,240,.78));
+}
+
+/* Force mode menang dari basemap */
+body.force-dark{
+  --panel-bg:rgba(7, 18, 42, .88);
+  --panel-bg-2:rgba(10, 31, 68, .84);
+  --panel-text:#ffffff;
+  --panel-muted:rgba(255,255,255,.78);
+  --panel-border:rgba(255,255,255,.16);
+  --control-bg:rgba(8, 22, 50, .88);
+  --control-text:#ffffff;
+  --control-border:rgba(255,255,255,.16);
+  --meta-bg:rgba(255,255,255,.08);
+  --chip-bg:rgba(47,128,237,.18);
+  --chip-text:#ffffff;
+}
+
+body.force-light{
+  --panel-bg:rgba(255,255,255,.88);
+  --panel-bg-2:rgba(255,255,255,.78);
+  --panel-text:#10213b;
+  --panel-muted:#5f6f87;
+  --panel-border:rgba(16,33,59,.13);
+  --control-bg:rgba(255,255,255,.88);
+  --control-text:#10213b;
+  --control-border:rgba(16,33,59,.12);
+  --meta-bg:rgba(248,250,252,.72);
+  --chip-bg:rgba(230,239,252,.82);
+  --chip-text:#10213b;
+}
+
+/* Shell */
+.content{
+  background:var(--map-content-bg) !important;
+}
+
+/* Panel */
+.left-panel,
+.right-panel{
+  background:linear-gradient(180deg, var(--panel-bg), var(--panel-bg-2)) !important;
+  color:var(--panel-text) !important;
+  border:1px solid var(--panel-border) !important;
+  box-shadow:0 22px 58px rgba(15,23,42,.22) !important;
+}
+
+.right-panel{
+  backdrop-filter:blur(22px) saturate(1.15) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.15) !important;
+}
+
+.left-panel{
+  backdrop-filter:blur(22px) saturate(1.12) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.12) !important;
+}
+
+/* Header panel */
+.panel-title{
+  background:transparent !important;
+  color:var(--panel-text) !important;
+  border-bottom:1px solid var(--panel-border);
+}
+
+/* Filter item clean */
+.filter-item{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid var(--panel-border) !important;
+  margin-bottom:9px;
+  box-shadow:none !important;
+}
+
+body.force-light .filter-item,
+body.theme-light .filter-item,
+body.basemap-streets .filter-item,
+body.basemap-light .filter-item{
+  background:rgba(248,250,252,.78) !important;
+}
+
+.filter-item:hover{
+  background:rgba(47,128,237,.12) !important;
+}
+
+/* Text */
+.cat-label,
+.right-header h3,
+.place-title,
+.meta,
+.meta div{
+  color:var(--panel-text) !important;
+}
+
+.distance{
+  color:var(--panel-muted) !important;
+}
+
+.cat-count{
+  color:var(--panel-muted) !important;
+}
+
+/* Price badge */
+.price{
+  color:#ff6a00 !important;
+  background:rgba(255,106,0,.10) !important;
+  border:1px solid rgba(255,106,0,.24) !important;
+  padding:9px 13px;
+  border-radius:14px;
+  display:inline-block;
+}
+
+/* Detail meta cards */
+.meta div{
+  background:var(--meta-bg) !important;
+  border:1px solid var(--panel-border) !important;
+  border-radius:12px !important;
+  padding:8px 10px !important;
+  line-height:1.45;
+}
+
+/* Control atas */
+.toggle-btn,
+.search-btn,
+.back-btn,
+.top-select,
+.search-box,
+.legend-text,
+#openInfoPanel{
+  background:var(--control-bg) !important;
+  color:var(--control-text) !important;
+  border:1px solid var(--control-border) !important;
+  box-shadow:0 10px 28px rgba(15,23,42,.16) !important;
+}
+
+.toggle-btn:hover,
+.search-btn:hover,
+.back-btn:hover,
+.top-select:hover,
+#openInfoPanel:hover{
+  transform:translateY(-2px);
+  background:rgba(47,128,237,.14) !important;
+}
+
+.search-box input{
+  color:var(--control-text) !important;
+}
+
+.search-box input::placeholder{
+  color:var(--panel-muted) !important;
+}
+
+.top-select option{
+  color:#10213b !important;
+  background:#ffffff !important;
+}
+
+/* Chip biar gak kelihatan disabled */
+.chip{
+  background:var(--chip-bg) !important;
+  color:var(--chip-text) !important;
+  border:1px solid var(--panel-border) !important;
+  opacity:1 !important;
+}
+
+.chip:hover{
+  background:rgba(47,128,237,.20) !important;
+}
+
+.chip.active{
+  background:linear-gradient(135deg, rgba(47,128,237,.92), rgba(99,176,255,.86)) !important;
+  color:#ffffff !important;
+  border-color:rgba(47,128,237,.35) !important;
+}
+
+.chip.emergency{
+  background:rgba(228,95,95,.14) !important;
+  color:var(--panel-text) !important;
+}
+
+.chip.emergency.active{
+  background:linear-gradient(135deg, #e45f5f, #c94b47) !important;
+  color:#ffffff !important;
+}
+
+/* Close button */
+.close-btn{
+  background:rgba(15,23,42,.06) !important;
+  color:var(--panel-text) !important;
+  border:1px solid var(--panel-border) !important;
+}
+
+body.force-dark .close-btn,
+body.theme-dark .close-btn,
+body.basemap-dark .close-btn,
+body.basemap-satellite .close-btn{
+  background:rgba(255,255,255,.10) !important;
+}
+
+/* Tombol action tetap tegas */
+.detail-btn{
+  background:linear-gradient(135deg, #ff6a00, #ff8a1d) !important;
+  color:#fff !important;
+}
+
+.route-btn{
+  background:linear-gradient(135deg, #63b0ff, #2f80ed) !important;
+  color:#fff !important;
+}
+
+/* Landing dark/light */
+body.force-light .landing,
+body.theme-light .landing{
+  background:#f8fafc !important;
+}
+
+body.force-dark .landing,
+body.theme-dark .landing{
+  background:#0f172a !important;
+}
+
+body.force-dark .section-light,
+body.theme-dark .section-light{
+  background:#111827 !important;
+}
+
+body.force-dark .section-soft,
+body.theme-dark .section-soft{
+  background:#172033 !important;
+}
+
+body.force-dark .about-card,
+body.force-dark .feature-tile,
+body.force-dark .team-photo-wrap,
+body.theme-dark .about-card,
+body.theme-dark .feature-tile,
+body.theme-dark .team-photo-wrap{
+  background:#1e293b !important;
+  color:#ffffff !important;
+}
+
+body.force-dark .about-card h3,
+body.force-dark .feature-tile h4,
+body.force-dark .section-title,
+body.force-dark .team-photo-wrap h3,
+body.theme-dark .about-card h3,
+body.theme-dark .feature-tile h4,
+body.theme-dark .section-title,
+body.theme-dark .team-photo-wrap h3{
+  color:#ffffff !important;
+}
+
+body.force-dark .about-card p,
+body.force-dark .feature-tile p,
+body.force-dark .section-subtitle,
+body.theme-dark .about-card p,
+body.theme-dark .feature-tile p,
+body.theme-dark .section-subtitle{
+  color:#cbd5e1 !important;
+}
+
+/* ROUTE PLANNER ALA MAPS */
+.route-planner{
+  width:min(760px, calc(100% - 24px));
+  position:absolute;
+  top:126px;
+  left:12px;
+  z-index:1002;
+  display:grid;
+  grid-template-columns:1fr 1fr auto auto;
+  gap:10px;
+  padding:10px;
+  border-radius:18px;
+  background:var(--control-bg, rgba(8,22,50,.88));
+  border:1px solid var(--control-border, rgba(255,255,255,.16));
+  box-shadow:0 14px 36px rgba(15,23,42,.20);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  opacity:1;
+  transform:translateY(0);
+  transition:.25s ease;
+}
+
+.route-planner.hidden-route{
+  opacity:0;
+  transform:translateY(-10px);
+  pointer-events:none;
+}
+
+.route-field{
+  min-width:180px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid var(--control-border, rgba(255,255,255,.16));
+  background:rgba(255,255,255,.08);
+  color:var(--control-text, #fff);
+  padding:0 12px;
+  font-size:12px;
+  font-weight:800;
+  outline:none;
+}
+
+.route-field option{
+  color:#10213b;
+  background:#ffffff;
+}
+
+.route-mini-btn{
+  height:44px;
+  min-width:46px;
+  padding:0 14px;
+  border:none;
+  border-radius:14px;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  transition:.25s ease;
+}
+
+.route-mini-btn.primary{
+  background:linear-gradient(135deg, #2f80ed, #63b0ff);
+  box-shadow:0 10px 24px rgba(47,128,237,.24);
+}
+
+.route-mini-btn.clear{
+  background:rgba(228,95,95,.88);
+  box-shadow:0 10px 24px rgba(228,95,95,.18);
+}
+
+.route-mini-btn:hover{
+  transform:translateY(-2px);
+}
+
+.route-hint{
+  grid-column:1 / -1;
+  color:var(--panel-muted, rgba(255,255,255,.72));
+  font-size:11px;
+  font-weight:700;
+  line-height:1.35;
+  padding:0 2px;
+}
+
+body.force-light .route-field,
+body.theme-light .route-field,
+body.basemap-streets .route-field,
+body.basemap-light .route-field{
+  background:rgba(248,250,252,.82);
+  color:#10213b;
+}
+
+.origin-marker-wrap{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:16px;
+  background:linear-gradient(135deg, #ff6a00, #ff8a1d);
+  border:3px solid rgba(255,255,255,.95);
+  box-shadow:0 12px 28px rgba(0,0,0,.30);
+}
+
+@media (max-width:900px){
+  .route-planner{
+    position:static;
+    width:100%;
+    grid-template-columns:1fr;
+    margin-bottom:10px;
+  }
+
+  .route-planner.hidden-route{
+    display:none;
+  }
+
+  .route-field,
+  .route-mini-btn{
+    width:100%;
+  }
+}
+
+/* DASHBOARD INSIGHTS ala Dribbble */
+.dashboard-toggle-btn{
+  min-width:116px;
+}
+
+.insight-dashboard{
+  position:absolute;
+  top:126px;
+  left:12px;
+  z-index:1002;
+  width:min(760px, calc(100% - 24px));
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:12px;
+  transition:.25s ease;
+}
+
+.insight-dashboard.hidden-dashboard{
+  opacity:0;
+  transform:translateY(-12px) scale(.98);
+  pointer-events:none;
+}
+
+.insight-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:24px;
+  border:1px solid var(--panel-border, rgba(255,255,255,.16));
+  background:
+    radial-gradient(circle at 10% 10%, rgba(99,176,255,.22), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(255,106,0,.18), transparent 28%),
+    linear-gradient(145deg, var(--panel-bg, rgba(7,18,42,.90)), var(--panel-bg-2, rgba(10,31,68,.84)));
+  box-shadow:0 24px 70px rgba(15,23,42,.28);
+  backdrop-filter:blur(24px) saturate(1.18);
+  -webkit-backdrop-filter:blur(24px) saturate(1.18);
+  color:var(--panel-text, #fff);
+}
+
+.insight-card::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background:linear-gradient(135deg, rgba(255,255,255,.20), transparent 35%, rgba(255,106,0,.12));
+  pointer-events:none;
+}
+
+.insight-main{
+  min-height:220px;
+  padding:18px;
+}
+
+.insight-side{
+  padding:16px;
+  min-height:220px;
+}
+
+.insight-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  position:relative;
+  z-index:2;
+  margin-bottom:16px;
+}
+
+.insight-kicker{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.9px;
+  text-transform:uppercase;
+  color:var(--panel-muted, rgba(255,255,255,.72));
+  margin-bottom:5px;
+}
+
+.insight-title{
+  font-size:22px;
+  line-height:1.05;
+  font-weight:950;
+  letter-spacing:-.5px;
+}
+
+.insight-pill{
+  min-width:78px;
+  min-height:34px;
+  padding:8px 11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border-radius:999px;
+  background:rgba(48,181,109,.14);
+  color:#30b56d;
+  border:1px solid rgba(48,181,109,.24);
+  font-size:11px;
+  font-weight:950;
+  white-space:nowrap;
+}
+
+.insight-grid{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+}
+
+.metric-tile{
+  min-height:106px;
+  padding:13px;
+  border-radius:20px;
+  background:rgba(255,255,255,.10);
+  border:1px solid var(--panel-border, rgba(255,255,255,.14));
+  transition:.25s ease;
+}
+
+.metric-tile:hover{
+  transform:translateY(-4px);
+  background:rgba(255,255,255,.15);
+}
+
+.metric-icon{
+  width:34px;
+  height:34px;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:14px;
+  margin-bottom:12px;
+  box-shadow:0 12px 24px rgba(0,0,0,.18);
+}
+
+.metric-icon.blue{background:linear-gradient(135deg, #2f80ed, #63b0ff);}
+.metric-icon.orange{background:linear-gradient(135deg, #ff6a00, #ff8a1d);}
+.metric-icon.green{background:linear-gradient(135deg, #20b486, #69e5b2);}
+.metric-icon.red{background:linear-gradient(135deg, #e45f5f, #c94b47);}
+
+.metric-value{
+  font-size:26px;
+  font-weight:950;
+  letter-spacing:-.8px;
+  line-height:1;
+  color:var(--panel-text, #fff);
+}
+
+.metric-label{
+  margin-top:6px;
+  font-size:11px;
+  line-height:1.35;
+  color:var(--panel-muted, rgba(255,255,255,.72));
+  font-weight:800;
+}
+
+.category-bars{
+  position:relative;
+  z-index:2;
+  display:grid;
+  gap:13px;
+}
+
+.bar-row{
+  display:grid;
+  gap:7px;
+}
+
+.bar-label{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:12px;
+  font-weight:900;
+  color:var(--panel-text, #fff);
+}
+
+.bar-track{
+  width:100%;
+  height:10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  overflow:hidden;
+  border:1px solid var(--panel-border, rgba(255,255,255,.12));
+}
+
+.bar-fill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  transition:width .6s ease;
+}
+
+.bar-fill.laundry{background:linear-gradient(90deg, #2f80ed, #63b0ff);}
+.bar-fill.minimarket{background:linear-gradient(90deg, #24a8c8, #7dd3fc);}
+.bar-fill.emergency{background:linear-gradient(90deg, #e45f5f, #ff9b9b);}
+
+.insight-footer{
+  position:relative;
+  z-index:2;
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  align-items:center;
+}
+
+.insight-note{
+  font-size:11px;
+  font-weight:800;
+  color:var(--panel-muted, rgba(255,255,255,.72));
+  line-height:1.45;
+}
+
+.insight-action{
+  min-height:38px;
+  padding:9px 13px;
+  border:none;
+  border-radius:14px;
+  color:#fff;
+  background:linear-gradient(135deg, #ff6a00, #ff8a1d);
+  font-size:11px;
+  font-weight:950;
+  cursor:pointer;
+  box-shadow:0 10px 22px rgba(255,106,0,.22);
+  transition:.25s ease;
+  white-space:nowrap;
+}
+
+.insight-action:hover{
+  transform:translateY(-2px);
+}
+
+body.force-light .metric-tile,
+body.theme-light .metric-tile,
+body.basemap-streets .metric-tile,
+body.basemap-light .metric-tile{
+  background:rgba(255,255,255,.70);
+}
+
+body.force-light .bar-track,
+body.theme-light .bar-track,
+body.basemap-streets .bar-track,
+body.basemap-light .bar-track{
+  background:rgba(15,23,42,.08);
+}
+
+body.force-light .insight-card,
+body.theme-light .insight-card,
+body.basemap-streets .insight-card,
+body.basemap-light .insight-card{
+  box-shadow:0 24px 70px rgba(15,23,42,.16);
+}
+
+@media (max-width:1180px){
+  .insight-dashboard{
+    width:min(680px, calc(100% - 24px));
+  }
+
+  .insight-grid{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media (max-width:900px){
+  .insight-dashboard{
+    position:static;
+    width:100%;
+    grid-template-columns:1fr;
+    margin-bottom:10px;
+  }
+
+  .insight-dashboard.hidden-dashboard{
+    display:none;
+  }
+
+  .insight-grid{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media (max-width:600px){
+  .insight-grid{
+    grid-template-columns:1fr;
+  }
+
+  .insight-footer{
+    grid-template-columns:1fr;
+  }
+
+  .insight-action{
+    width:100%;
+  }
+}
+
+
+/* ENERGY INTENSITY INDEX STYLE - STUDENT SURVIVAL VERSION */
+.insight-dashboard.energy-index-mode{
+  width:min(980px, calc(100% - 24px));
+  grid-template-columns:1.15fr .85fr;
+  gap:14px;
+}
+
+.energy-index-mode .insight-card{
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(99,176,255,.22), transparent 22%),
+    radial-gradient(circle at 83% 8%, rgba(255,106,0,.20), transparent 28%),
+    radial-gradient(circle at 55% 95%, rgba(48,181,109,.18), transparent 26%),
+    linear-gradient(145deg, rgba(6,16,37,.92), rgba(10,31,68,.88));
+  border:1px solid rgba(255,255,255,.16);
+}
+
+.energy-index-hero{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:220px 1fr;
+  gap:18px;
+  align-items:center;
+}
+
+.energy-gauge{
+  --score:74;
+  width:208px;
+  height:208px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  position:relative;
+  background:
+    conic-gradient(from 220deg, #ff6a00 0 calc(var(--score) * 1%), rgba(255,255,255,.10) 0 100%);
+  box-shadow:inset 0 0 38px rgba(0,0,0,.25), 0 22px 50px rgba(0,0,0,.20);
+}
+
+.energy-gauge::before{
+  content:"";
+  position:absolute;
+  inset:18px;
+  border-radius:50%;
+  background:linear-gradient(145deg, rgba(9,24,54,.98), rgba(13,39,81,.96));
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.energy-gauge::after{
+  content:"";
+  position:absolute;
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(99,176,255,.18), transparent 70%);
+  filter:blur(2px);
+}
+
+.gauge-content{
+  position:relative;
+  z-index:2;
+  text-align:center;
+  color:#fff;
+}
+
+.gauge-value{
+  font-size:54px;
+  font-weight:1000;
+  letter-spacing:-2px;
+  line-height:.92;
+}
+
+.gauge-label{
+  margin-top:6px;
+  font-size:11px;
+  font-weight:950;
+  text-transform:uppercase;
+  letter-spacing:.9px;
+  color:rgba(255,255,255,.70);
+}
+
+.energy-summary{
+  min-width:0;
+}
+
+.energy-summary-title{
+  font-size:34px;
+  line-height:1.02;
+  font-weight:1000;
+  letter-spacing:-1.1px;
+  color:#fff;
+  margin-bottom:10px;
+}
+
+.energy-summary-desc{
+  color:rgba(255,255,255,.74);
+  font-size:12px;
+  font-weight:750;
+  line-height:1.55;
+  max-width:460px;
+}
+
+.energy-stat-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:16px;
+}
+
+.energy-mini-stat{
+  padding:13px;
+  border-radius:20px;
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.energy-mini-stat b{
+  display:block;
+  color:#fff;
+  font-size:22px;
+  font-weight:1000;
+  letter-spacing:-.7px;
+}
+
+.energy-mini-stat span{
+  display:block;
+  color:rgba(255,255,255,.64);
+  font-size:10px;
+  font-weight:900;
+  margin-top:5px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.index-visual-row{
+  position:relative;
+  z-index:2;
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:12px;
+}
+
+.intensity-bars-card,
+.category-donut-card{
+  border-radius:24px;
+  background:rgba(255,255,255,.075);
+  border:1px solid rgba(255,255,255,.12);
+  padding:14px;
+}
+
+.visual-card-title{
+  color:#fff;
+  font-size:13px;
+  font-weight:950;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.visual-card-title small{
+  color:rgba(255,255,255,.62);
+  font-size:10px;
+  font-weight:850;
+}
+
+.intensity-chart{
+  height:126px;
+  display:grid;
+  grid-template-columns:repeat(12, 1fr);
+  align-items:end;
+  gap:7px;
+}
+
+.intensity-bar{
+  min-height:14px;
+  border-radius:999px 999px 8px 8px;
+  background:linear-gradient(180deg, #63b0ff, #2f80ed);
+  box-shadow:0 8px 22px rgba(47,128,237,.25);
+  opacity:.92;
+}
+
+.intensity-bar.hot{
+  background:linear-gradient(180deg, #ffbd73, #ff6a00);
+  box-shadow:0 8px 22px rgba(255,106,0,.24);
+}
+
+.category-donut-wrap{
+  display:grid;
+  grid-template-columns:110px 1fr;
+  gap:12px;
+  align-items:center;
+}
+
+.category-donut{
+  --laundry:35%;
+  --minimarket:65%;
+  width:110px;
+  height:110px;
+  border-radius:50%;
+  background:conic-gradient(#2f80ed 0 30%, #24a8c8 30% 60%, #f59e0b 60% 82%, #e45f5f 82% 100%);
+  position:relative;
+  box-shadow:inset 0 0 22px rgba(0,0,0,.22);
+}
+
+.category-donut::after{
+  content:"";
+  position:absolute;
+  inset:24px;
+  border-radius:50%;
+  background:rgba(8,22,50,.96);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.donut-legend{
+  display:grid;
+  gap:8px;
+}
+
+.donut-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  color:rgba(255,255,255,.74);
+  font-size:11px;
+  font-weight:900;
+}
+
+.donut-item span:first-child{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  display:inline-block;
+}
+.dot.laundry{background:#2f80ed;}
+.dot.minimarket{background:#24a8c8;}
+.dot.emergency{background:#e45f5f;}
+
+.energy-side-panel{
+  display:grid;
+  gap:12px;
+}
+
+.energy-rank-card{
+  position:relative;
+  z-index:2;
+  border-radius:24px;
+  background:rgba(255,255,255,.075);
+  border:1px solid rgba(255,255,255,.12);
+  padding:14px;
+}
+
+.rank-list{
+  display:grid;
+  gap:9px;
+}
+
+.rank-item{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:9px;
+  align-items:center;
+  padding:10px;
+  border-radius:17px;
+  background:rgba(255,255,255,.075);
+  border:1px solid rgba(255,255,255,.10);
+}
+
+.rank-no{
+  width:28px;
+  height:28px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:linear-gradient(135deg,#ff6a00,#ff8a1d);
+  font-size:11px;
+  font-weight:1000;
+}
+
+.rank-name{
+  min-width:0;
+  color:#fff;
+  font-size:12px;
+  font-weight:950;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.rank-cat{
+  color:rgba(255,255,255,.58);
+  font-size:10px;
+  font-weight:850;
+  margin-top:2px;
+}
+
+.rank-dist{
+  color:#ffbd73;
+  font-size:11px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+
+.energy-action-row{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.energy-action{
+  min-height:42px;
+  border:none;
+  border-radius:16px;
+  color:#fff;
+  font-size:11px;
+  font-weight:1000;
+  cursor:pointer;
+  transition:.25s ease;
+}
+
+.energy-action.primary{background:linear-gradient(135deg,#ff6a00,#ff8a1d);}
+.energy-action.secondary{background:linear-gradient(135deg,#2f80ed,#63b0ff);}
+.energy-action:hover{transform:translateY(-2px);}
+
+body.force-light .energy-index-mode .insight-card,
+body.theme-light .energy-index-mode .insight-card,
+body.basemap-streets .energy-index-mode .insight-card,
+body.basemap-light .energy-index-mode .insight-card{
+  background:
+    radial-gradient(circle at 18% 12%, rgba(47,128,237,.16), transparent 22%),
+    radial-gradient(circle at 83% 8%, rgba(255,106,0,.14), transparent 28%),
+    linear-gradient(145deg, rgba(255,255,255,.94), rgba(244,248,255,.88));
+}
+
+body.force-light .energy-summary-title,
+body.force-light .visual-card-title,
+body.force-light .gauge-value,
+body.force-light .rank-name,
+body.force-light .energy-mini-stat b,
+body.theme-light .energy-summary-title,
+body.theme-light .visual-card-title,
+body.theme-light .gauge-value,
+body.theme-light .rank-name,
+body.theme-light .energy-mini-stat b,
+body.basemap-streets .energy-summary-title,
+body.basemap-streets .visual-card-title,
+body.basemap-streets .gauge-value,
+body.basemap-streets .rank-name,
+body.basemap-streets .energy-mini-stat b,
+body.basemap-light .energy-summary-title,
+body.basemap-light .visual-card-title,
+body.basemap-light .gauge-value,
+body.basemap-light .rank-name,
+body.basemap-light .energy-mini-stat b{
+  color:#10213b;
+}
+
+body.force-light .energy-summary-desc,
+body.force-light .visual-card-title small,
+body.force-light .donut-item,
+body.force-light .rank-cat,
+body.force-light .energy-mini-stat span,
+body.theme-light .energy-summary-desc,
+body.theme-light .visual-card-title small,
+body.theme-light .donut-item,
+body.theme-light .rank-cat,
+body.theme-light .energy-mini-stat span,
+body.basemap-streets .energy-summary-desc,
+body.basemap-streets .visual-card-title small,
+body.basemap-streets .donut-item,
+body.basemap-streets .rank-cat,
+body.basemap-streets .energy-mini-stat span,
+body.basemap-light .energy-summary-desc,
+body.basemap-light .visual-card-title small,
+body.basemap-light .donut-item,
+body.basemap-light .rank-cat,
+body.basemap-light .energy-mini-stat span{
+  color:#5f6f87;
+}
+
+body.force-light .energy-mini-stat,
+body.force-light .intensity-bars-card,
+body.force-light .category-donut-card,
+body.force-light .energy-rank-card,
+body.force-light .rank-item,
+body.theme-light .energy-mini-stat,
+body.theme-light .intensity-bars-card,
+body.theme-light .category-donut-card,
+body.theme-light .energy-rank-card,
+body.theme-light .rank-item,
+body.basemap-streets .energy-mini-stat,
+body.basemap-streets .intensity-bars-card,
+body.basemap-streets .category-donut-card,
+body.basemap-streets .energy-rank-card,
+body.basemap-streets .rank-item,
+body.basemap-light .energy-mini-stat,
+body.basemap-light .intensity-bars-card,
+body.basemap-light .category-donut-card,
+body.basemap-light .energy-rank-card,
+body.basemap-light .rank-item{
+  background:rgba(255,255,255,.72);
+  border-color:rgba(16,33,59,.10);
+}
+
+body.force-light .energy-gauge::before,
+body.theme-light .energy-gauge::before,
+body.basemap-streets .energy-gauge::before,
+body.basemap-light .energy-gauge::before{
+  background:linear-gradient(145deg, rgba(255,255,255,.98), rgba(239,246,255,.94));
+}
+
+body.force-light .category-donut::after,
+body.theme-light .category-donut::after,
+body.basemap-streets .category-donut::after,
+body.basemap-light .category-donut::after{
+  background:rgba(255,255,255,.96);
+}
+
+@media (max-width:1180px){
+  .insight-dashboard.energy-index-mode{width:min(860px, calc(100% - 24px));}
+  .energy-index-hero{grid-template-columns:190px 1fr;}
+  .energy-gauge{width:188px;height:188px;}
+  .energy-summary-title{font-size:30px;}
+}
+
+@media (max-width:900px){
+  .insight-dashboard.energy-index-mode{grid-template-columns:1fr;width:100%;}
+  .energy-index-hero{grid-template-columns:1fr;text-align:center;}
+  .energy-gauge{margin:auto;}
+  .energy-stat-row{grid-template-columns:1fr;}
+  .index-visual-row{grid-template-columns:1fr;}
+  .category-donut-wrap{grid-template-columns:1fr;justify-items:center;}
+}
+
+  
+
+/* DRIBBBLE-LIKE ENERGY INDEX DASHBOARD - CLEAN FLOATING MODE */
+.map-shell{
+  overflow:hidden !important;
+}
+
+.insight-dashboard.energy-index-mode{
+  top:84px !important;
+  left:228px !important;
+  right:330px !important;
+  width:auto !important;
+  max-width:none !important;
+  height:auto !important;
+  max-height:calc(100% - 108px) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  padding:0 8px 0 0 !important;
+  grid-template-columns:minmax(420px, 1.2fr) minmax(290px, .8fr) !important;
+  gap:14px !important;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.28) transparent;
+}
+
+.insight-dashboard.energy-index-mode::-webkit-scrollbar{width:7px;}
+.insight-dashboard.energy-index-mode::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.28);
+  border-radius:999px;
+}
+
+.insight-dashboard.energy-index-mode.hidden-dashboard{
+  opacity:0 !important;
+  transform:translateY(-14px) scale(.98) !important;
+  pointer-events:none !important;
+}
+
+.energy-index-mode .insight-card{
+  border-radius:28px !important;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(91,157,255,.28), transparent 24%),
+    radial-gradient(circle at 88% 5%, rgba(255,106,0,.22), transparent 27%),
+    radial-gradient(circle at 55% 100%, rgba(35,180,135,.17), transparent 29%),
+    linear-gradient(145deg, rgba(8,18,43,.94), rgba(13,31,70,.90)) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  box-shadow:0 28px 80px rgba(0,0,0,.34) !important;
+}
+
+.energy-index-mode .insight-main{
+  padding:20px !important;
+  min-height:0 !important;
+}
+
+.energy-index-mode .insight-side{
+  padding:18px !important;
+  min-height:0 !important;
+}
+
+.energy-index-hero{
+  grid-template-columns:180px minmax(0,1fr) !important;
+  gap:20px !important;
+  align-items:center !important;
+}
+
+.energy-gauge{
+  width:172px !important;
+  height:172px !important;
+  background:
+    conic-gradient(from 220deg, #ff6a00 0 calc(var(--score) * 1%), rgba(255,255,255,.11) 0 100%) !important;
+}
+
+.energy-gauge::before{
+  inset:16px !important;
+}
+
+.gauge-value{
+  font-size:48px !important;
+  letter-spacing:-1.5px !important;
+}
+
+.gauge-label{
+  font-size:10px !important;
+  letter-spacing:.8px !important;
+}
+
+.energy-summary-title{
+  font-size:32px !important;
+  line-height:1.02 !important;
+  margin-bottom:10px !important;
+}
+
+.energy-summary-desc{
+  font-size:12px !important;
+  line-height:1.6 !important;
+  max-width:520px !important;
+}
+
+.energy-stat-row{
+  grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+  gap:10px !important;
+  margin-top:16px !important;
+}
+
+.energy-mini-stat{
+  padding:13px !important;
+  border-radius:18px !important;
+  background:rgba(255,255,255,.09) !important;
+}
+
+.energy-mini-stat b{
+  font-size:23px !important;
+}
+
+.energy-mini-stat span{
+  font-size:10px !important;
+}
+
+.index-visual-row{
+  margin-top:16px !important;
+  grid-template-columns:1.1fr .9fr !important;
+  gap:12px !important;
+}
+
+.intensity-bars-card,
+.category-donut-card,
+.energy-rank-card{
+  border-radius:22px !important;
+  padding:14px !important;
+}
+
+.visual-card-title{
+  font-size:13px !important;
+  margin-bottom:12px !important;
+}
+
+.intensity-chart{
+  height:110px !important;
+  gap:6px !important;
+}
+
+.category-donut-wrap{
+  grid-template-columns:96px 1fr !important;
+  gap:12px !important;
+}
+
+.category-donut{
+  width:96px !important;
+  height:96px !important;
+}
+
+.category-donut::after{
+  inset:21px !important;
+}
+
+.rank-list{
+  gap:9px !important;
+}
+
+.rank-item{
+  padding:10px !important;
+  border-radius:17px !important;
+}
+
+.rank-no{
+  width:28px !important;
+  height:28px !important;
+}
+
+.rank-name{
+  font-size:12px !important;
+}
+
+.rank-cat,
+.rank-dist{
+  font-size:10px !important;
+}
+
+.energy-action{
+  min-height:42px !important;
+  border-radius:16px !important;
+}
+
+body.force-light .energy-index-mode .insight-card,
+body.theme-light .energy-index-mode .insight-card,
+body.basemap-streets .energy-index-mode .insight-card,
+body.basemap-light .energy-index-mode .insight-card{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(47,128,237,.18), transparent 24%),
+    radial-gradient(circle at 88% 5%, rgba(255,106,0,.14), transparent 27%),
+    linear-gradient(145deg, rgba(255,255,255,.96), rgba(241,247,255,.90)) !important;
+  box-shadow:0 28px 80px rgba(15,23,42,.18) !important;
+}
+
+body.force-light .energy-gauge::before,
+body.theme-light .energy-gauge::before,
+body.basemap-streets .energy-gauge::before,
+body.basemap-light .energy-gauge::before{
+  background:linear-gradient(145deg, rgba(255,255,255,.98), rgba(235,244,255,.95)) !important;
+}
+
+/* Auto layout biar dashboard tidak nabrak panel kanan */
+@media (max-width:1450px){
+  .insight-dashboard.energy-index-mode{
+    left:12px !important;
+    right:330px !important;
+    grid-template-columns:minmax(390px, 1fr) minmax(280px, .78fr) !important;
+  }
+  .energy-index-hero{
+    grid-template-columns:160px minmax(0,1fr) !important;
+  }
+  .energy-gauge{
+    width:154px !important;
+    height:154px !important;
+  }
+  .energy-summary-title{
+    font-size:29px !important;
+  }
+  .index-visual-row{
+    grid-template-columns:1fr !important;
+  }
+}
+
+@media (max-width:1180px){
+  .insight-dashboard.energy-index-mode{
+    top:252px !important;
+    left:12px !important;
+    right:12px !important;
+    max-height:calc(100% - 276px) !important;
+    grid-template-columns:1fr 1fr !important;
+  }
+  .right-panel{
+    width:305px !important;
+  }
+}
+
+@media (max-width:900px){
+  .map-shell{
+    overflow:visible !important;
+  }
+  .insight-dashboard.energy-index-mode{
+    position:static !important;
+    width:100% !important;
+    max-height:none !important;
+    overflow:visible !important;
+    grid-template-columns:1fr !important;
+    padding-right:0 !important;
+    margin-bottom:10px !important;
+  }
+  .insight-dashboard.energy-index-mode.hidden-dashboard{
+    display:none !important;
+  }
+  .energy-index-hero{
+    grid-template-columns:1fr !important;
+    text-align:center !important;
+  }
+  .energy-gauge{
+    margin:auto !important;
+    width:168px !important;
+    height:168px !important;
+  }
+  .energy-stat-row,
+  .index-visual-row,
+  .energy-action-row{
+    grid-template-columns:1fr !important;
+  }
+  .category-donut-wrap{
+    grid-template-columns:1fr !important;
+    justify-items:center !important;
+  }
+}
+
+
+/* MOTION MODE ala dashboard video Dribbble */
+@keyframes floatSoft{
+  0%,100%{transform:translate3d(0,0,0);}
+  50%{transform:translate3d(0,-10px,0);}
+}
+
+@keyframes floatSoftX{
+  0%,100%{transform:translate3d(0,0,0) rotate(0deg);}
+  50%{transform:translate3d(8px,-7px,0) rotate(1.5deg);}
+}
+
+@keyframes cardReveal{
+  0%{opacity:0;transform:translateY(22px) scale(.965);filter:blur(7px);}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0);}
+}
+
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 0 rgba(255,106,0,0), 0 28px 80px rgba(0,0,0,.34);}
+  50%{box-shadow:0 0 38px rgba(255,106,0,.16), 0 32px 90px rgba(0,0,0,.38);}
+}
+
+@keyframes shimmerMove{
+  0%{transform:translateX(-150%) skewX(-18deg);}
+  100%{transform:translateX(180%) skewX(-18deg);}
+}
+
+@keyframes gaugeBreath{
+  0%,100%{transform:scale(1);filter:saturate(1);}
+  50%{transform:scale(1.035);filter:saturate(1.18);}
+}
+
+@keyframes ringRotate{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+@keyframes barGrow{
+  from{transform:scaleY(.12);opacity:.45;}
+  to{transform:scaleY(1);opacity:1;}
+}
+
+@keyframes markerPulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.12);}
+}
+
+@keyframes markerHalo{
+  0%{transform:translate(-50%,-50%) scale(.72);opacity:.45;}
+  100%{transform:translate(-50%,-50%) scale(1.85);opacity:0;}
+}
+
+@keyframes liveBlink{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.64;transform:scale(.96);}
+}
+
+@keyframes driftGradient{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+.insight-dashboard.energy-index-mode{
+  perspective:1200px;
+  transform-style:preserve-3d;
+}
+
+.insight-dashboard.energy-index-mode:not(.hidden-dashboard) .insight-main{
+  animation:cardReveal .72s cubic-bezier(.2,.85,.2,1) both, glowPulse 4.5s ease-in-out infinite .8s;
+}
+
+.insight-dashboard.energy-index-mode:not(.hidden-dashboard) .insight-side{
+  animation:cardReveal .72s cubic-bezier(.2,.85,.2,1) .12s both, floatSoft 5.5s ease-in-out infinite 1s;
+}
+
+.energy-index-mode .insight-card{
+  transform-style:preserve-3d;
+  transition:transform .18s ease, box-shadow .25s ease, border-color .25s ease;
+  background-size:180% 180% !important;
+  animation:driftGradient 10s ease-in-out infinite;
+}
+
+.energy-index-mode .insight-card::after{
+  content:"";
+  position:absolute;
+  top:-35%;
+  bottom:-35%;
+  width:34%;
+  left:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+  transform:translateX(-150%) skewX(-18deg);
+  pointer-events:none;
+}
+
+.energy-index-mode .insight-card:hover::after{
+  animation:shimmerMove .95s ease;
+}
+
+.energy-gauge{
+  animation:gaugeBreath 3.6s ease-in-out infinite;
+}
+
+.energy-gauge::after{
+  animation:ringRotate 10s linear infinite;
+}
+
+.gauge-value{
+  transition:transform .25s ease, text-shadow .25s ease;
+  text-shadow:0 0 24px rgba(99,176,255,.10);
+}
+
+.energy-gauge:hover .gauge-value{
+  transform:scale(1.06);
+  text-shadow:0 0 28px rgba(255,106,0,.32);
+}
+
+.insight-pill{
+  animation:floatSoftX 4.2s ease-in-out infinite;
+}
+
+.insight-pill i{
+  animation:liveBlink 1.4s ease-in-out infinite;
+}
+
+.intensity-bar{
+  transform-origin:bottom;
+  animation:barGrow .8s cubic-bezier(.2,.85,.2,1) both;
+}
+
+.intensity-bar:nth-child(1){animation-delay:.04s;}
+.intensity-bar:nth-child(2){animation-delay:.08s;}
+.intensity-bar:nth-child(3){animation-delay:.12s;}
+.intensity-bar:nth-child(4){animation-delay:.16s;}
+.intensity-bar:nth-child(5){animation-delay:.20s;}
+.intensity-bar:nth-child(6){animation-delay:.24s;}
+.intensity-bar:nth-child(7){animation-delay:.28s;}
+.intensity-bar:nth-child(8){animation-delay:.32s;}
+.intensity-bar:nth-child(9){animation-delay:.36s;}
+.intensity-bar:nth-child(10){animation-delay:.40s;}
+.intensity-bar:nth-child(11){animation-delay:.44s;}
+.intensity-bar:nth-child(12){animation-delay:.48s;}
+
+.category-donut{
+  transition:transform .35s ease, filter .35s ease;
+}
+
+.category-donut:hover{
+  transform:rotate(8deg) scale(1.05);
+  filter:saturate(1.2);
+}
+
+.energy-mini-stat,
+.rank-item,
+.intensity-bars-card,
+.category-donut-card,
+.energy-rank-card{
+  transition:transform .22s ease, background .22s ease, border-color .22s ease;
+}
+
+.energy-mini-stat:hover,
+.rank-item:hover,
+.intensity-bars-card:hover,
+.category-donut-card:hover,
+.energy-rank-card:hover{
+  transform:translateY(-4px);
+  background:rgba(255,255,255,.13) !important;
+  border-color:rgba(255,255,255,.22) !important;
+}
+
+.rank-item{
+  animation:cardReveal .62s cubic-bezier(.2,.85,.2,1) both;
+}
+
+.rank-item:nth-child(1){animation-delay:.08s;}
+.rank-item:nth-child(2){animation-delay:.15s;}
+.rank-item:nth-child(3){animation-delay:.22s;}
+.rank-item:nth-child(4){animation-delay:.29s;}
+
+.marker-wrap{
+  animation:markerPulse 2.4s ease-in-out infinite;
+}
+
+.marker-wrap::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:42px;
+  height:42px;
+  border-radius:18px;
+  background:inherit;
+  transform:translate(-50%,-50%) scale(.72);
+  opacity:.35;
+  z-index:0;
+  animation:markerHalo 2.2s ease-out infinite;
+}
+
+.origin-marker-wrap{
+  animation:gaugeBreath 2.4s ease-in-out infinite;
+}
+
+.route-planner:not(.hidden-route),
+.top-controls:not(.collapsed),
+.left-panel:not(.collapsed),
+.right-panel:not(.hidden){
+  animation:cardReveal .42s cubic-bezier(.2,.85,.2,1) both;
+}
+
+.dashboard-toggle-btn.active{
+  background:linear-gradient(135deg, rgba(255,106,0,.92), rgba(255,138,29,.88)) !important;
+  border-color:rgba(255,255,255,.24) !important;
+  box-shadow:0 16px 34px rgba(255,106,0,.28) !important;
+}
+
+.leaflet-interactive{
+  transition:stroke-dashoffset .25s linear;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+
+/* RUMAH MAKAN CATEGORY SUPPORT */
+.dot.rumah_makan{background:#f59e0b;}
+.bar-fill.rumah_makan{background:linear-gradient(90deg, #f59e0b, #fbbf24);}
+
+
+/* TUTORIAL / PANDUAN PENGGUNA WEBGIS */
+.tutorial-toggle-btn{
+  min-width:122px;
+}
+
+.tutorial-overlay{
+  position:absolute;
+  inset:0;
+  z-index:3000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(2,8,23,.52);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  opacity:1;
+  pointer-events:auto;
+  transition:.25s ease;
+}
+
+.tutorial-overlay.hidden-tutorial{
+  opacity:0;
+  pointer-events:none;
+}
+
+.tutorial-modal{
+  width:min(980px, 100%);
+  max-height:min(720px, calc(100vh - 70px));
+  overflow:auto;
+  border-radius:30px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(99,176,255,.22), transparent 26%),
+    radial-gradient(circle at 92% 4%, rgba(255,106,0,.18), transparent 28%),
+    linear-gradient(145deg, rgba(7,18,42,.96), rgba(13,31,70,.94));
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 34px 110px rgba(0,0,0,.46);
+  padding:22px;
+  position:relative;
+  transform:translateY(0) scale(1);
+  transition:.25s ease;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.25) transparent;
+}
+
+.tutorial-overlay.hidden-tutorial .tutorial-modal{
+  transform:translateY(16px) scale(.97);
+}
+
+.tutorial-modal::-webkit-scrollbar{width:8px;}
+.tutorial-modal::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.25);
+  border-radius:999px;
+}
+
+.tutorial-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.tutorial-kicker{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#ffbd73;
+  margin-bottom:6px;
+}
+
+.tutorial-title{
+  font-size:clamp(26px, 3vw, 42px);
+  line-height:1.02;
+  font-weight:1000;
+  letter-spacing:-1px;
+}
+
+.tutorial-subtitle{
+  margin-top:10px;
+  max-width:760px;
+  color:rgba(255,255,255,.74);
+  font-size:14px;
+  font-weight:650;
+  line-height:1.7;
+}
+
+.tutorial-close{
+  width:42px;
+  height:42px;
+  flex-shrink:0;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+  background:rgba(255,255,255,.11);
+  border:1px solid rgba(255,255,255,.16);
+  color:#fff;
+  font-size:20px;
+  transition:.25s ease;
+}
+
+.tutorial-close:hover{
+  transform:rotate(90deg) scale(1.04);
+  background:rgba(255,255,255,.18);
+}
+
+.tutorial-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+}
+
+.tutorial-card{
+  min-height:170px;
+  padding:16px;
+  border-radius:22px;
+  background:rgba(255,255,255,.085);
+  border:1px solid rgba(255,255,255,.13);
+  transition:.25s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.tutorial-card:hover{
+  transform:translateY(-4px);
+  background:rgba(255,255,255,.125);
+}
+
+.tutorial-number{
+  width:38px;
+  height:38px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:14px;
+  font-weight:1000;
+  background:linear-gradient(135deg, #ff6a00, #ff8a1d);
+  box-shadow:0 12px 24px rgba(255,106,0,.20);
+  margin-bottom:12px;
+}
+
+.tutorial-card h4{
+  font-size:16px;
+  font-weight:950;
+  margin-bottom:8px;
+  line-height:1.25;
+}
+
+.tutorial-card p{
+  color:rgba(255,255,255,.72);
+  font-size:12px;
+  font-weight:650;
+  line-height:1.62;
+}
+
+.tutorial-mini{
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:12px;
+}
+
+.tutorial-tip,
+.tutorial-legend{
+  border-radius:22px;
+  padding:16px;
+  background:rgba(255,255,255,.075);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.tutorial-tip h4,
+.tutorial-legend h4{
+  font-size:15px;
+  font-weight:950;
+  margin-bottom:10px;
+}
+
+.tutorial-tip ul{
+  margin-left:18px;
+  display:grid;
+  gap:8px;
+  color:rgba(255,255,255,.74);
+  font-size:12px;
+  font-weight:650;
+  line-height:1.55;
+}
+
+.legend-mini-list{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.legend-mini-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:850;
+  color:rgba(255,255,255,.78);
+}
+
+.legend-dot{
+  width:24px;
+  height:24px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:11px;
+}
+
+.legend-dot.laundry{background:#2374d8;}
+.legend-dot.minimarket{background:#24a8c8;}
+.legend-dot.rumah_makan{background:#f59e0b;}
+.legend-dot.emergency{background:#c94b47;}
+
+.tutorial-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-top:16px;
+  flex-wrap:wrap;
+}
+
+.tutorial-dont-show{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:rgba(255,255,255,.74);
+  font-size:12px;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.tutorial-dont-show input{
+  width:16px;
+  height:16px;
+  accent-color:#ff6a00;
+}
+
+.tutorial-start-btn{
+  min-height:44px;
+  padding:10px 18px;
+  border:none;
+  border-radius:16px;
+  color:#fff;
+  background:linear-gradient(135deg,#ff6a00,#ff8a1d);
+  font-size:13px;
+  font-weight:950;
+  cursor:pointer;
+  box-shadow:0 14px 28px rgba(255,106,0,.22);
+  transition:.25s ease;
+}
+
+.tutorial-start-btn:hover{
+  transform:translateY(-2px);
+}
+
+body.force-light .tutorial-modal,
+body.theme-light .tutorial-modal,
+body.basemap-streets .tutorial-modal,
+body.basemap-light .tutorial-modal{
+  color:#10213b;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(47,128,237,.16), transparent 26%),
+    radial-gradient(circle at 92% 4%, rgba(255,106,0,.13), transparent 28%),
+    linear-gradient(145deg, rgba(255,255,255,.98), rgba(241,247,255,.94));
+  border-color:rgba(16,33,59,.12);
+  box-shadow:0 34px 110px rgba(15,23,42,.24);
+}
+
+body.force-light .tutorial-subtitle,
+body.force-light .tutorial-card p,
+body.force-light .tutorial-tip ul,
+body.force-light .tutorial-dont-show,
+body.force-light .legend-mini-item,
+body.theme-light .tutorial-subtitle,
+body.theme-light .tutorial-card p,
+body.theme-light .tutorial-tip ul,
+body.theme-light .tutorial-dont-show,
+body.theme-light .legend-mini-item,
+body.basemap-streets .tutorial-subtitle,
+body.basemap-streets .tutorial-card p,
+body.basemap-streets .tutorial-tip ul,
+body.basemap-streets .tutorial-dont-show,
+body.basemap-streets .legend-mini-item,
+body.basemap-light .tutorial-subtitle,
+body.basemap-light .tutorial-card p,
+body.basemap-light .tutorial-tip ul,
+body.basemap-light .tutorial-dont-show,
+body.basemap-light .legend-mini-item{
+  color:#5f6f87;
+}
+
+body.force-light .tutorial-card,
+body.force-light .tutorial-tip,
+body.force-light .tutorial-legend,
+body.theme-light .tutorial-card,
+body.theme-light .tutorial-tip,
+body.theme-light .tutorial-legend,
+body.basemap-streets .tutorial-card,
+body.basemap-streets .tutorial-tip,
+body.basemap-streets .tutorial-legend,
+body.basemap-light .tutorial-card,
+body.basemap-light .tutorial-tip,
+body.basemap-light .tutorial-legend{
+  background:rgba(255,255,255,.76);
+  border-color:rgba(16,33,59,.10);
+}
+
+body.force-light .tutorial-close,
+body.theme-light .tutorial-close,
+body.basemap-streets .tutorial-close,
+body.basemap-light .tutorial-close{
+  color:#10213b;
+  background:rgba(15,23,42,.06);
+  border-color:rgba(16,33,59,.12);
+}
+
+@media (max-width:900px){
+  .tutorial-overlay{
+    position:fixed;
+  }
+
+  .tutorial-grid,
+  .tutorial-mini{
+    grid-template-columns:1fr;
+  }
+
+  .legend-mini-list{
+    grid-template-columns:1fr;
+  }
+}
+
+</style>
 </head>
 <body>
   <div class="app">
@@ -2557,12 +4568,121 @@
         <section class="map-shell">
           <div class="map-overlay"></div>
 
+          <div class="tutorial-overlay hidden-tutorial" id="tutorialOverlay">
+            <div class="tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+              <div class="tutorial-header">
+                <div>
+                  <div class="tutorial-kicker">Panduan Pengguna</div>
+                  <div class="tutorial-title" id="tutorialTitle">Cara Mengoperasikan WebGIS</div>
+                  <p class="tutorial-subtitle">
+                    Gunakan panduan singkat ini untuk mencari lokasi, memakai filter, melihat informasi detail,
+                    mengganti tampilan peta, membuka dashboard insight, dan membuat rute menuju lokasi pilihan.
+                  </p>
+                </div>
+                <button class="tutorial-close" id="closeTutorialBtn" type="button" aria-label="Tutup panduan">×</button>
+              </div>
+
+              <div class="tutorial-grid">
+                <div class="tutorial-card">
+                  <div class="tutorial-number">1</div>
+                  <h4>Buka WebGIS</h4>
+                  <p>Klik tombol <b>Buka WebGIS</b> dari halaman utama untuk masuk ke tampilan peta interaktif.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">2</div>
+                  <h4>Atur Panel Atas</h4>
+                  <p>Klik tombol <b>Atas</b> untuk menampilkan pencarian, basemap, radius, dan tombol dark/light mode.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">3</div>
+                  <h4>Pakai Filter</h4>
+                  <p>Klik tombol <b>Filter</b>, lalu pilih kategori Laundry, Minimarket, Rumah Makan, atau Emergency.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">4</div>
+                  <h4>Cari Lokasi</h4>
+                  <p>Ketik nama/ID/alamat di kolom pencarian, lalu tekan <b>Enter</b> atau tombol target lokasi.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">5</div>
+                  <h4>Lihat Detail Tempat</h4>
+                  <p>Klik marker di peta. Panel kanan akan menampilkan nama, alamat, jam operasional, rating, foto, dan link Google Maps.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">6</div>
+                  <h4>Buat Rute</h4>
+                  <p>Klik <b>Lihat Rute</b>, pilih asal seperti Rektorat UPN, Lokasi Saya, atau Klik di Peta, lalu pilih tujuan.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">7</div>
+                  <h4>Ganti Basemap</h4>
+                  <p>Pilih <b>Dark, Streets, Satellite,</b> atau <b>Light</b> supaya tampilan peta menyesuaikan kebutuhan.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">8</div>
+                  <h4>Buka Insight</h4>
+                  <p>Klik tombol <b>Insight</b> untuk melihat dashboard statistik, index, ranking lokasi terdekat, dan komposisi kategori.</p>
+                </div>
+
+                <div class="tutorial-card">
+                  <div class="tutorial-number">9</div>
+                  <h4>Reset Tampilan</h4>
+                  <p>Gunakan tombol <b>Reset Filter</b> untuk mengembalikan kategori, radius, pencarian, dan rute ke pengaturan awal.</p>
+                </div>
+              </div>
+
+              <div class="tutorial-mini">
+                <div class="tutorial-tip">
+                  <h4>Tips Cepat</h4>
+                  <ul>
+                    <li>Aktifkan chip <b>Murah</b>, <b>24 Jam</b>, atau <b>Dekat Kampus</b> untuk mempersempit hasil.</li>
+                    <li>Jika lokasi kamu tidak terbaca, izinkan akses lokasi di browser saat memilih <b>Asal: Lokasi Saya</b>.</li>
+                    <li>Kalau gambar tidak muncul, cek nama file pada kolom <b>Dokumentasi</b> dan folder <b>assets/Gambar</b>.</li>
+                  </ul>
+                </div>
+
+                <div class="tutorial-legend">
+                  <h4>Legenda Kategori</h4>
+                  <div class="legend-mini-list">
+                    <div class="legend-mini-item"><span class="legend-dot laundry"><i class="fa-solid fa-shirt"></i></span> Laundry</div>
+                    <div class="legend-mini-item"><span class="legend-dot minimarket"><i class="fa-solid fa-basket-shopping"></i></span> Minimarket</div>
+                    <div class="legend-mini-item"><span class="legend-dot rumah_makan"><i class="fa-solid fa-utensils"></i></span> Rumah Makan</div>
+                    <div class="legend-mini-item"><span class="legend-dot emergency"><i class="fa-solid fa-triangle-exclamation"></i></span> Emergency</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tutorial-footer">
+                <label class="tutorial-dont-show">
+                  <input type="checkbox" id="dontShowTutorialAgain" />
+                  Jangan tampilkan otomatis lagi
+                </label>
+                <button class="tutorial-start-btn" id="startUsingWebgisBtn" type="button">
+                  <i class="fa-solid fa-check"></i> Mulai Pakai WebGIS
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="floating-actions">
             <button class="toggle-btn" id="toggleTopPanel">
               <i class="fa-solid fa-layer-group"></i> Atas
             </button>
             <button class="toggle-btn" id="toggleLeftPanel">
               <i class="fa-solid fa-filter"></i> Filter
+            </button>
+            <button class="toggle-btn dashboard-toggle-btn" id="toggleDashboard">
+              <i class="fa-solid fa-chart-simple"></i> Insight
+            </button>
+            <button class="toggle-btn tutorial-toggle-btn" id="openTutorialBtn" type="button">
+              <i class="fa-solid fa-circle-question"></i> Panduan
             </button>
           </div>
 
@@ -2595,6 +4715,187 @@
               <option value="7000">7 km</option>
               <option value="10000">10 km</option>
             </select>
+
+            <button id="themeToggle" class="top-select theme-toggle-btn" type="button" title="Ganti dark/light mode">
+              <i class="fa-solid fa-moon"></i> Dark
+            </button>
+          </div>
+
+          <div class="route-planner hidden-route" id="routePlanner">
+            <select id="originSelect" class="route-field" title="Pilih titik asal">
+              <option value="campus">Asal: Rektorat UPN</option>
+              <option value="mylocation">Asal: Lokasi Saya</option>
+              <option value="pick">Asal: Klik di Peta</option>
+            </select>
+
+            <select id="destinationSelect" class="route-field" title="Pilih tujuan">
+              <option value="">Tujuan: pilih lokasi</option>
+            </select>
+
+            <button id="routeNowBtn" class="route-mini-btn primary" type="button">
+              <i class="fa-solid fa-route"></i> Rute
+            </button>
+
+            <button id="clearRouteBtn" class="route-mini-btn clear" type="button" title="Hapus rute">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="route-hint" id="routeHint">
+              Pilih asal dan tujuan. Kalau pilih "Klik di Peta", klik titik asal di peta dulu.
+            </div>
+          </div>
+
+          <div class="insight-dashboard energy-index-mode" id="insightDashboard">
+            <div class="insight-card insight-main">
+              <div class="insight-head">
+                <div>
+                  <div class="insight-kicker">Student Survival Index</div>
+                  <div class="insight-title">Data Visualization</div>
+                </div>
+                <div class="insight-pill">
+                  <i class="fa-solid fa-wave-square"></i> Live Index
+                </div>
+              </div>
+
+              <div class="energy-index-hero">
+                <div class="energy-gauge" id="survivalGauge" style="--score:0;">
+                  <div class="gauge-content">
+                    <div class="gauge-value" id="survivalScore">0</div>
+                    <div class="gauge-label">Survival Index</div>
+                  </div>
+                </div>
+
+                <div class="energy-summary">
+                  <div class="energy-summary-title" id="energyHeadline">Student Area Readiness</div>
+                  <div class="energy-summary-desc" id="insightSummary">
+                    Data akan muncul setelah Excel berhasil dibaca.
+                  </div>
+
+                  <div class="energy-stat-row">
+                    <div class="energy-mini-stat">
+                      <b id="metricTotal">0</b>
+                      <span>Total Lokasi</span>
+                    </div>
+                    <div class="energy-mini-stat">
+                      <b id="metricOpen24">0</b>
+                      <span>Buka 24 Jam</span>
+                    </div>
+                    <div class="energy-mini-stat">
+                      <b id="metricNearest">-</b>
+                      <span>Terdekat</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="index-visual-row">
+                <div class="intensity-bars-card">
+                  <div class="visual-card-title">
+                    <span>Access Intensity</span>
+                    <small>radius aktif</small>
+                  </div>
+                  <div class="intensity-chart" id="intensityChart">
+                    <div class="intensity-bar" style="height:35%"></div>
+                    <div class="intensity-bar" style="height:52%"></div>
+                    <div class="intensity-bar hot" style="height:78%"></div>
+                    <div class="intensity-bar" style="height:44%"></div>
+                    <div class="intensity-bar" style="height:61%"></div>
+                    <div class="intensity-bar hot" style="height:88%"></div>
+                    <div class="intensity-bar" style="height:70%"></div>
+                    <div class="intensity-bar" style="height:50%"></div>
+                    <div class="intensity-bar hot" style="height:82%"></div>
+                    <div class="intensity-bar" style="height:57%"></div>
+                    <div class="intensity-bar" style="height:42%"></div>
+                    <div class="intensity-bar hot" style="height:74%"></div>
+                  </div>
+                </div>
+
+                <div class="category-donut-card">
+                  <div class="visual-card-title">
+                    <span>Category Index</span>
+                    <small id="metricEmergency">0 emergency</small>
+                  </div>
+                  <div class="category-donut-wrap">
+                    <div class="category-donut" id="categoryDonut"></div>
+                    <div class="donut-legend">
+                      <div class="donut-item"><span><i class="dot laundry"></i>Laundry</span><b id="barLaundryText">0</b></div>
+                      <div class="donut-item"><span><i class="dot minimarket"></i>Minimarket</span><b id="barMinimarketText">0</b></div>
+                      <div class="donut-item"><span><i class="dot rumah_makan"></i>Rumah Makan</span><b id="barRumahMakanText">0</b></div>
+                      <div class="donut-item"><span><i class="dot emergency"></i>Emergency</span><b id="barEmergencyText">0</b></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="insight-footer">
+                <div class="insight-note" id="routeInsight">
+                  Klik marker untuk melihat detail dan menjadikan lokasi itu tujuan rute.
+                </div>
+                <button class="insight-action" id="focusNearestBtn" type="button">
+                  <i class="fa-solid fa-crosshairs"></i> Fokus Terdekat
+                </button>
+              </div>
+            </div>
+
+            <div class="insight-card insight-side energy-side-panel">
+              <div class="insight-head">
+                <div>
+                  <div class="insight-kicker">Nearest Access</div>
+                  <div class="insight-title">Top Lokasi Terdekat</div>
+                </div>
+              </div>
+
+              <div class="energy-rank-card">
+                <div class="visual-card-title">
+                  <span>Closest Points</span>
+                  <small>dari Rektorat UPN</small>
+                </div>
+                <div class="rank-list" id="nearestRankList">
+                  <div class="rank-item">
+                    <div class="rank-no">1</div>
+                    <div>
+                      <div class="rank-name">Data belum tersedia</div>
+                      <div class="rank-cat">Upload/cek Excel</div>
+                    </div>
+                    <div class="rank-dist">-</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="energy-rank-card">
+                <div class="visual-card-title">
+                  <span>Composition Bars</span>
+                  <small>jumlah titik</small>
+                </div>
+                <div class="category-bars">
+                  <div class="bar-row">
+                    <div class="bar-label"><span>Laundry</span><span id="barLaundryValue">0</span></div>
+                    <div class="bar-track"><div class="bar-fill laundry" id="barLaundry"></div></div>
+                  </div>
+                  <div class="bar-row">
+                    <div class="bar-label"><span>Minimarket</span><span id="barMinimarketValue">0</span></div>
+                    <div class="bar-track"><div class="bar-fill minimarket" id="barMinimarket"></div></div>
+                  </div>
+                  <div class="bar-row">
+                    <div class="bar-label"><span>Rumah Makan</span><span id="barRumahMakanValue">0</span></div>
+                    <div class="bar-track"><div class="bar-fill rumah_makan" id="barRumahMakan"></div></div>
+                  </div>
+                  <div class="bar-row">
+                    <div class="bar-label"><span>Emergency</span><span id="barEmergencyValue">0</span></div>
+                    <div class="bar-track"><div class="bar-fill emergency" id="barEmergency"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="energy-action-row">
+                <button class="energy-action primary" id="openRouteFromInsight" type="button">
+                  <i class="fa-solid fa-route"></i> Buka Rute
+                </button>
+                <button class="energy-action secondary" id="fitAllInsightBtn" type="button">
+                  <i class="fa-solid fa-expand"></i> Lihat Semua
+                </button>
+              </div>
+            </div>
           </div>
 
           <aside class="left-panel collapsed" id="leftPanel">
@@ -2659,495 +4960,2567 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <script>
-    const landingPage = document.getElementById("landingPage");
-    const mapPage = document.getElementById("mapPage");
-    const enterMapBtn = document.getElementById("enterMapBtn");
-    const enterMapBtnBottom = document.getElementById("enterMapBtnBottom");
-    const backHomeBtn = document.getElementById("backHomeBtn");
-    const basemapSelect = document.getElementById("basemapSelect");
-    const radiusSelect = document.getElementById("radiusSelect");
-    const legendText = document.getElementById("legendText");
-    const routeButton = document.getElementById("routeButton");
+<script>
+  const landingPage = document.getElementById("landingPage");
+  const mapPage = document.getElementById("mapPage");
+  const enterMapBtn = document.getElementById("enterMapBtn");
+  const enterMapBtnBottom = document.getElementById("enterMapBtnBottom");
+  const backHomeBtn = document.getElementById("backHomeBtn");
+  const basemapSelect = document.getElementById("basemapSelect");
+  const radiusSelect = document.getElementById("radiusSelect");
+  const legendText = document.getElementById("legendText");
+  const routeButton = document.getElementById("routeButton");
+  const themeToggle = document.getElementById("themeToggle");
+  const routePlanner = document.getElementById("routePlanner");
+  const originSelect = document.getElementById("originSelect");
+  const destinationSelect = document.getElementById("destinationSelect");
+  const routeNowBtn = document.getElementById("routeNowBtn");
+  const clearRouteBtn = document.getElementById("clearRouteBtn");
+  const routeHint = document.getElementById("routeHint");
+  const toggleDashboard = document.getElementById("toggleDashboard");
+  const insightDashboard = document.getElementById("insightDashboard");
+  const metricTotal = document.getElementById("metricTotal");
+  const metricOpen24 = document.getElementById("metricOpen24");
+  const metricNearest = document.getElementById("metricNearest");
+  const metricEmergency = document.getElementById("metricEmergency");
+  const insightSummary = document.getElementById("insightSummary");
+  const routeInsight = document.getElementById("routeInsight");
+  const focusNearestBtn = document.getElementById("focusNearestBtn");
+  const barLaundry = document.getElementById("barLaundry");
+  const barMinimarket = document.getElementById("barMinimarket");
+  const barEmergency = document.getElementById("barEmergency");
+  const barLaundryText = document.getElementById("barLaundryText");
+  const barMinimarketText = document.getElementById("barMinimarketText");
+  const barEmergencyText = document.getElementById("barEmergencyText");
+  const barRumahMakanText = document.getElementById("barRumahMakanText");
+  const survivalGauge = document.getElementById("survivalGauge");
+  const survivalScore = document.getElementById("survivalScore");
+  const energyHeadline = document.getElementById("energyHeadline");
+  const intensityChart = document.getElementById("intensityChart");
+  const categoryDonut = document.getElementById("categoryDonut");
+  const nearestRankList = document.getElementById("nearestRankList");
+  const barLaundryValue = document.getElementById("barLaundryValue");
+  const barMinimarketValue = document.getElementById("barMinimarketValue");
+  const barEmergencyValue = document.getElementById("barEmergencyValue");
+  const barRumahMakanValue = document.getElementById("barRumahMakanValue");
+  const openRouteFromInsight = document.getElementById("openRouteFromInsight");
+  const fitAllInsightBtn = document.getElementById("fitAllInsightBtn");
+  const tutorialOverlay = document.getElementById("tutorialOverlay");
+  const openTutorialBtn = document.getElementById("openTutorialBtn");
+  const closeTutorialBtn = document.getElementById("closeTutorialBtn");
+  const startUsingWebgisBtn = document.getElementById("startUsingWebgisBtn");
+  const dontShowTutorialAgain = document.getElementById("dontShowTutorialAgain");
 
-    const infoPanel = document.getElementById("infoPanel");
-    const closeInfoPanel = document.getElementById("closeInfoPanel");
-    const openInfoPanel = document.getElementById("openInfoPanel");
+  const infoPanel = document.getElementById("infoPanel");
+  const closeInfoPanel = document.getElementById("closeInfoPanel");
+  const openInfoPanel = document.getElementById("openInfoPanel");
 
-    const topControls = document.getElementById("topControls");
-    const leftPanel = document.getElementById("leftPanel");
-    const toggleTopPanel = document.getElementById("toggleTopPanel");
-    const toggleLeftPanel = document.getElementById("toggleLeftPanel");
+  const topControls = document.getElementById("topControls");
+  const leftPanel = document.getElementById("leftPanel");
+  const toggleTopPanel = document.getElementById("toggleTopPanel");
+  const toggleLeftPanel = document.getElementById("toggleLeftPanel");
 
-    const upnLatLng = [-7.7620236, 110.4092470];
+  const detailTitle = document.getElementById("detailTitle");
+  const detailDistance = document.getElementById("detailDistance");
+  const detailPrice = document.getElementById("detailPrice");
+  const detailImage = document.getElementById("detailImage");
+  const detailMeta = document.getElementById("detailMeta");
+  const detailButton = document.getElementById("detailButton");
 
-    const categories = {
-      kost: { label: "Kost", color: "#d6a034", icon: "fa-solid fa-house" },
-      makan: { label: "Warung Makan Murah", color: "#db8a2e", icon: "fa-solid fa-utensils" },
-      laundry: { label: "Laundry", color: "#2374d8", icon: "fa-solid fa-shirt" },
-      print: { label: "Print/Fotokopi", color: "#d64d65", icon: "fa-solid fa-print" },
-      minimarket: { label: "Minimarket", color: "#24a8c8", icon: "fa-solid fa-basket-shopping" },
-      atm: { label: "ATM", color: "#20b2aa", icon: "fa-solid fa-credit-card" },
-      apotek: { label: "Apotek/Klinik", color: "#2f89d5", icon: "fa-solid fa-pills" },
-      emergency: { label: "Emergency", color: "#c94b47", icon: "fa-solid fa-triangle-exclamation" }
+  const upnLatLng = [-7.7620236, 110.4092470];
+
+const categories = {
+  laundry: {
+    label: "Laundry",
+    color: "#2374d8",
+    icon: "fa-solid fa-shirt",
+    folder: "laundry"
+  },
+  minimarket: {
+    label: "Minimarket",
+    color: "#24a8c8",
+    icon: "fa-solid fa-basket-shopping",
+    folder: "minimarket"
+  },
+  rumah_makan: {
+    label: "Rumah Makan",
+    color: "#f59e0b",
+    icon: "fa-solid fa-utensils",
+    folder: "rumah_makan"
+  },
+  fasilitas_kesehatan: {
+    label: "Fasilitas Kesehatan",
+    color: "#22c55e",
+    icon: "fa-solid fa-house-medical",
+    folder: "fasilitas_kesehatan"
+  },
+  emergency: {
+    label: "Emergency",
+    color: "#c94b47",
+    icon: "fa-solid fa-triangle-exclamation",
+    folder: "emergency"
+  }
+  };
+
+  let places = [];
+
+const state = {
+  categories: new Set(["laundry", "minimarket", "rumah_makan", "fasilitas_kesehatan", "emergency"]),
+  cheap: false,
+  open24: false,
+  nearCampus: false,
+  emergencyOnly: false,
+  networkOn: false,
+  search: ""
+};
+
+  let mapInitialized = false;
+  let map;
+  let layers = {};
+  let currentBaseLayer;
+  let radiusCircle;
+  let routeControl = null;
+  let selectedPlace = null;
+  let originMarker = null;
+  let currentOriginLatLng = upnLatLng;
+  let currentOriginLabel = "Rektorat UPN";
+
+  const baseMaps = {
+    dark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+    }),
+    streets: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors"
+    }),
+    satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      attribution: "Tiles &copy; Esri"
+    }),
+    light: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+    })
+  };
+
+  function normalizeHeaderKey(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/_/g, "")
+      .replace(/\./g, "")
+      .replace(/-/g, "")
+      .replace(/\//g, "")
+      .trim();
+  }
+
+  function getCell(row, keys, fallback = "") {
+    const normalizedRow = {};
+
+    Object.keys(row || {}).forEach(originalKey => {
+      normalizedRow[normalizeHeaderKey(originalKey)] = row[originalKey];
+    });
+
+    for (const key of keys) {
+      const directValue = row[key];
+
+      if (directValue !== undefined && directValue !== null && String(directValue).trim() !== "") {
+        return directValue;
+      }
+
+      const normalizedKey = normalizeHeaderKey(key);
+      const normalizedValue = normalizedRow[normalizedKey];
+
+      if (normalizedValue !== undefined && normalizedValue !== null && String(normalizedValue).trim() !== "") {
+        return normalizedValue;
+      }
+    }
+
+    return fallback;
+  }
+
+  function cleanText(value) {
+    if (value === undefined || value === null || value === "") return "-";
+    return String(value).trim();
+  }
+
+  function cleanId(value, fallback) {
+    const raw = cleanText(value);
+    return raw === "-" ? fallback : raw;
+  }
+
+
+function getDisplayName(place) {
+  if (!place) return "-";
+
+  return (
+    place.Nama ||
+    place.Nama_Laundry ||
+    place.Nama_Minimarket ||
+    place.Nama_Rumah_Makan ||
+    place.Nama_Fasilitas_Kesehatan ||
+    place.Nama_Emergency ||
+    place.Nama_Tempat ||
+    place.name ||
+    "-"
+  );
+}
+
+  function parseCoordinate(value) {
+    if (typeof value === "number") return value;
+    return parseFloat(String(value || "").replace(",", "."));
+  }
+
+  function getFileCode(value, fallbackId) {
+    let raw = cleanText(value);
+
+    if (raw === "-") raw = fallbackId;
+
+    raw = raw.replace(/\\/g, "/");
+    raw = raw.split("/").pop();
+    raw = raw.replace(/\.(jpg|jpeg|png|webp)$/i, "");
+
+    return raw.toUpperCase();
+  }
+
+  function getImagePath(category, dokumentasi, id) {
+    const folder = categories[category]?.folder || category;
+    const code = getFileCode(dokumentasi, id);
+
+    return `assets/Gambar/${folder}/${code}.jpg`;
+  }
+
+  function getFallbackImage(category) {
+    if (category === "emergency") {
+      return "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=900&q=80";
+    }
+
+    if (category === "minimarket") {
+      return "https://images.unsplash.com/photo-1604719312566-8912e9c8a213?auto=format&fit=crop&w=900&q=80";
+    }
+
+    if (category === "rumah_makan") {
+      return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80";
+    }
+
+    return "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=900&q=80";
+  }
+
+  function isOpen24(value, jam) {
+    const text = `${value || ""} ${jam || ""}`.toLowerCase();
+
+    return (
+      text.includes("ya") ||
+      text.includes("24 jam") ||
+      text.includes("buka 24") ||
+      text.includes("00.00-23.59") ||
+      text.includes("00:00-23:59")
+    );
+  }
+
+  async function readExcel(filePath) {
+    const response = await fetch(filePath);
+
+    if (!response.ok) {
+      throw new Error(`File tidak ditemukan: ${filePath}`);
+    }
+
+    const buffer = await response.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const firstSheet = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[firstSheet];
+
+    return XLSX.utils.sheet_to_json(sheet, { defval: "" });
+  }
+
+  function normalizeLaundry(row, index) {
+    const id = cleanId(getCell(row, ["id", "ID", "Id", "Dokumentasi"]), `L${String(index + 1).padStart(3, "0")}`);
+    const nama = cleanText(getCell(row, [
+      "Nama_Laundry", "Nama Laundry", "Nama_laundry",
+      "Nama", "Nama Tempat", "Nama_Tempat", "NamaTempat",
+      "Nama Fasilitas", "Nama_Fasilitas", "NamaFasilitas",
+      "Nama Usaha", "Nama_Usaha", "NamaUsaha",
+      "Nama Tempat Usaha", "Nama_Tempat_Usaha"
+    ]));
+    const keterangan = cleanText(getCell(row, ["Keterangan", "Layanan"]));
+    const hari = cleanText(getCell(row, ["Hari_operasional", "Hari Operasional"]));
+    const jam = cleanText(getCell(row, ["Jam_operasional", "Jam Operasional"]));
+    const alamat = cleanText(getCell(row, ["Alamat_lengkap", "Alamat Lengkap", "Alamat"]));
+    const telepon = cleanText(getCell(row, ["No.Telepon", "No_Telepon", "No Telepon", "Nomor_Kontak"]));
+    const lat = parseCoordinate(getCell(row, ["Latitude", "latitude", "Lat"]));
+    const lng = parseCoordinate(getCell(row, ["Longitude", "longitude", "Lng", "Long"]));
+    const rating = cleanText(getCell(row, ["Rating", "Ulasan"]));
+    const maps = cleanText(getCell(row, ["Link_google_maps", "Link Google Maps", "Maps"]));
+    const dokumentasi = cleanText(getCell(row, ["Dokumentasi", "Gambar", "Foto"], id));
+    const buka24 = cleanText(getCell(row, ["Buka_24_jam", "Buka 24 jam", "Buka_24_Jam"]));
+
+    return {
+      id,
+      category: "laundry",
+      name: nama === "-" ? `Laundry ${id}` : nama,
+      Nama: nama === "-" ? `Laundry ${id}` : nama,
+      Nama_Laundry: nama === "-" ? `Laundry ${id}` : nama,
+      Nama_Tempat: nama === "-" ? `Laundry ${id}` : nama,
+      Keterangan: keterangan,
+      Hari_operasional: hari,
+      Jam_operasional: jam,
+      Alamat_lengkap: alamat,
+      No_Telepon: telepon,
+      Latitude: lat,
+      Longitude: lng,
+      Rating: rating,
+      Link_google_maps: maps,
+      Dokumentasi: dokumentasi,
+      Buka_24_jam: buka24,
+
+      lat,
+      lng,
+      price: keterangan,
+      address: alamat,
+      contact: telepon,
+      open: `${hari}, ${jam}`,
+      rating,
+      maps,
+      image: getImagePath("laundry", dokumentasi, id),
+      cheap: true,
+      open24: isOpen24(buka24, jam),
+      nearCampus: true,
+      detailLabel: "Detail Laundry"
     };
+  }
 
-    const places = [
-      { id: 1, name: "Kost Mawar", category: "kost", lat: -7.7607, lng: 110.4113, price: "Rp 600,000 / bulan", address: "Babarsari, Depok, Sleman", contact: "0812-1111-2222", open: "24 jam", cheap: true, open24: true, nearCampus: true, image: "https://images.unsplash.com/photo-1560185008-b033106af5c3?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Kost" },
-      { id: 2, name: "Warung Hemat Bu Rini", category: "makan", lat: -7.7515, lng: 110.3996, price: "Mulai Rp 10,000", address: "Seturan, Depok, Sleman", contact: "0813-4444-2121", open: "07.00 - 22.00", cheap: true, open24: false, nearCampus: false, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Warung" },
-      { id: 3, name: "Laundry Express Seturan", category: "laundry", lat: -7.7701, lng: 110.3878, price: "Rp 6,000 / kg", address: "Seturan Raya", contact: "0812-9088-1122", open: "08.00 - 21.00", cheap: true, open24: false, nearCampus: false, image: "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Laundry" },
-      { id: 4, name: "Print Cepat Babarsari", category: "print", lat: -7.7758, lng: 110.4206, price: "Print mulai Rp 300", address: "Babarsari", contact: "0811-7373-900", open: "08.00 - 23.00", cheap: true, open24: false, nearCampus: true, image: "https://images.unsplash.com/photo-1562564055-71e051d33c19?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Print" },
-      { id: 5, name: "Minimarket 24 Jam", category: "minimarket", lat: -7.7818, lng: 110.4026, price: "Kebutuhan harian", address: "Ringroad Utara", contact: "0274-998877", open: "24 jam", cheap: false, open24: true, nearCampus: false, image: "https://images.unsplash.com/photo-1604719312566-8912e9c8a213?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Minimarket" },
-      { id: 6, name: "ATM Center Babarsari", category: "atm", lat: -7.7719, lng: 110.4279, price: "Layanan ATM", address: "Babarsari", contact: "-", open: "24 jam", cheap: false, open24: true, nearCampus: true, image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail ATM" },
-      { id: 7, name: "Klinik Sehat UPN", category: "apotek", lat: -7.7571, lng: 110.3988, price: "Layanan kesehatan", address: "Depok, Sleman", contact: "0274-123456", open: "08.00 - 21.00", cheap: false, open24: false, nearCampus: true, image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80", detailLabel: "Detail Klinik" },
-      { id: 8, name: "Rumah Sakit JIH", category: "emergency", lat: -7.7586, lng: 110.4012, price: "IGD 24 jam", address: "Jl. Ring Road Utara", contact: "0274-4463535", open: "24 jam", cheap: false, open24: true, nearCampus: true, image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80", detailLabel: "Layanan Darurat" },
-      { id: 9, name: "Polsek Depok Barat", category: "emergency", lat: -7.7949, lng: 110.3854, price: "Polisi terdekat", address: "Depok Barat", contact: "110", open: "24 jam", cheap: false, open24: true, nearCampus: false, image: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=900&q=80", detailLabel: "Layanan Darurat" },
-      { id: 10, name: "Apotek 24 Jam Condongcatur", category: "emergency", lat: -7.7447, lng: 110.4328, price: "Obat & layanan cepat", address: "Condongcatur", contact: "0812-8899-2233", open: "24 jam", cheap: false, open24: true, nearCampus: false, image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=900&q=80", detailLabel: "Layanan Darurat" }
-    ];
+  function normalizeMinimarket(row, index) {
+    const dokumentasiUntukId = getCell(row, ["Dokumentasi", "Gambar", "Foto"], "");
+    const id = cleanId(
+      getCell(row, ["id", "ID", "Id"], ""),
+      getFileCode(dokumentasiUntukId, `M${String(index + 1).padStart(3, "0")}`)
+    );
 
-    const state = {
-      categories: new Set(["kost", "makan", "laundry", "print", "minimarket", "atm", "apotek"]),
+    const kategori = cleanText(getCell(row, ["Kategori"], "Minimarket/Supermarket"));
+    const nama = cleanText(getCell(row, [
+      "Nama_Minimarket", "Nama Minimarket", "Nama_minimarket",
+      "Nama", "Nama Tempat", "Nama_Tempat", "NamaTempat",
+      "Nama Fasilitas", "Nama_Fasilitas", "NamaFasilitas",
+      "Nama Usaha", "Nama_Usaha", "NamaUsaha",
+      "Nama Toko", "Nama_Toko", "NamaToko"
+    ], `Minimarket ${id}`));
+    const alamat = cleanText(getCell(row, ["Alamat", "Alamat_lengkap", "Alamat Lengkap"]));
+    const hari = cleanText(getCell(row, ["Hari_operasional", "Hari Operasional"]));
+    const jam = cleanText(getCell(row, ["Jam_operasional", "Jam Operasional", "Jam_Operasional"]));
+    const harga = cleanText(getCell(row, ["Harga", "Keterangan"]));
+    const telepon = cleanText(getCell(row, ["Nomor_Kontak", "No.Telepon", "No_Telepon"]));
+    const lat = parseCoordinate(getCell(row, ["Latitude", "latitude", "Lat"]));
+    const lng = parseCoordinate(getCell(row, ["Longitude", "longitude", "Lng", "Long"]));
+    const rating = cleanText(getCell(row, ["Ulasan", "Rating"]));
+    const maps = cleanText(getCell(row, ["Link_google_maps", "Link Google Maps", "Maps"]));
+    const dokumentasi = cleanText(getCell(row, ["Dokumentasi", "Gambar", "Foto"], id));
+    const buka24 = cleanText(getCell(row, ["Buka_24_jam", "Buka 24 jam", "Buka_24_Jam"]));
+
+    return {
+      id,
+      category: "minimarket",
+      name: nama === "-" ? `Minimarket ${id}` : nama,
+      Nama: nama === "-" ? `Minimarket ${id}` : nama,
+      Nama_Minimarket: nama === "-" ? `Minimarket ${id}` : nama,
+      Nama_Tempat: nama === "-" ? `Minimarket ${id}` : nama,
+      Keterangan: harga,
+      Hari_operasional: hari,
+      Jam_operasional: jam,
+      Alamat_lengkap: alamat,
+      No_Telepon: telepon,
+      Latitude: lat,
+      Longitude: lng,
+      Rating: rating,
+      Link_google_maps: maps,
+      Dokumentasi: dokumentasi,
+      Buka_24_jam: buka24,
+
+      lat,
+      lng,
+      price: harga === "-" ? "Kebutuhan harian" : harga,
+      address: alamat,
+      contact: telepon,
+      open: `${hari}, ${jam}`,
+      rating,
+      maps,
+      image: getImagePath("minimarket", dokumentasi, id),
       cheap: false,
-      open24: false,
-      nearCampus: false,
-      emergencyOnly: false,
-      networkOn: false,
-      search: ""
+      open24: isOpen24(buka24, jam),
+      nearCampus: true,
+      detailLabel: "Detail Minimarket"
     };
+  }
 
-    let mapInitialized = false;
-    let map;
-    let layers = {};
-    let currentBaseLayer;
-    let radiusCircle;
-    let routeControl = null;
-    let selectedPlace = null;
 
-    const detailTitle = document.getElementById("detailTitle");
-    const detailDistance = document.getElementById("detailDistance");
-    const detailPrice = document.getElementById("detailPrice");
-    const detailImage = document.getElementById("detailImage");
-    const detailMeta = document.getElementById("detailMeta");
-    const detailButton = document.getElementById("detailButton");
+  function normalizeRumahMakan(row, index) {
+    const id = cleanId(getCell(row, ["id", "ID", "Id", "Dokumentasi"]), `RM${String(index + 1).padStart(3, "0")}`);
 
-    const baseMaps = {
-      dark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
-      }),
-      streets: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
-      }),
-      satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-        attribution: "Tiles &copy; Esri"
-      }),
-      light: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
-      })
+    const nama = cleanText(getCell(row, [
+      "Nama_Rumah_Makan", "Nama Rumah Makan", "Nama_rumah_makan", "Rumah_Makan",
+      "Nama Tempat Makan Murah", "Nama_Tempat_Makan_Murah", "NamaTempatMakanMurah",
+      "Nama Warung", "Nama_Warung", "NamaWarung",
+      "Nama", "Nama Tempat", "Nama_Tempat", "NamaTempat",
+      "Nama Usaha", "Nama_Usaha", "NamaUsaha",
+      "Kategori"
+    ], `Rumah Makan ${id}`));
+
+    const keterangan = cleanText(getCell(row, [
+      "Keterangan", "Menu", "Layanan", "Harga", "Jenis_Makanan", "Jenis Makanan"
+    ], "Makanan dan minuman"));
+
+    const hari = cleanText(getCell(row, [
+      "Hari_operasional", "Hari Operasional", "Hari"
+    ], "-"));
+
+    const jam = cleanText(getCell(row, [
+      "Jam_operasional", "Jam Operasional", "Jam_Operasional", "Jam"
+    ], "-"));
+
+    const alamat = cleanText(getCell(row, [
+      "Alamat_lengkap", "Alamat Lengkap", "Alamat", "Lokasi"
+    ], "-"));
+
+    const telepon = cleanText(getCell(row, [
+      "No.Telepon", "No_Telepon", "No Telepon", "Nomor_Kontak", "Nomor Kontak", "Telepon"
+    ], "-"));
+
+    const lat = parseCoordinate(getCell(row, ["Latitude", "latitude", "Lat"]));
+    const lng = parseCoordinate(getCell(row, ["Longitude", "longitude", "Lng", "Long"]));
+    const rating = cleanText(getCell(row, ["Rating", "Ulasan", "Review"], "-"));
+    const maps = cleanText(getCell(row, ["Link_google_maps", "Link Google Maps", "Maps"], "-"));
+    const dokumentasi = cleanText(getCell(row, ["Dokumentasi", "Gambar", "Foto"], id));
+    const buka24 = cleanText(getCell(row, ["Buka_24_jam", "Buka 24 jam", "Buka_24_Jam"], ""));
+
+    return {
+      id,
+      category: "rumah_makan",
+      name: nama === "-" ? `Rumah Makan ${id}` : nama,
+      Nama: nama === "-" ? `Rumah Makan ${id}` : nama,
+      Nama_Rumah_Makan: nama === "-" ? `Rumah Makan ${id}` : nama,
+      Nama_Tempat: nama === "-" ? `Rumah Makan ${id}` : nama,
+      Keterangan: keterangan,
+      Hari_operasional: hari,
+      Jam_operasional: jam,
+      Alamat_lengkap: alamat,
+      No_Telepon: telepon,
+      Latitude: lat,
+      Longitude: lng,
+      Rating: rating,
+      Link_google_maps: maps,
+      Dokumentasi: dokumentasi,
+      Buka_24_jam: buka24 || (isOpen24(buka24, jam) ? "Ya" : "Tidak"),
+
+      lat,
+      lng,
+      price: keterangan === "-" ? "Makanan dan minuman" : keterangan,
+      address: alamat,
+      contact: telepon,
+      open: `${hari}, ${jam}`,
+      rating,
+      maps,
+      image: getImagePath("rumah_makan", dokumentasi, id),
+      cheap: true,
+      open24: isOpen24(buka24, jam),
+      nearCampus: true,
+      detailLabel: "Detail Rumah Makan"
     };
+  }
+function normalizeFasilitasKesehatan(row, index) {
+  const dokumentasiUntukId = getCell(row, ["Dokumentasi", "Gambar", "Foto"], "");
+  const id = cleanId(
+    getCell(row, ["id", "ID", "Id"], ""),
+    getFileCode(dokumentasiUntukId, `FK${String(index + 1).padStart(3, "0")}`)
+  );
 
-    function setBasemap(type) {
-      if (!map) return;
-      if (currentBaseLayer) map.removeLayer(currentBaseLayer);
-      currentBaseLayer = baseMaps[type];
-      currentBaseLayer.addTo(map);
+  const nama = cleanText(getCell(row, [
+    "Nama_Fasilitas_Kesehatan", "Nama Fasilitas Kesehatan", "Nama_fasilitas_kesehatan",
+    "Nama_Klinik", "Nama Klinik",
+    "Nama_Apotek", "Nama Apotek",
+    "Nama_Rumah_Sakit", "Nama Rumah Sakit",
+    "Nama", "Nama Tempat", "Nama_Tempat", "NamaTempat",
+    "Nama Fasilitas", "Nama_Fasilitas", "NamaFasilitas",
+    "Nama Layanan", "Nama_Layanan", "NamaLayanan"
+  ], `Fasilitas Kesehatan ${id}`));
+
+  const kategori = cleanText(getCell(row, [
+    "Kategori", "Jenis", "Jenis_Fasilitas", "Jenis Fasilitas"
+  ], "Fasilitas Kesehatan"));
+
+  const keterangan = cleanText(getCell(row, [
+    "Keterangan", "Layanan", "Harga", "Jenis_Layanan", "Jenis Layanan"
+  ], kategori));
+
+  const hari = cleanText(getCell(row, [
+    "Hari_operasional", "Hari Operasional", "Hari"
+  ], "-"));
+
+  const jam = cleanText(getCell(row, [
+    "Jam_operasional", "Jam Operasional", "Jam_Operasional", "Jam"
+  ], "-"));
+
+  const alamat = cleanText(getCell(row, [
+    "Alamat_lengkap", "Alamat Lengkap", "Alamat", "Lokasi"
+  ], "-"));
+
+  const telepon = cleanText(getCell(row, [
+    "No.Telepon", "No_Telepon", "No Telepon", "Nomor_Kontak", "Nomor Kontak", "Telepon"
+  ], "-"));
+
+  const lat = parseCoordinate(getCell(row, ["Latitude", "latitude", "Lat"]));
+  const lng = parseCoordinate(getCell(row, ["Longitude", "longitude", "Lng", "Long"]));
+  const rating = cleanText(getCell(row, ["Rating", "Ulasan", "Review"], "-"));
+  const maps = cleanText(getCell(row, ["Link_google_maps", "Link Google Maps", "Maps"], "-"));
+  const dokumentasi = cleanText(getCell(row, ["Dokumentasi", "Gambar", "Foto"], id));
+  const buka24 = cleanText(getCell(row, ["Buka_24_jam", "Buka 24 jam", "Buka_24_Jam"], ""));
+
+  return {
+    id,
+    category: "fasilitas_kesehatan",
+    name: nama === "-" ? `Fasilitas Kesehatan ${id}` : nama,
+    Nama: nama === "-" ? `Fasilitas Kesehatan ${id}` : nama,
+    Nama_Fasilitas_Kesehatan: nama === "-" ? `Fasilitas Kesehatan ${id}` : nama,
+    Nama_Tempat: nama === "-" ? `Fasilitas Kesehatan ${id}` : nama,
+    Keterangan: keterangan,
+    Hari_operasional: hari,
+    Jam_operasional: jam,
+    Alamat_lengkap: alamat,
+    No_Telepon: telepon,
+    Latitude: lat,
+    Longitude: lng,
+    Rating: rating,
+    Link_google_maps: maps,
+    Dokumentasi: dokumentasi,
+    Buka_24_jam: buka24 || (isOpen24(buka24, jam) ? "Ya" : "Tidak"),
+
+    lat,
+    lng,
+    price: keterangan === "-" ? "Fasilitas kesehatan" : keterangan,
+    address: alamat,
+    contact: telepon,
+    open: `${hari}, ${jam}`,
+    rating,
+    maps,
+    image: getImagePath("fasilitas_kesehatan", dokumentasi, id),
+    cheap: false,
+    open24: isOpen24(buka24, jam),
+    nearCampus: true,
+    detailLabel: "Detail Fasilitas Kesehatan"
+  };
+}
+  function normalizeEmergency(row, index) {
+    const dokumentasiRaw = cleanText(getCell(row, ["Dokumentasi", "Gambar", "Foto"]));
+    const fallbackId = `E${String(index + 1).padStart(3, "0")}`;
+    const id = getFileCode(dokumentasiRaw, fallbackId);
+
+    const kategori = cleanText(getCell(row, ["Kategori"], "Fasilitas Darurat/Emergency"));
+    const nama = cleanText(getCell(row, [
+      "Nama_Emergency", "Nama Emergency", "Nama_emergency",
+      "Nama", "Nama Tempat", "Nama_Tempat", "NamaTempat",
+      "Nama Fasilitas", "Nama_Fasilitas", "NamaFasilitas",
+      "Nama Layanan", "Nama_Layanan", "NamaLayanan",
+      "Nama Usaha", "Nama_Usaha", "NamaUsaha"
+    ], `Emergency ${id}`));
+    const alamat = cleanText(getCell(row, ["Alamat", "Alamat_lengkap", "Alamat Lengkap"]));
+    const jam = cleanText(getCell(row, ["Jam_Operasional", "Jam_operasional", "Jam Operasional"]));
+    const harga = cleanText(getCell(row, ["Harga", "Keterangan"]));
+    const telepon = cleanText(getCell(row, ["Nomor_Kontak", "No.Telepon", "No_Telepon"]));
+    const lat = parseCoordinate(getCell(row, ["Latitude", "latitude", "Lat"]));
+    const lng = parseCoordinate(getCell(row, ["Longitude", "longitude", "Lng", "Long"]));
+    const rating = cleanText(getCell(row, ["Ulasan", "Rating"]));
+    const maps = cleanText(getCell(row, ["Link_google_maps", "Link Google Maps", "Maps"]));
+    const buka24 = isOpen24("Ya", jam) ? "Ya" : "Tidak";
+
+    return {
+      id,
+      category: "emergency",
+      name: nama === "-" ? `Emergency ${id}` : nama,
+      Nama: nama === "-" ? `Emergency ${id}` : nama,
+      Nama_Emergency: nama === "-" ? `Emergency ${id}` : nama,
+      Nama_Tempat: nama === "-" ? `Emergency ${id}` : nama,
+      Keterangan: harga,
+      Hari_operasional: "Setiap Hari",
+      Jam_operasional: jam,
+      Alamat_lengkap: alamat,
+      No_Telepon: telepon,
+      Latitude: lat,
+      Longitude: lng,
+      Rating: rating,
+      Link_google_maps: maps,
+      Dokumentasi: dokumentasiRaw,
+      Buka_24_jam: buka24,
+
+      lat,
+      lng,
+      price: harga === "-" ? "Layanan darurat" : harga,
+      address: alamat,
+      contact: telepon,
+      open: jam,
+      rating,
+      maps,
+      image: getImagePath("emergency", dokumentasiRaw, id),
+      cheap: false,
+      open24: isOpen24("Ya", jam),
+      nearCampus: true,
+      detailLabel: "Detail Emergency"
+    };
+  }
+
+
+  function getNearestPlace(list = places) {
+    const valid = list.filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    if (!valid.length) return null;
+
+    return valid
+      .map(place => ({
+        ...place,
+        distanceMeters: Math.round(distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000)
+      }))
+      .sort((a, b) => a.distanceMeters - b.distanceMeters)[0];
+  }
+
+  function updateInsightDashboard() {
+    const total = places.length;
+    const visible = filteredPlaces ? filteredPlaces() : places;
+    const laundryCount = places.filter(p => p.category === "laundry").length;
+    const minimarketCount = places.filter(p => p.category === "minimarket").length;
+    const rumahMakanCount = places.filter(p => p.category === "rumah_makan").length;
+    const emergencyCount = places.filter(p => p.category === "emergency").length;
+    const open24Count = places.filter(p => p.open24).length;
+    const nearest = getNearestPlace(places);
+    const visibleCount = visible.length;
+
+    const readinessScore = total
+      ? Math.min(100, Math.round(
+          38 +
+          Math.min(total, 120) * 0.22 +
+          Math.min(open24Count, 40) * 0.55 +
+          Math.min(emergencyCount, 20) * 0.65 +
+          Math.min(visibleCount, 80) * 0.10
+        ))
+      : 0;
+
+    if (metricTotal) metricTotal.textContent = total;
+    if (metricOpen24) metricOpen24.textContent = open24Count;
+    if (metricEmergency) metricEmergency.textContent = `${emergencyCount} emergency`;
+    if (metricNearest) metricNearest.textContent = nearest ? `${nearest.distanceMeters}m` : "-";
+    if (survivalScore) survivalScore.textContent = readinessScore;
+    if (survivalGauge) survivalGauge.style.setProperty("--score", readinessScore);
+
+    const headline = readinessScore >= 82
+      ? "High Access Readiness"
+      : readinessScore >= 64
+        ? "Good Student Coverage"
+        : readinessScore >= 42
+          ? "Moderate Area Coverage"
+          : "Low Data Coverage";
+    if (energyHeadline) energyHeadline.textContent = headline;
+
+    const maxCount = Math.max(laundryCount, minimarketCount, rumahMakanCount, emergencyCount, 1);
+    const totalForDonut = Math.max(total, 1);
+    const laundryPercent = (laundryCount / totalForDonut) * 100;
+    const minimarketPercent = ((laundryCount + minimarketCount) / totalForDonut) * 100;
+
+    if (barLaundry) barLaundry.style.width = `${(laundryCount / maxCount) * 100}%`;
+    if (barMinimarket) barMinimarket.style.width = `${(minimarketCount / maxCount) * 100}%`;
+    if (barRumahMakan) barRumahMakan.style.width = `${(rumahMakanCount / maxCount) * 100}%`;
+    if (barEmergency) barEmergency.style.width = `${(emergencyCount / maxCount) * 100}%`;
+
+    if (barLaundryText) barLaundryText.textContent = laundryCount;
+    if (barMinimarketText) barMinimarketText.textContent = minimarketCount;
+    if (barRumahMakanText) barRumahMakanText.textContent = rumahMakanCount;
+    if (barEmergencyText) barEmergencyText.textContent = emergencyCount;
+    if (barLaundryValue) barLaundryValue.textContent = laundryCount;
+    if (barMinimarketValue) barMinimarketValue.textContent = minimarketCount;
+    if (barRumahMakanValue) barRumahMakanValue.textContent = rumahMakanCount;
+    if (barEmergencyValue) barEmergencyValue.textContent = emergencyCount;
+
+    if (categoryDonut) {
+      const laundryPercent = total ? (laundryCount / total) * 100 : 0;
+      const minimarketPercent = total ? laundryPercent + (minimarketCount / total) * 100 : 0;
+      const rumahMakanPercent = total ? minimarketPercent + (rumahMakanCount / total) * 100 : 0;
+
+      categoryDonut.style.background = `conic-gradient(
+        #2f80ed 0 ${laundryPercent}%,
+        #24a8c8 ${laundryPercent}% ${minimarketPercent}%,
+        #f59e0b ${minimarketPercent}% ${rumahMakanPercent}%,
+        #e45f5f ${rumahMakanPercent}% 100%
+      )`;
     }
 
-    function distanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    function createIcon(category) {
-      const cfg = categories[category];
-      return L.divIcon({
-        className: "custom-div-icon",
-        html: `<div class="marker-wrap" style="background:${cfg.color};"><i class="${cfg.icon}"></i></div>`,
-        iconSize: [42, 48],
-        iconAnchor: [21, 42],
-        popupAnchor: [0, -36]
+    if (intensityChart) {
+      const bars = Array.from(intensityChart.querySelectorAll(".intensity-bar"));
+      bars.forEach((bar, index) => {
+        const wave = 26 + ((readinessScore + index * 13 + visibleCount * 3) % 64);
+        bar.style.height = `${wave}%`;
+        bar.classList.toggle("hot", index % 3 === 2 || wave > 72);
       });
     }
 
-    function updateRadiusCircle(radiusValue) {
-      if (!map) return;
-      const radius = Number(radiusValue);
-      if (radiusCircle) map.removeLayer(radiusCircle);
+    if (nearestRankList) {
+      const ranked = places
+        .filter(item => !isNaN(item.lat) && !isNaN(item.lng))
+        .map(place => ({
+          ...place,
+          distanceMeters: Math.round(distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000)
+        }))
+        .sort((a, b) => a.distanceMeters - b.distanceMeters)
+        .slice(0, 4);
 
-      radiusCircle = L.circle(upnLatLng, {
-        radius: radius,
-        color: "#4da3ff",
-        weight: 2,
-        fillColor: "#4da3ff",
-        fillOpacity: 0.10
-      }).addTo(map);
-
-      const radiusText = radius === 4000 ? "< 5 km" : `${radius / 1000} km`;
-      legendText.textContent = `Radius aktif: ${radiusText} dari Rektorat UPN`;
-    }
-
-    function clearRoute() {
-      if (routeControl) {
-        map.removeControl(routeControl);
-        routeControl = null;
-      }
-    }
-
-    function drawRouteTo(place) {
-      if (!map || !place) return;
-      clearRoute();
-
-      routeControl = L.Routing.control({
-        waypoints: [
-          L.latLng(upnLatLng[0], upnLatLng[1]),
-          L.latLng(place.lat, place.lng)
-        ],
-        routeWhileDragging: false,
-        addWaypoints: false,
-        draggableWaypoints: false,
-        fitSelectedRoutes: true,
-        show: false,
-        createMarker: function() { return null; },
-        lineOptions: {
-          styles: [
-            { color: "#2f80ed", opacity: 0.96, weight: 5 },
-            { color: "#8ec5ff", opacity: 0.50, weight: 8 }
-          ]
-        }
-      }).addTo(map);
-    }
-
-    function updateDetail(place) {
-      infoPanel.classList.remove("hidden");
-      openInfoPanel.classList.add("hidden");
-
-      const dist = distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng);
-      selectedPlace = place;
-      detailTitle.textContent = place.name;
-      detailDistance.textContent = `(${Math.round(dist * 1000)} m)`;
-      detailPrice.textContent = place.price;
-      detailImage.src = place.image;
-      detailButton.textContent = place.detailLabel;
-
-      detailMeta.innerHTML = `
-        <div>📍 ${place.address}</div>
-        <div>🕒 ${place.open}</div>
-        <div>☎️ ${place.contact}</div>
-        ${place.cheap ? "<div>💸 Murah</div>" : ""}
-        ${place.nearCampus ? "<div>📍 Dekat Kampus</div>" : ""}
-      `;
-
-      if (state.networkOn) {
-        drawRouteTo(place);
-      }
-    }
-
-    function filteredPlaces() {
-      const radius = Number(radiusSelect.value);
-
-      return places.filter(place => {
-        const matchSearch =
-          !state.search ||
-          place.name.toLowerCase().includes(state.search) ||
-          place.address.toLowerCase().includes(state.search);
-
-        const matchCategory = state.emergencyOnly
-          ? place.category === "emergency"
-          : state.categories.has(place.category) || place.category === "emergency";
-
-        const matchCheap = !state.cheap || place.cheap;
-        const match24 = !state.open24 || place.open24;
-        const matchNear = !state.nearCampus || place.nearCampus;
-
-        const distMeters = distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000;
-        const matchRadius = distMeters <= radius;
-
-        return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
-      });
-    }
-
-    function renderMarkers() {
-      Object.values(layers).forEach(layer => layer.clearLayers());
-
-      const visiblePlaces = filteredPlaces();
-
-      visiblePlaces.forEach(place => {
-        const marker = L.marker([place.lat, place.lng], {
-          icon: createIcon(place.category)
-        })
-          .bindPopup(`<b>${place.name}</b><br>${place.address}<br>${place.price}`)
-          .on("click", () => updateDetail(place));
-
-        layers[place.category].addLayer(marker);
-      });
-
-      if (visiblePlaces.length > 0) {
-        updateDetail(visiblePlaces[0]);
-      } else {
-        detailTitle.textContent = "Tidak ada data";
-        detailDistance.textContent = "";
-        detailPrice.textContent = "Coba ubah filter atau radius";
-        detailMeta.innerHTML = `<div>Data tidak ditemukan pada radius/filter aktif.</div>`;
-        clearRoute();
-      }
-
-      document.getElementById("emergencyCount").textContent =
-        places.filter(p => p.category === "emergency").length;
-    }
-
-    function renderFilterList() {
-      const filterList = document.getElementById("filterList");
-      const keys = ["kost", "makan", "laundry", "print", "minimarket", "atm", "apotek"];
-
-      filterList.innerHTML = keys.map(key => {
-        const cfg = categories[key];
-        const count = places.filter(p => p.category === key).length;
-        const active = state.categories.has(key) ? "active" : "";
-
-        return `
-          <div class="filter-item ${active}" data-category="${key}">
-            <div class="filter-left">
-              <div class="cat-icon" style="background:${cfg.color};"><i class="${cfg.icon}"></i></div>
-              <div class="cat-label">${cfg.label}<span class="cat-count">(${count})</span></div>
+      nearestRankList.innerHTML = ranked.length
+        ? ranked.map((place, index) => `
+          <div class="rank-item" data-rank-place="${place.id}">
+            <div class="rank-no">${index + 1}</div>
+            <div>
+              <div class="rank-name">${getDisplayName(place)}</div>
+              <div class="rank-cat">${categories[place.category]?.label || place.category}</div>
             </div>
-            <div class="check">✓</div>
+            <div class="rank-dist">${place.distanceMeters}m</div>
+          </div>
+        `).join("")
+        : `
+          <div class="rank-item">
+            <div class="rank-no">1</div>
+            <div>
+              <div class="rank-name">Data belum tersedia</div>
+              <div class="rank-cat">Upload/cek Excel</div>
+            </div>
+            <div class="rank-dist">-</div>
           </div>
         `;
-      }).join("");
 
-      document.querySelectorAll(".filter-item").forEach(item => {
+      nearestRankList.querySelectorAll("[data-rank-place]").forEach(item => {
         item.addEventListener("click", () => {
-          const key = item.dataset.category;
-          if (state.categories.has(key)) {
-            state.categories.delete(key);
-          } else {
-            state.categories.add(key);
+          const place = getPlaceById(item.dataset.rankPlace);
+          if (place) {
+            setDestinationPlace(place, true);
+            if (map) map.flyTo([place.lat, place.lng], 17, { duration: 0.8 });
           }
-          renderFilterList();
-          renderMarkers();
         });
       });
     }
 
-    function syncChips() {
-      document.querySelectorAll("[data-chip]").forEach(btn => {
-        const key = btn.dataset.chip;
-        const active =
-          (key === "murah" && state.cheap) ||
-          (key === "24jam" && state.open24) ||
-          (key === "dekat" && state.nearCampus) ||
-          (key === "emergency" && state.emergencyOnly) ||
-          (key === "network" && state.networkOn);
-
-        btn.classList.toggle("active", active);
-      });
-    }
-
-    function syncPanelPositions() {
-      const topOpen = !topControls.classList.contains("collapsed");
-      const leftOpen = !leftPanel.classList.contains("collapsed");
-
-      if (topOpen && leftOpen && window.innerWidth > 900) {
-        leftPanel.classList.add("shifted");
+    if (insightSummary) {
+      if (nearest) {
+        insightSummary.textContent = `Index ${readinessScore}/100 dihitung dari jumlah titik, lokasi 24 jam, emergency, dan radius aktif. Titik terdekat: ${getDisplayName(nearest)} sekitar ${nearest.distanceMeters} meter dari Rektorat UPN.`;
       } else {
-        leftPanel.classList.remove("shifted");
+        insightSummary.textContent = "Data belum tersedia atau koordinat belum terbaca.";
       }
     }
 
-    function initRevealAnimations() {
-      const items = document.querySelectorAll(".reveal, .reveal-left, .reveal-right");
+    if (routeInsight) {
+      const routeText = selectedPlace
+        ? `Tujuan aktif: ${getDisplayName(selectedPlace)}. Klik Buka Rute untuk memakai asal-tujuan.`
+        : "Klik marker atau ranking lokasi untuk menjadikan titik itu tujuan rute.";
+      routeInsight.textContent = routeText;
+    }
+  }
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
+  function showInsightDashboard() {
+    if (insightDashboard) {
+      insightDashboard.classList.remove("hidden-dashboard");
+      updateInsightDashboard();
+      setTimeout(restartDashboardMotion, 120);
+    }
+  }
+
+  function hideInsightDashboard() {
+    if (insightDashboard) {
+      insightDashboard.classList.add("hidden-dashboard");
+    }
+  }
+
+  function toggleInsightDashboard() {
+    if (!insightDashboard) return;
+
+    if (insightDashboard.classList.contains("hidden-dashboard")) {
+      showInsightDashboard();
+    } else {
+      hideInsightDashboard();
+    }
+  }
+
+  function focusNearestPlace() {
+    const nearest = getNearestPlace(filteredPlaces());
+
+    if (!nearest) {
+      if (insightSummary) insightSummary.textContent = "Tidak ada lokasi terdekat pada filter/radius aktif.";
+      return;
+    }
+
+    setDestinationPlace(nearest, true);
+
+    if (map) {
+      map.flyTo([nearest.lat, nearest.lng], 17, { duration: 0.8 });
+    }
+
+    if (insightSummary) {
+      insightSummary.textContent = `Fokus ke ${getDisplayName(nearest)}, jarak sekitar ${nearest.distanceMeters} meter dari Rektorat UPN.`;
+    }
+  }
+
+  async function loadAllData() {
+  try {
+    const laundryRows = await readExcel("data/laundry.xlsx");
+    const minimarketRows = await readExcel("data/minimarket.xlsx");
+    const rumahMakanRows = await readExcel("data/rumah_makan.xlsx");
+    const fasilitasKesehatanRows = await readExcel("data/fasilitas_kesehatan.xlsx");
+    const emergencyRows = await readExcel("data/emergency.xlsx");
+
+    const laundryData = laundryRows
+      .map(normalizeLaundry)
+      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+
+    const minimarketData = minimarketRows
+      .map(normalizeMinimarket)
+      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+
+    const rumahMakanData = rumahMakanRows
+      .map(normalizeRumahMakan)
+      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+
+    const fasilitasKesehatanData = fasilitasKesehatanRows
+      .map(normalizeFasilitasKesehatan)
+      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+
+    const emergencyData = emergencyRows
+      .map(normalizeEmergency)
+      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+
+    places = [
+      ...laundryData,
+      ...minimarketData,
+      ...rumahMakanData,
+      ...fasilitasKesehatanData,
+      ...emergencyData
+    ];
+
+    console.table(places.map(p => ({
+      id: p.id,
+      kategori: p.category,
+      nama: getDisplayName(p),
+      lat: p.lat,
+      lng: p.lng,
+      dokumentasi: p.Dokumentasi
+    })));
+
+    populateDestinationOptions();
+    renderFilterList();
+    syncChips();
+    renderMarkers();
+    updateInsightDashboard();
+
+  } catch (error) {
+    console.error(error);
+
+    places = [];
+    renderFilterList();
+    syncChips();
+
+    detailTitle.textContent = "Data belum terbaca";
+    detailDistance.textContent = "";
+    detailPrice.textContent = "Cek folder data dan nama file Excel";
+    detailMeta.innerHTML = `
+      <div><b>Error:</b> ${error.message}</div>
+      <div>Pastikan file ada di folder:</div>
+      <div>data/laundry.xlsx</div>
+      <div>data/minimarket.xlsx</div>
+      <div>data/rumah_makan.xlsx</div>
+      <div>data/fasilitas_kesehatan.xlsx</div>
+      <div>data/emergency.xlsx</div>
+    `;
+  }
+}
+
+  function applyBasemapClass(type) {
+    document.body.classList.remove(
+      "basemap-dark",
+      "basemap-streets",
+      "basemap-satellite",
+      "basemap-light"
+    );
+
+    document.body.classList.add(`basemap-${type}`);
+  }
+
+  function setBasemap(type) {
+    if (!map) return;
+
+    if (currentBaseLayer) {
+      map.removeLayer(currentBaseLayer);
+    }
+
+    currentBaseLayer = baseMaps[type];
+    currentBaseLayer.addTo(map);
+
+    applyBasemapClass(type);
+  }
+
+  function applyTheme(mode) {
+    document.body.classList.remove("theme-dark", "theme-light", "force-dark", "force-light");
+
+    if (mode === "dark") {
+      document.body.classList.add("theme-dark", "force-dark");
+      if (themeToggle) {
+        themeToggle.innerHTML = `<i class="fa-solid fa-sun"></i> Light`;
+      }
+      localStorage.setItem("studentSurvivalTheme", "dark");
+    } else {
+      document.body.classList.add("theme-light", "force-light");
+      if (themeToggle) {
+        themeToggle.innerHTML = `<i class="fa-solid fa-moon"></i> Dark`;
+      }
+      localStorage.setItem("studentSurvivalTheme", "light");
+    }
+  }
+
+  function toggleTheme() {
+    const isDark = document.body.classList.contains("force-dark");
+    applyTheme(isDark ? "light" : "dark");
+  }
+
+  function distanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  function createIcon(category) {
+    const cfg = categories[category] || categories.laundry;
+
+    return L.divIcon({
+      className: "custom-div-icon",
+      html: `<div class="marker-wrap" style="background:${cfg.color};"><i class="${cfg.icon}"></i></div>`,
+      iconSize: [42, 48],
+      iconAnchor: [21, 42],
+      popupAnchor: [0, -36]
+    });
+  }
+
+  function updateRadiusCircle(radiusValue) {
+    if (!map) return;
+
+    const radius = Number(radiusValue);
+
+    if (radiusCircle) {
+      map.removeLayer(radiusCircle);
+    }
+
+    radiusCircle = L.circle(upnLatLng, {
+      radius: radius,
+      color: "#4da3ff",
+      weight: 2,
+      fillColor: "#4da3ff",
+      fillOpacity: 0.10
+    }).addTo(map);
+
+    const radiusText = radius === 4000 ? "< 5 km" : `${radius / 1000} km`;
+    legendText.textContent = `Radius aktif: ${radiusText} dari Rektorat UPN`;
+  }
+
+  function clearRoute() {
+    if (routeControl) {
+      map.removeControl(routeControl);
+      routeControl = null;
+    }
+
+    if (routeHint) {
+      routeHint.textContent = "Rute dibersihkan. Pilih asal dan tujuan untuk membuat rute baru.";
+    }
+  }
+
+  function showRoutePlanner() {
+    if (routePlanner) {
+      routePlanner.classList.remove("hidden-route");
+    }
+  }
+
+  function hideRoutePlanner() {
+    if (routePlanner) {
+      routePlanner.classList.add("hidden-route");
+    }
+  }
+
+  function setOriginMarker(latlng, label) {
+    currentOriginLatLng = latlng;
+    currentOriginLabel = label || "Titik asal";
+
+    if (!map) return;
+
+    if (originMarker) {
+      map.removeLayer(originMarker);
+    }
+
+    originMarker = L.marker(latlng, {
+      icon: L.divIcon({
+        className: "custom-div-icon",
+        html: '<div class="origin-marker-wrap"><i class="fa-solid fa-location-crosshairs"></i></div>',
+        iconSize: [42, 42],
+        iconAnchor: [21, 21]
+      })
+    }).addTo(map).bindPopup(`<b>Asal:</b> ${currentOriginLabel}`);
+
+    if (routeHint) {
+      routeHint.textContent = `Asal dipilih: ${currentOriginLabel}`;
+    }
+  }
+
+function resetOriginToCampus() {
+    currentOriginLatLng = upnLatLng;
+    currentOriginLabel = "Rektorat UPN";
+
+    if (originMarker && map) {
+      map.removeLayer(originMarker);
+      originMarker = null;
+    }
+
+    if (routeHint) {
+      routeHint.textContent = "Asal dipilih: Rektorat UPN";
+    }
+  }
+
+  function setOriginFromMyLocation() {
+    if (!navigator.geolocation) {
+      if (routeHint) routeHint.textContent = "Browser tidak mendukung geolocation.";
+      return;
+    }
+
+    if (routeHint) routeHint.textContent = "Mengambil lokasi kamu...";
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const latlng = [position.coords.latitude, position.coords.longitude];
+        setOriginMarker(latlng, "Lokasi Saya");
+        map.setView(latlng, 16);
+      },
+      () => {
+        if (routeHint) routeHint.textContent = "Lokasi gagal diambil. Izinkan akses lokasi di browser.";
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  function populateDestinationOptions() {
+    if (!destinationSelect) return;
+
+    const currentValue = destinationSelect.value;
+
+    destinationSelect.innerHTML = '<option value="">Tujuan: pilih lokasi</option>' +
+      places
+        .slice()
+        .sort((a, b) => String(getDisplayName(a)).localeCompare(String(getDisplayName(b))))
+        .map(place => `<option value="${place.id}">${getDisplayName(place)} - ${categories[place.category]?.label || place.category}</option>`)
+        .join("");
+
+    if (currentValue) {
+      destinationSelect.value = currentValue;
+    }
+  }
+
+  function getPlaceById(id) {
+    return places.find(place => String(place.id) === String(id));
+  }
+
+  function setDestinationPlace(place, shouldOpenPanel = true) {
+    if (!place) return;
+
+    selectedPlace = place;
+
+    if (destinationSelect) {
+      destinationSelect.value = place.id;
+    }
+
+    if (shouldOpenPanel) {
+      updateDetail(place);
+    }
+  }
+
+  function drawRouteToSelectedDestination() {
+    const destinationId = destinationSelect ? destinationSelect.value : "";
+    const destination = destinationId ? getPlaceById(destinationId) : selectedPlace;
+
+    if (!destination) {
+      if (routeHint) routeHint.textContent = "Pilih tujuan dulu.";
+      return;
+    }
+
+    selectedPlace = destination;
+    drawRouteTo(destination);
+    updateDetail(destination);
+
+    if (routeHint) {
+      routeHint.textContent = `Rute aktif: ${currentOriginLabel} → ${getDisplayName(destination)}`;
+    }
+  }
+
+  function drawRouteTo(place) {
+    if (!map || !place) return;
+
+    clearRoute();
+
+    routeControl = L.Routing.control({
+      waypoints: [
+        L.latLng(currentOriginLatLng[0], currentOriginLatLng[1]),
+        L.latLng(place.lat, place.lng)
+      ],
+      routeWhileDragging: false,
+      addWaypoints: false,
+      draggableWaypoints: false,
+      fitSelectedRoutes: true,
+      show: false,
+      createMarker: function () {
+        return null;
+      },
+      lineOptions: {
+        styles: [
+          { color: "#2f80ed", opacity: 0.96, weight: 5, dashArray: "10 12" },
+          { color: "#8ec5ff", opacity: 0.50, weight: 8, dashArray: "2 18" }
+        ]
+      }
+    }).addTo(map);
+  }
+
+  function parseTimeToMinutes(timeText) {
+    const match = String(timeText).match(/(\d{1,2})[.:](\d{2})/);
+
+    if (!match) return null;
+
+    const hour = parseInt(match[1], 10);
+    const minute = parseInt(match[2], 10);
+
+    return hour * 60 + minute;
+  }
+
+  function getOpenStatus(place) {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const jam = String(place.Jam_operasional || place.open || "").toLowerCase();
+
+    if (place.open24 || jam.includes("24 jam") || jam.includes("00.00-23.59")) {
+      return {
+        isOpen: true,
+        text: "Masih Buka",
+        icon: "🟢"
+      };
+    }
+
+    const times = jam.match(/\d{1,2}[.:]\d{2}/g);
+
+    if (!times || times.length < 2) {
+      return {
+        isOpen: null,
+        text: "Jam tidak terbaca",
+        icon: "⚪"
+      };
+    }
+
+    const openTime = parseTimeToMinutes(times[0]);
+    const closeTime = parseTimeToMinutes(times[1]);
+
+    let isOpen = false;
+
+    if (openTime <= closeTime) {
+      isOpen = currentMinutes >= openTime && currentMinutes <= closeTime;
+    } else {
+      isOpen = currentMinutes >= openTime || currentMinutes <= closeTime;
+    }
+
+    return {
+      isOpen,
+      text: isOpen ? "Masih Buka" : "Sudah Tutup",
+      icon: isOpen ? "🟢" : "🔴"
+    };
+  }
+
+  function updateDetail(place) {
+    infoPanel.classList.remove("hidden");
+    openInfoPanel.classList.add("hidden");
+
+    const dist = distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng);
+    const status = getOpenStatus(place);
+
+    selectedPlace = place;
+
+    if (destinationSelect) {
+      destinationSelect.value = place.id;
+    }
+
+    detailTitle.textContent = getDisplayName(place);
+    detailDistance.textContent = `(${Math.round(dist * 1000)} m)`;
+    detailPrice.textContent = place.price || place.Keterangan || "-";
+    detailImage.src = place.image;
+
+    detailImage.onerror = function () {
+      this.onerror = null;
+      this.src = getFallbackImage(place.category);
+    };
+
+    detailButton.textContent = place.detailLabel;
+
+    detailMeta.innerHTML = `
+      <div>${status.icon} <b>${status.text}</b></div>
+      <div><b>ID:</b> ${place.id || "-"}</div>
+      <div><b>Nama:</b> ${getDisplayName(place)}</div>
+      <div><b>Kategori:</b> ${categories[place.category]?.label || "-"}</div>
+      <div><b>Keterangan:</b> ${place.Keterangan || "-"}</div>
+      <div><b>Hari Operasional:</b> ${place.Hari_operasional || "-"}</div>
+      <div><b>Jam Operasional:</b> ${place.Jam_operasional || "-"}</div>
+      <div><b>Alamat Lengkap:</b> ${place.Alamat_lengkap || "-"}</div>
+      <div><b>No. Telepon:</b> ${place.No_Telepon || "-"}</div>
+      <div><b>Latitude:</b> ${place.Latitude || "-"}</div>
+      <div><b>Longitude:</b> ${place.Longitude || "-"}</div>
+      <div><b>Rating:</b> ⭐ ${place.Rating || "-"}</div>
+      <div><b>Dokumentasi:</b> ${place.Dokumentasi || "-"}</div>
+      <div><b>Buka 24 Jam:</b> ${place.Buka_24_jam || "-"}</div>
+      ${
+        place.Link_google_maps && place.Link_google_maps !== "-"
+          ? `<div><a href="${place.Link_google_maps}" target="_blank" style="color:#ffd1b0;font-weight:900;text-decoration:none;">Buka Google Maps</a></div>`
+          : ""
+      }
+    `;
+
+    updateInsightDashboard();
+      setTimeout(restartDashboardMotion, 120);
+
+    if (state.networkOn) {
+      drawRouteTo(place);
+    }
+  }
+
+  function filteredPlaces() {
+    const radius = Number(radiusSelect.value);
+
+    return places.filter(place => {
+      const searchText = [
+        place.id,
+        place.name,
+        place.Nama,
+        place.Nama_Laundry,
+        place.Nama_Minimarket,
+        place.Nama_Rumah_Makan,
+        place.Nama_Emergency,
+        place.Keterangan,
+        place.Alamat_lengkap,
+        place.No_Telepon,
+        place.Rating,
+        place.Dokumentasi
+      ].join(" ").toLowerCase();
+
+      const matchSearch =
+        !state.search ||
+        searchText.includes(state.search);
+
+      const matchCategory = state.emergencyOnly
+        ? place.category === "emergency"
+        : state.categories.has(place.category);
+
+      const matchCheap = !state.cheap || place.cheap;
+      const match24 = !state.open24 || place.open24;
+      const matchNear = !state.nearCampus || place.nearCampus;
+
+      const distMeters =
+        distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000;
+
+      const matchRadius = distMeters <= radius;
+
+      return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+    });
+  }
+
+  function renderMarkers() {
+    Object.values(layers).forEach(layer => layer.clearLayers());
+
+    const visiblePlaces = filteredPlaces();
+
+    visiblePlaces.forEach(place => {
+      const status = getOpenStatus(place);
+
+      const marker = L.marker([place.lat, place.lng], {
+        icon: createIcon(place.category)
+      })
+        .bindPopup(`
+          <div style="min-width:220px;">
+            <b>${getDisplayName(place)}</b><br>
+            <b>ID:</b> ${place.id}<br>
+            <b>Nama:</b> ${getDisplayName(place)}<br>
+            <b>Status:</b> ${status.icon} ${status.text}<br>
+            <b>Keterangan:</b> ${place.Keterangan || "-"}<br>
+            <b>Jam:</b> ${place.Jam_operasional || "-"}<br>
+            <b>Rating:</b> ⭐ ${place.Rating || "-"}<br>
+            ${
+              place.Link_google_maps && place.Link_google_maps !== "-"
+                ? `<br><a href="${place.Link_google_maps}" target="_blank">Google Maps</a>`
+                : ""
+            }
+          </div>
+        `)
+        .on("click", e => {
+          setDestinationPlace(place, true);
+          if (map) {
+            map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
           }
+          e.target.openPopup();
         });
-      }, { threshold: 0.12 });
 
-      items.forEach(item => observer.observe(item));
+      layers[place.category].addLayer(marker);
+    });
+
+    if (visiblePlaces.length > 0) {
+      updateDetail(visiblePlaces[0]);
+    } else {
+      detailTitle.textContent = "Tidak ada data";
+      detailDistance.textContent = "";
+      detailPrice.textContent = "Coba ubah filter atau radius";
+      detailMeta.innerHTML = `<div>Data tidak ditemukan pada radius/filter aktif.</div>`;
+      clearRoute();
     }
 
-    function handleResponsivePanels() {
-      const isMobile = window.innerWidth <= 900;
+    document.getElementById("emergencyCount").textContent =
+      places.filter(p => p.category === "emergency").length;
 
-      if (isMobile) {
-        topControls.classList.remove("collapsed");
-        leftPanel.classList.remove("collapsed");
-        leftPanel.classList.remove("shifted");
+    updateInsightDashboard();
+      setTimeout(restartDashboardMotion, 120);
+  }
+
+ function renderFilterList() {
+  const filterList = document.getElementById("filterList");
+  const keys = ["laundry", "minimarket", "rumah_makan", "fasilitas_kesehatan", "emergency"];
+
+  filterList.innerHTML = keys.map(key => {
+    const cfg = categories[key];
+    const count = places.filter(p => p.category === key).length;
+    const active = state.categories.has(key) ? "active" : "";
+
+    return `
+      <div class="filter-item ${active}" data-category="${key}">
+        <div class="filter-left">
+          <div class="cat-icon" style="background:${cfg.color};">
+            <i class="${cfg.icon}"></i>
+          </div>
+          <div class="cat-label">
+            ${cfg.label}<span class="cat-count">(${count})</span>
+          </div>
+        </div>
+        <div class="check">✓</div>
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".filter-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const key = item.dataset.category;
+
+      if (state.categories.has(key)) {
+        state.categories.delete(key);
+      } else {
+        state.categories.add(key);
       }
-    }
-
-    function initMap() {
-      if (mapInitialized) return;
-
-      map = L.map("map", { zoomControl: false }).setView(upnLatLng, 15);
-      L.control.zoom({ position: "topright" }).addTo(map);
-
-      setBasemap("dark");
-      updateRadiusCircle(radiusSelect.value);
-
-      L.marker(upnLatLng, {
-        icon: L.divIcon({
-          className: "custom-div-icon",
-          html: '<div class="marker-wrap" style="background:#2f80ed;"><i class="fa-solid fa-building-columns"></i></div>',
-          iconSize: [42, 48],
-          iconAnchor: [21, 42]
-        })
-      }).addTo(map).bindPopup("<b>Rektorat UPN Jogja</b>");
-
-      Object.keys(categories).forEach(key => {
-        layers[key] = L.layerGroup().addTo(map);
-      });
 
       renderFilterList();
-      syncChips();
       renderMarkers();
-      syncPanelPositions();
-      handleResponsivePanels();
-
-      basemapSelect.addEventListener("change", function () {
-        setBasemap(this.value);
-      });
-
-      radiusSelect.addEventListener("change", function () {
-        updateRadiusCircle(this.value);
-        renderMarkers();
-      });
-
-      mapInitialized = true;
-
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 250);
-    }
-
-    function openMapPage() {
-      landingPage.classList.add("hidden");
-      mapPage.classList.remove("hidden");
-      initMap();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    enterMapBtn.addEventListener("click", openMapPage);
-    enterMapBtnBottom.addEventListener("click", openMapPage);
-
-    backHomeBtn.addEventListener("click", () => {
-      mapPage.classList.add("hidden");
-      landingPage.classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     });
+  });
+}
 
-    toggleTopPanel.addEventListener("click", () => {
-      if (window.innerWidth <= 900) return;
-      topControls.classList.toggle("collapsed");
-      syncPanelPositions();
-    });
-
-    toggleLeftPanel.addEventListener("click", () => {
-      if (window.innerWidth <= 900) return;
-      leftPanel.classList.toggle("collapsed");
-      syncPanelPositions();
-    });
-
-    closeInfoPanel.addEventListener("click", () => {
-      infoPanel.classList.add("hidden");
-      openInfoPanel.classList.remove("hidden");
-    });
-
-    openInfoPanel.addEventListener("click", () => {
-      infoPanel.classList.remove("hidden");
-      openInfoPanel.classList.add("hidden");
-    });
-
+  function syncChips() {
     document.querySelectorAll("[data-chip]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const key = btn.dataset.chip;
+      const key = btn.dataset.chip;
 
-        if (key === "murah") state.cheap = !state.cheap;
-        if (key === "24jam") state.open24 = !state.open24;
-        if (key === "dekat") state.nearCampus = !state.nearCampus;
-        if (key === "emergency") state.emergencyOnly = !state.emergencyOnly;
-        if (key === "network") {
-          state.networkOn = !state.networkOn;
-          if (!state.networkOn) {
-            clearRoute();
-          } else if (selectedPlace) {
+      const active =
+        (key === "murah" && state.cheap) ||
+        (key === "24jam" && state.open24) ||
+        (key === "dekat" && state.nearCampus) ||
+        (key === "emergency" && state.emergencyOnly) ||
+        (key === "network" && state.networkOn);
+
+      btn.classList.toggle("active", active);
+    });
+  }
+
+  function syncPanelPositions() {
+    const topOpen = !topControls.classList.contains("collapsed");
+    const leftOpen = !leftPanel.classList.contains("collapsed");
+
+    if (topOpen && leftOpen && window.innerWidth > 900) {
+      leftPanel.classList.add("shifted");
+    } else {
+      leftPanel.classList.remove("shifted");
+    }
+  }
+
+  function initRevealAnimations() {
+    const items = document.querySelectorAll(".reveal, .reveal-left, .reveal-right");
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+        }
+      });
+    }, { threshold: 0.12 });
+
+    items.forEach(item => observer.observe(item));
+  }
+
+  
+  function closePanelsForDashboard() {
+    if (!topControls.classList.contains("collapsed")) {
+      topControls.classList.add("collapsed");
+    }
+    if (!leftPanel.classList.contains("collapsed")) {
+      leftPanel.classList.add("collapsed");
+    }
+    if (routePlanner) {
+      routePlanner.classList.add("hidden-route");
+    }
+    syncPanelPositions();
+  }
+
+function handleResponsivePanels() {
+    const isMobile = window.innerWidth <= 900;
+
+    if (isMobile) {
+      topControls.classList.remove("collapsed");
+      leftPanel.classList.remove("collapsed");
+      leftPanel.classList.remove("shifted");
+    }
+  }
+
+  async function initMap() {
+    if (mapInitialized) return;
+
+    map = L.map("map", { zoomControl: false }).setView(upnLatLng, 15);
+    L.control.zoom({ position: "topright" }).addTo(map);
+
+    setBasemap("dark");
+    updateRadiusCircle(radiusSelect.value);
+
+    L.marker(upnLatLng, {
+      icon: L.divIcon({
+        className: "custom-div-icon",
+        html: '<div class="marker-wrap" style="background:#2f80ed;"><i class="fa-solid fa-building-columns"></i></div>',
+        iconSize: [42, 48],
+        iconAnchor: [21, 42]
+      })
+    }).addTo(map).bindPopup("<b>Rektorat UPN Jogja</b>");
+
+    resetOriginToCampus();
+
+    map.on("click", e => {
+      if (originSelect && originSelect.value === "pick") {
+        setOriginMarker([e.latlng.lat, e.latlng.lng], "Titik Klik di Peta");
+      }
+    });
+
+    Object.keys(categories).forEach(key => {
+      layers[key] = L.layerGroup().addTo(map);
+    });
+
+    renderFilterList();
+    syncChips();
+
+    await loadAllData();
+
+    syncPanelPositions();
+    handleResponsivePanels();
+
+    basemapSelect.addEventListener("change", function () {
+      setBasemap(this.value);
+
+      const savedTheme = localStorage.getItem("studentSurvivalTheme");
+      if (!savedTheme) {
+        document.body.classList.remove("force-dark", "force-light");
+      }
+    });
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", toggleTheme);
+    }
+
+    if (toggleDashboard) {
+      toggleDashboard.addEventListener("click", toggleInsightDashboard);
+    }
+
+    if (focusNearestBtn) {
+      focusNearestBtn.addEventListener("click", focusNearestPlace);
+    }
+
+
+    if (openRouteFromInsight) {
+      openRouteFromInsight.addEventListener("click", () => {
+        showRoutePlanner();
+        state.networkOn = true;
+        syncChips();
+        if (selectedPlace) {
+          drawRouteTo(selectedPlace);
+        }
+      });
+    }
+
+    if (fitAllInsightBtn) {
+      fitAllInsightBtn.addEventListener("click", () => {
+        const valid = filteredPlaces().filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+        if (valid.length && map) {
+          const bounds = L.latLngBounds(valid.map(item => [item.lat, item.lng]));
+          map.fitBounds(bounds, { padding: [60, 60] });
+        }
+      });
+    }
+
+    if (originSelect) {
+      originSelect.addEventListener("change", function () {
+        showRoutePlanner();
+
+        if (this.value === "campus") {
+          resetOriginToCampus();
+          map.setView(upnLatLng, 15);
+        }
+
+        if (this.value === "mylocation") {
+          setOriginFromMyLocation();
+        }
+
+        if (this.value === "pick" && routeHint) {
+          routeHint.textContent = "Klik satu titik di peta untuk menentukan asal.";
+        }
+      });
+    }
+
+    if (destinationSelect) {
+      destinationSelect.addEventListener("change", function () {
+        const place = getPlaceById(this.value);
+        if (place) {
+          setDestinationPlace(place, true);
+          map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
+        }
+      });
+    }
+
+    if (routeNowBtn) {
+      routeNowBtn.addEventListener("click", () => {
+        state.networkOn = true;
+        syncChips();
+        drawRouteToSelectedDestination();
+      });
+    }
+
+    if (clearRouteBtn) {
+      clearRouteBtn.addEventListener("click", () => {
+        state.networkOn = false;
+        syncChips();
+        clearRoute();
+      });
+    }
+
+    radiusSelect.addEventListener("change", function () {
+      updateRadiusCircle(this.value);
+      renderMarkers();
+    });
+
+    mapInitialized = true;
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+  }
+
+  function openMapPage() {
+    landingPage.classList.add("hidden");
+    mapPage.classList.remove("hidden");
+    initMap();
+    if (insightDashboard) insightDashboard.classList.remove("hidden-dashboard");
+    setTimeout(() => showTutorial(false), 650);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  enterMapBtn.addEventListener("click", openMapPage);
+  enterMapBtnBottom.addEventListener("click", openMapPage);
+
+  backHomeBtn.addEventListener("click", () => {
+    mapPage.classList.add("hidden");
+    landingPage.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  toggleTopPanel.addEventListener("click", () => {
+    if (window.innerWidth <= 900) return;
+    topControls.classList.toggle("collapsed");
+
+    if (topControls.classList.contains("collapsed")) {
+      hideRoutePlanner();
+      hideInsightDashboard();
+    }
+
+    syncPanelPositions();
+  });
+
+  toggleLeftPanel.addEventListener("click", () => {
+    if (window.innerWidth <= 900) return;
+    leftPanel.classList.toggle("collapsed");
+    syncPanelPositions();
+  });
+
+  closeInfoPanel.addEventListener("click", () => {
+    infoPanel.classList.add("hidden");
+    openInfoPanel.classList.remove("hidden");
+  });
+
+  openInfoPanel.addEventListener("click", () => {
+    infoPanel.classList.remove("hidden");
+    openInfoPanel.classList.add("hidden");
+  });
+
+  document.querySelectorAll("[data-chip]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.chip;
+
+      if (key === "murah") state.cheap = !state.cheap;
+      if (key === "24jam") state.open24 = !state.open24;
+      if (key === "dekat") state.nearCampus = !state.nearCampus;
+      if (key === "emergency") state.emergencyOnly = !state.emergencyOnly;
+
+      if (key === "network") {
+        state.networkOn = !state.networkOn;
+
+        if (!state.networkOn) {
+          clearRoute();
+          hideRoutePlanner();
+        } else {
+          showRoutePlanner();
+          if (selectedPlace) {
             drawRouteTo(selectedPlace);
           }
         }
+      }
 
-        syncChips();
-        renderMarkers();
+      syncChips();
+      renderMarkers();
+    });
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    state.categories = new Set(["laundry", "minimarket", "rumah_makan", "fasilitas_kesehatan", "emergency"]);
+    state.cheap = false;
+    state.open24 = false;
+    state.nearCampus = false;
+    state.emergencyOnly = false;
+    state.networkOn = false;
+    state.search = "";
+
+    document.getElementById("searchInput").value = "";
+
+    basemapSelect.value = "dark";
+    radiusSelect.value = "5000";
+
+    setBasemap("dark");
+    updateRadiusCircle("5000");
+    clearRoute();
+    resetOriginToCampus();
+    if (originSelect) originSelect.value = "campus";
+    if (destinationSelect) destinationSelect.value = "";
+    hideRoutePlanner();
+    hideInsightDashboard();
+
+    renderFilterList();
+    syncChips();
+    renderMarkers();
+
+    map.setView(upnLatLng, 15);
+
+    infoPanel.classList.remove("hidden");
+    openInfoPanel.classList.add("hidden");
+
+    syncPanelPositions();
+    handleResponsivePanels();
+  });
+
+  document.getElementById("searchBtn").addEventListener("click", () => {
+    state.search = document.getElementById("searchInput").value.trim().toLowerCase();
+    renderMarkers();
+  });
+
+  document.getElementById("searchInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      state.search = document.getElementById("searchInput").value.trim().toLowerCase();
+      renderMarkers();
+    }
+  });
+
+  routeButton.addEventListener("click", () => {
+    showRoutePlanner();
+
+    if (selectedPlace) {
+      state.networkOn = true;
+      syncChips();
+      setDestinationPlace(selectedPlace, false);
+      drawRouteTo(selectedPlace);
+    }
+  });
+
+  detailButton.addEventListener("click", () => {
+    if (selectedPlace && selectedPlace.Link_google_maps && selectedPlace.Link_google_maps !== "-") {
+      window.open(selectedPlace.Link_google_maps, "_blank");
+    }
+  });
+
+  
+
+  function showTutorial(force = false) {
+    if (!tutorialOverlay) return;
+
+    const hiddenByUser = localStorage.getItem("studentSurvivalHideTutorial") === "true";
+
+    if (hiddenByUser && !force) {
+      return;
+    }
+
+    tutorialOverlay.classList.remove("hidden-tutorial");
+  }
+
+  function hideTutorial() {
+    if (!tutorialOverlay) return;
+
+    tutorialOverlay.classList.add("hidden-tutorial");
+
+    if (dontShowTutorialAgain && dontShowTutorialAgain.checked) {
+      localStorage.setItem("studentSurvivalHideTutorial", "true");
+    }
+  }
+
+  function initTutorialEvents() {
+    if (openTutorialBtn) {
+      openTutorialBtn.addEventListener("click", () => showTutorial(true));
+    }
+
+    if (closeTutorialBtn) {
+      closeTutorialBtn.addEventListener("click", hideTutorial);
+    }
+
+    if (startUsingWebgisBtn) {
+      startUsingWebgisBtn.addEventListener("click", hideTutorial);
+    }
+
+    if (tutorialOverlay) {
+      tutorialOverlay.addEventListener("click", event => {
+        if (event.target === tutorialOverlay) {
+          hideTutorial();
+        }
+      });
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && tutorialOverlay && !tutorialOverlay.classList.contains("hidden-tutorial")) {
+        hideTutorial();
+      }
+    });
+  }
+
+  function initMotionMode() {
+    const cards = document.querySelectorAll(".energy-index-mode .insight-card");
+
+    cards.forEach(card => {
+      card.addEventListener("mousemove", event => {
+        const rect = card.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const rotateY = ((x / rect.width) - 0.5) * 7;
+        const rotateX = ((0.5 - y / rect.height)) * 7;
+
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.style.transform = "";
       });
     });
 
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      state.categories = new Set(["kost", "makan", "laundry", "print", "minimarket", "atm", "apotek"]);
+    if (toggleDashboard && insightDashboard) {
+      const syncDashboardButton = () => {
+        toggleDashboard.classList.toggle("active", !insightDashboard.classList.contains("hidden-dashboard"));
+      };
+
+      syncDashboardButton();
+
+      toggleDashboard.addEventListener("click", () => {
+        setTimeout(syncDashboardButton, 20);
+      });
+    }
+  }
+
+  function animateNumberText(element, target, suffix = "") {
+    if (!element) return;
+
+    const cleanTarget = Number(String(target).replace(/[^\d.]/g, ""));
+    if (Number.isNaN(cleanTarget)) {
+      element.textContent = target + suffix;
+      return;
+    }
+
+    const start = Number(String(element.textContent).replace(/[^\d.]/g, "")) || 0;
+    const duration = 850;
+    const startTime = performance.now();
+
+    function tick(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.round(start + (cleanTarget - start) * eased);
+
+      element.textContent = value + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  function animateDashboardNumbers() {
+    if (survivalScore) {
+      const value = Number(String(survivalScore.textContent).replace(/[^\d.]/g, "")) || 0;
+      animateNumberText(survivalScore, value);
+    }
+
+    if (metricTotal) animateNumberText(metricTotal, metricTotal.textContent);
+    if (metricOpen24) animateNumberText(metricOpen24, metricOpen24.textContent);
+  }
+
+  function restartDashboardMotion() {
+    if (!insightDashboard) return;
+
+    insightDashboard.querySelectorAll(".intensity-bar, .rank-item, .insight-main, .insight-side").forEach(el => {
+      el.style.animation = "none";
+      void el.offsetHeight;
+      el.style.animation = "";
+    });
+
+    animateDashboardNumbers();
+  }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = localStorage.getItem("studentSurvivalTheme");
+
+    if (savedTheme === "dark" || savedTheme === "light") {
+      applyTheme(savedTheme);
+    } else {
+      document.body.classList.add("theme-light");
+      applyBasemapClass(basemapSelect.value || "dark");
+    }
+
+    initRevealAnimations();
+    handleResponsivePanels();
+    initTutorialEvents();
+    initMotionMode();
+    setTimeout(restartDashboardMotion, 400);
+  });
+
+  window.addEventListener("resize", () => {
+    handleResponsivePanels();
+    syncPanelPositions();
+
+    if (mapInitialized && map) {
+      setTimeout(() => map.invalidateSize(), 200);
+    }
+  });
+</script>
+<script>
+/* =========================================================
+   PATCH FINAL BERSIH
+   - Hapus teks script yang tampil di halaman
+   - Topbar jadi Panduan / Reset / Beranda
+   - Dashboard insight tidak kepotong
+   - Map tetap full screen
+========================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+  const patchStyle = document.createElement("style");
+  patchStyle.textContent = `
+    body.map-active{
+      overflow:hidden !important;
+    }
+
+    body.map-active .app{
+      height:100vh !important;
+      overflow:hidden !important;
+    }
+
+    body.map-active .map-page{
+      height:100vh !important;
+      min-height:100vh !important;
+      overflow:hidden !important;
+      display:flex !important;
+      flex-direction:column !important;
+    }
+
+    body.map-active .topbar{
+      height:78px !important;
+      min-height:78px !important;
+      flex-shrink:0 !important;
+    }
+
+    body.map-active .content{
+      flex:1 !important;
+      height:calc(100vh - 78px) !important;
+      min-height:0 !important;
+      overflow:hidden !important;
+      padding:10px !important;
+    }
+
+    body.map-active .map-shell{
+      width:100% !important;
+      height:100% !important;
+      min-height:0 !important;
+      overflow:hidden !important;
+      position:relative !important;
+      border-radius:24px !important;
+    }
+
+    body.map-active #map,
+    body.map-active .leaflet-container{
+      width:100% !important;
+      height:100% !important;
+      min-height:0 !important;
+      border-radius:22px !important;
+    }
+
+    body.map-active .floating-actions{
+      top:12px !important;
+      left:12px !important;
+      z-index:1300 !important;
+    }
+
+    body.map-active .top-controls{
+      top:70px !important;
+      left:12px !important;
+      z-index:1300 !important;
+    }
+
+    body.map-active .left-panel{
+      top:70px !important;
+      left:12px !important;
+      z-index:1300 !important;
+      max-height:calc(100% - 92px) !important;
+    }
+
+    body.map-active .left-panel.shifted{
+      top:128px !important;
+      max-height:calc(100% - 150px) !important;
+    }
+
+    body.map-active .right-panel{
+      right:12px !important;
+      bottom:12px !important;
+      width:300px !important;
+      max-height:calc(100% - 24px) !important;
+      z-index:1300 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode{
+      position:absolute !important;
+      top:76px !important;
+      left:24px !important;
+      right:324px !important;
+      bottom:24px !important;
+      width:auto !important;
+      max-width:none !important;
+      height:auto !important;
+      max-height:none !important;
+      overflow:hidden !important;
+      padding:0 !important;
+      display:grid !important;
+      grid-template-columns:minmax(0, 1.08fr) minmax(280px, .72fr) !important;
+      gap:14px !important;
+      z-index:1150 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode.hidden-dashboard{
+      opacity:0 !important;
+      transform:translateY(-12px) scale(.98) !important;
+      pointer-events:none !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-card{
+      height:100% !important;
+      max-height:100% !important;
+      min-height:0 !important;
+      overflow:hidden !important;
+      border-radius:24px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-main{
+      padding:16px !important;
+      display:flex !important;
+      flex-direction:column !important;
+      gap:12px !important;
+      min-height:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-side{
+      padding:14px !important;
+      display:flex !important;
+      flex-direction:column !important;
+      gap:10px !important;
+      min-height:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-head{
+      margin-bottom:4px !important;
+      flex-shrink:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-title{
+      font-size:20px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-kicker{
+      font-size:10px !important;
+      margin-bottom:3px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-pill{
+      min-height:30px !important;
+      padding:6px 10px !important;
+      font-size:10px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-index-hero{
+      grid-template-columns:132px minmax(0,1fr) !important;
+      gap:14px !important;
+      align-items:center !important;
+      flex-shrink:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-gauge{
+      width:126px !important;
+      height:126px !important;
+      flex-shrink:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-gauge::before{
+      inset:13px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-gauge::after{
+      width:56px !important;
+      height:56px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .gauge-value{
+      font-size:38px !important;
+      line-height:.9 !important;
+      letter-spacing:-1px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .gauge-label{
+      font-size:9px !important;
+      margin-top:5px !important;
+      letter-spacing:.5px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-summary-title{
+      font-size:24px !important;
+      line-height:1.05 !important;
+      margin-bottom:6px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-summary-desc{
+      font-size:11px !important;
+      line-height:1.45 !important;
+      max-width:100% !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-stat-row{
+      grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+      gap:8px !important;
+      margin-top:10px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-mini-stat{
+      padding:10px !important;
+      border-radius:16px !important;
+      min-height:72px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-mini-stat b{
+      font-size:21px !important;
+      line-height:1 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-mini-stat span{
+      font-size:9px !important;
+      line-height:1.25 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .index-visual-row{
+      margin-top:0 !important;
+      display:grid !important;
+      grid-template-columns:1fr 1fr !important;
+      gap:10px !important;
+      min-height:0 !important;
+      flex:1 1 auto !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .intensity-bars-card,
+    body.map-active #insightDashboard.energy-index-mode .category-donut-card,
+    body.map-active #insightDashboard.energy-index-mode .energy-rank-card{
+      padding:12px !important;
+      border-radius:18px !important;
+      min-height:0 !important;
+      overflow:hidden !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .visual-card-title{
+      font-size:12px !important;
+      margin-bottom:8px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .visual-card-title small{
+      font-size:9px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .intensity-chart{
+      height:88px !important;
+      gap:5px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .intensity-bar{
+      min-height:10px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .category-donut-wrap{
+      grid-template-columns:82px minmax(0,1fr) !important;
+      gap:10px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .category-donut{
+      width:82px !important;
+      height:82px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .category-donut::after{
+      inset:18px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .donut-legend{
+      gap:5px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .donut-item{
+      font-size:10px !important;
+      line-height:1.2 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-footer{
+      margin-top:0 !important;
+      grid-template-columns:1fr auto !important;
+      gap:10px !important;
+      flex-shrink:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-note{
+      font-size:10px !important;
+      line-height:1.35 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .insight-action{
+      min-height:38px !important;
+      padding:8px 12px !important;
+      font-size:10px !important;
+      border-radius:14px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-side-panel{
+      grid-template-rows:auto minmax(0,1fr) minmax(0,.95fr) auto !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .rank-list{
+      gap:7px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .rank-item{
+      padding:8px !important;
+      border-radius:14px !important;
+      gap:8px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .rank-no{
+      width:26px !important;
+      height:26px !important;
+      border-radius:10px !important;
+      font-size:10px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .rank-name{
+      font-size:11px !important;
+      line-height:1.2 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .rank-cat,
+    body.map-active #insightDashboard.energy-index-mode .rank-dist{
+      font-size:9px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .category-bars{
+      gap:9px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .bar-row{
+      gap:5px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .bar-label{
+      font-size:11px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .bar-track{
+      height:9px !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-action-row{
+      gap:10px !important;
+      flex-shrink:0 !important;
+    }
+
+    body.map-active #insightDashboard.energy-index-mode .energy-action{
+      min-height:40px !important;
+      font-size:10px !important;
+      border-radius:14px !important;
+    }
+
+    .useful-topbar{
+      gap:8px !important;
+      flex-wrap:wrap !important;
+      justify-content:flex-end !important;
+    }
+
+    .topbar-action-btn{
+      min-height:42px;
+      padding:10px 13px;
+      border:none;
+      border-radius:15px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.15);
+      color:#fff;
+      font-size:12px;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,.12);
+      transition:.25s ease;
+      white-space:nowrap;
+    }
+
+    .topbar-action-btn:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.20);
+    }
+
+    .topbar-home-btn{
+      background:linear-gradient(135deg,#ff6a00,#ff8a1d) !important;
+      border-color:rgba(255,255,255,.18);
+      color:#fff !important;
+    }
+
+    @media (max-width:1280px){
+      body.map-active #insightDashboard.energy-index-mode{
+        left:16px !important;
+        right:316px !important;
+        top:72px !important;
+        bottom:18px !important;
+        grid-template-columns:minmax(0,1fr) 300px !important;
+        gap:12px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-index-hero{
+        grid-template-columns:118px minmax(0,1fr) !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-gauge{
+        width:112px !important;
+        height:112px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .gauge-value{
+        font-size:34px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-summary-title{
+        font-size:21px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-summary-desc{
+        font-size:10px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-mini-stat{
+        min-height:68px !important;
+        padding:8px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-mini-stat b{
+        font-size:19px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .intensity-chart{
+        height:78px !important;
+      }
+    }
+
+    @media (max-width:900px){
+      body.map-active{
+        overflow:auto !important;
+      }
+
+      body.map-active .app,
+      body.map-active .map-page{
+        height:auto !important;
+        min-height:100vh !important;
+        overflow:visible !important;
+      }
+
+      body.map-active .content{
+        height:auto !important;
+        overflow:visible !important;
+      }
+
+      body.map-active .map-shell{
+        height:auto !important;
+        min-height:720px !important;
+        overflow:visible !important;
+        padding:8px !important;
+      }
+
+      body.map-active #map{
+        height:520px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode{
+        position:static !important;
+        width:100% !important;
+        max-height:none !important;
+        overflow:visible !important;
+        grid-template-columns:1fr !important;
+        margin-bottom:10px !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .insight-card{
+        height:auto !important;
+        overflow:visible !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-index-hero,
+      body.map-active #insightDashboard.energy-index-mode .energy-stat-row,
+      body.map-active #insightDashboard.energy-index-mode .index-visual-row,
+      body.map-active #insightDashboard.energy-index-mode .energy-action-row{
+        grid-template-columns:1fr !important;
+      }
+
+      body.map-active #insightDashboard.energy-index-mode .energy-gauge{
+        margin:auto !important;
+        width:150px !important;
+        height:150px !important;
+      }
+
+      .useful-topbar{
+        width:100% !important;
+        display:grid !important;
+        grid-template-columns:1fr 1fr 1fr !important;
+        gap:8px !important;
+      }
+
+      .topbar-action-btn{
+        width:100%;
+      }
+    }
+  `;
+  document.head.appendChild(patchStyle);
+
+  const oldFloatingPanduan = document.getElementById("openTutorialBtn");
+  if (oldFloatingPanduan) oldFloatingPanduan.remove();
+
+  const topbarRight = document.querySelector(".topbar-right");
+  if (topbarRight) {
+    topbarRight.classList.add("useful-topbar");
+    topbarRight.innerHTML = `
+      <button class="topbar-action-btn" id="topbarGuideBtn" type="button">
+        <i class="fa-solid fa-circle-question"></i>
+        <span>Panduan</span>
+      </button>
+      <button class="topbar-action-btn" id="topbarResetBtn" type="button">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span>Reset</span>
+      </button>
+      <button class="topbar-action-btn topbar-home-btn" id="topbarHomeBtn" type="button">
+        <i class="fa-solid fa-house"></i>
+        <span>Beranda</span>
+      </button>
+    `;
+  }
+
+  function setMapActiveStatus() {
+    const mapPage = document.getElementById("mapPage");
+    const isMapOpen = mapPage && !mapPage.classList.contains("hidden");
+    document.body.classList.toggle("map-active", Boolean(isMapOpen));
+
+    if (typeof map !== "undefined" && map) {
+      setTimeout(() => map.invalidateSize(true), 250);
+    }
+  }
+
+  const observerTarget = document.getElementById("mapPage");
+  if (observerTarget) {
+    const observer = new MutationObserver(setMapActiveStatus);
+    observer.observe(observerTarget, { attributes:true, attributeFilter:["class"] });
+  }
+
+  function fitMapToVisiblePlacesFinal() {
+    if (typeof map === "undefined" || !map) return;
+
+    setTimeout(() => {
+      map.invalidateSize(true);
+
+      let visible = [];
+      if (typeof filteredPlaces === "function") {
+        visible = filteredPlaces().filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+      } else if (typeof places !== "undefined") {
+        visible = places.filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+      }
+
+      if (!visible.length) {
+        if (typeof upnLatLng !== "undefined") map.setView(upnLatLng, 14);
+        return;
+      }
+
+      const bounds = L.latLngBounds(visible.map(item => [item.lat, item.lng]));
+      map.fitBounds(bounds, {
+        paddingTopLeft: [60, 90],
+        paddingBottomRight: [360, 90],
+        maxZoom: 15,
+        animate: true
+      });
+    }, 250);
+  }
+
+  function resetWebgisFinal() {
+    if (typeof state !== "undefined") {
+      state.categories = new Set([
+        "laundry",
+        "minimarket",
+        "rumah_makan",
+        "fasilitas_kesehatan",
+        "emergency"
+      ]);
       state.cheap = false;
       state.open24 = false;
       state.nearCampus = false;
       state.emergencyOnly = false;
       state.networkOn = false;
       state.search = "";
-      document.getElementById("searchInput").value = "";
-      basemapSelect.value = "dark";
-      radiusSelect.value = "5000";
-      setBasemap("dark");
-      updateRadiusCircle("5000");
-      clearRoute();
-      renderFilterList();
-      syncChips();
-      renderMarkers();
-      map.setView(upnLatLng, 15);
-      infoPanel.classList.remove("hidden");
-      openInfoPanel.classList.add("hidden");
-      syncPanelPositions();
-      handleResponsivePanels();
-    });
+    }
 
-    document.getElementById("searchBtn").addEventListener("click", () => {
-      state.search = document.getElementById("searchInput").value.trim().toLowerCase();
-      renderMarkers();
-    });
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) searchInput.value = "";
 
-    document.getElementById("searchInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        state.search = document.getElementById("searchInput").value.trim().toLowerCase();
-        renderMarkers();
+    if (typeof basemapSelect !== "undefined" && basemapSelect) basemapSelect.value = "dark";
+    if (typeof radiusSelect !== "undefined" && radiusSelect) radiusSelect.value = "5000";
+
+    if (typeof setBasemap === "function") setBasemap("dark");
+    if (typeof updateRadiusCircle === "function") updateRadiusCircle("5000");
+    if (typeof clearRoute === "function") clearRoute();
+    if (typeof resetOriginToCampus === "function") resetOriginToCampus();
+    if (typeof hideRoutePlanner === "function") hideRoutePlanner();
+    if (typeof hideInsightDashboard === "function") hideInsightDashboard();
+
+    if (typeof originSelect !== "undefined" && originSelect) originSelect.value = "campus";
+    if (typeof destinationSelect !== "undefined" && destinationSelect) destinationSelect.value = "";
+
+    if (typeof renderFilterList === "function") renderFilterList();
+    if (typeof syncChips === "function") syncChips();
+    if (typeof renderMarkers === "function") renderMarkers();
+
+    if (typeof infoPanel !== "undefined" && infoPanel) infoPanel.classList.remove("hidden");
+    if (typeof openInfoPanel !== "undefined" && openInfoPanel) openInfoPanel.classList.add("hidden");
+
+    fitMapToVisiblePlacesFinal();
+  }
+
+  const topbarGuideBtn = document.getElementById("topbarGuideBtn");
+  const topbarResetBtn = document.getElementById("topbarResetBtn");
+  const topbarHomeBtn = document.getElementById("topbarHomeBtn");
+
+  if (topbarGuideBtn) {
+    topbarGuideBtn.addEventListener("click", () => {
+      if (typeof showTutorial === "function") showTutorial(true);
+      else {
+        const tutorialOverlay = document.getElementById("tutorialOverlay");
+        if (tutorialOverlay) tutorialOverlay.classList.remove("hidden-tutorial");
       }
     });
+  }
 
-    routeButton.addEventListener("click", () => {
-      if (selectedPlace) {
-        state.networkOn = true;
-        syncChips();
-        drawRouteTo(selectedPlace);
-      }
-    });
+  if (topbarResetBtn) {
+    topbarResetBtn.addEventListener("click", resetWebgisFinal);
+  }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      initRevealAnimations();
-      handleResponsivePanels();
-    });
+  if (topbarHomeBtn) {
+    topbarHomeBtn.addEventListener("click", () => {
+      const landingPage = document.getElementById("landingPage");
+      const mapPage = document.getElementById("mapPage");
 
-    window.addEventListener("resize", () => {
-      handleResponsivePanels();
-      syncPanelPositions();
-      if (mapInitialized && map) {
-        setTimeout(() => map.invalidateSize(), 200);
-      }
+      if (mapPage) mapPage.classList.add("hidden");
+      if (landingPage) landingPage.classList.remove("hidden");
+
+      document.body.classList.remove("map-active");
+      window.scrollTo({ top:0, behavior:"smooth" });
     });
-  </script>
+  }
+
+  const enterButtons = [
+    document.getElementById("enterMapBtn"),
+    document.getElementById("enterMapBtnBottom")
+  ];
+
+  enterButtons.forEach(btn => {
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      setTimeout(() => {
+        setMapActiveStatus();
+        fitMapToVisiblePlacesFinal();
+      }, 700);
+    });
+  });
+
+  const fitAllInsightBtnFinal = document.getElementById("fitAllInsightBtn");
+  if (fitAllInsightBtnFinal) {
+    fitAllInsightBtnFinal.addEventListener("click", fitMapToVisiblePlacesFinal);
+  }
+
+  window.addEventListener("resize", () => {
+    setTimeout(() => {
+      setMapActiveStatus();
+      fitMapToVisiblePlacesFinal();
+    }, 250);
+  });
+
+  setMapActiveStatus();
+
+  setTimeout(() => {
+    setMapActiveStatus();
+    fitMapToVisiblePlacesFinal();
+  }, 1000);
+});
+</script>
 </body>
 </html>
