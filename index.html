@@ -287,8 +287,13 @@
       gap:24px;
       padding:34px 42px 44px;
       background:
-        linear-gradient(115deg, rgba(5,15,35,.82) 0%, rgba(8,28,68,.70) 42%, rgba(0,0,0,.38) 100%),
-        url("./assets/images/bg-team.jpeg") center/cover no-repeat;
+        linear-gradient(
+          115deg,
+          rgba(5, 15, 35, 0.86) 0%,
+          rgba(8, 28, 68, 0.72) 42%,
+          rgba(0, 0, 0, 0.42) 100%
+        ),
+        url("./assets/images/bg-utama.png") center center / cover no-repeat !important;
       color:#fff;
       position:relative;
       overflow:hidden;
@@ -8814,6 +8819,28 @@ body.ew-intro-active{overflow:hidden !important;}
         font-size:17px;
       }
     }
+
+  
+/* =========================================================
+   FINAL HERO BACKGROUND OVERRIDE
+   Pakai file: assets/images/bg-utama.png
+   ========================================================= */
+.hero{
+  background:
+    linear-gradient(
+      115deg,
+      rgba(5, 15, 35, 0.86) 0%,
+      rgba(8, 28, 68, 0.72) 42%,
+      rgba(0, 0, 0, 0.42) 100%
+    ),
+    url("./assets/images/bg-utama.png") center center / cover no-repeat !important;
+}
+
+.hero::before{
+  background:
+    radial-gradient(circle at 18% 35%, rgba(99,176,255,.18), transparent 30%),
+    linear-gradient(115deg, rgba(0,0,0,.25), rgba(0,0,0,.08) 55%, rgba(255,106,0,.12)) !important;
+}
 
   </style>, jadi CSS tidak tampil sebagai teks.
    ========================================================= */
