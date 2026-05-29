@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebGIS Student Survival Map</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/performance.css" />
+
+</head>
+<body>
+  <div class="app">
+
+    <!-- EVERSWAP-INSPIRED INTRO OPENING -->
+<!-- PREMIUM EVERSWAP-INSPIRED INTRO OPENING -->
+<section class="ew-intro intro-orbit" id="ewIntro">
+  <div class="io-bg">
+    <div class="io-grid"></div>
+    <div class="io-glow io-glow-a"></div>
+    <div class="io-glow io-glow-b"></div>
+  </div>
+
+  <button class="io-skip" id="ewSkipIntro" type="button">Skip</button>
+
+  <main class="io-center">
+    <div class="io-logo-orbit" aria-label="Loading WebGIS">
+      <div class="io-orbit-ring io-ring-1"></div>
+      <div class="io-orbit-ring io-ring-2"></div>
+      <div class="io-orbit-dot io-dot-1"></div>
+      <div class="io-orbit-dot io-dot-2"></div>
+
+      <div class="io-logo-core">
+        <img src="assets/images/LOGO SURVIVAL MAP.jpeg" alt="Student Survival Map">
+      </div>
+    </div>
+
+    <div class="io-copy">
+      <span class="io-kicker">WebGIS Experience</span>
+      <h1>Student Survival Map</h1>
+      <p>Menyiapkan peta fasilitas mahasiswa sekitar UPN “Veteran” Yogyakarta.</p>
+    </div>
+
+  </main>
+
+  <footer class="io-loader">
+    <div class="io-loader-text">
+      <span>Loading interface</span>
+      <strong id="ewIntroPercent">0%</strong>
+    </div>
+    <div class="io-loader-track">
+      <div class="io-loader-fill" id="ewIntroFill"></div>
+    </div>
+  </footer>
+</section>
+
+    <section id="landingPage" class="landing">
+      <header class="landing-navbar">
+        <div class="brand-wrap">
+          <div class="logo-stack">
+            <div class="brand-logo">
+              <img src="assets/images/LOGO UPN.png" alt="Logo UPN" />
+            </div>
+            <div class="secondary-logo">
+              <img src="assets/images/LOGO SURVIVAL MAP.jpeg" alt="Logo Survival Map" />
+            </div>
+          </div>
+
+          <div class="brand-copy">
+            <h1>WebGIS Student Survival Map</h1>
+            <p>Platform informasi fasilitas mahasiswa & emergency response sekitar UPN Jogja</p>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="#beranda">Beranda</a>
+          <a href="#tentang">Tentang</a>
+          <a href="#fitur">Fitur</a>
+          <a href="#manfaat">Manfaat</a>
+          <a href="#tim">Kelompok 1</a>
+          <a href="#kontak">Kontak</a>
+        </nav>
+      </header>
+
+      <section id="beranda" class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="fa-solid fa-layer-group"></i>
+            Geodesign Project WebGIS Mahasiswa
+          </div>
+
+          <h1 class="hero-title">
+            Student Survival <span>Map</span><br>UPN Jogja
+          </h1>
+
+          <p class="hero-subtitle">
+            WebGIS ini dirancang untuk membantu mahasiswa menemukan kost, warung makan murah,
+            laundry, print/fotokopi, minimarket, ATM, apotek/klinik, serta lokasi emergency
+            response di sekitar kampus UPN Jogja secara cepat, praktis, dan interaktif.
+          </p>
+
+          <div class="hero-buttons">
+            <a class="btn-primary" id="enterMapBtn" href="map.html">
+              <i class="fa-solid fa-map-location-dot"></i> Buka WebGIS
+            </a>
+            <a href="#fitur" class="btn-secondary">
+              <i class="fa-solid fa-table-cells-large"></i> Lihat Fitur
+            </a>
+            <a href="#tim" class="btn-orange">
+              <i class="fa-solid fa-users"></i> Tentang Kami
+            </a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-box">
+              <h3>7+</h3>
+              <p>Kategori fasilitas penting untuk kebutuhan mahasiswa</p>
+            </div>
+            <div class="stat-box">
+              <h3>4</h3>
+              <p>Radius analisis tetap: 5 km</p>
+            </div>
+            <div class="stat-box">
+              <h3>Route</h3>
+              <p>Network analysis menuju lokasi yang dipilih</p>
+            </div>
+            <div class="stat-box">
+              <h3>Fast</h3>
+              <p>Peta kebutuhan mahasiswa yang ringkas dan mudah dipakai</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-info-card big">
+            <div class="icon orange"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3>Platform Informasi Mahasiswa</h3>
+            <p>
+              Mengintegrasikan kebutuhan harian mahasiswa dan informasi respon darurat
+              dalam satu tampilan dashboard peta interaktif yang lebih rapi, jelas, dan relevan.
+            </p>
+            <div class="hero-mini-list">
+              <div class="hero-mini-item"><i class="fa-solid fa-check"></i> Kost, makan murah, laundry, print, ATM, apotek</div>
+              <div class="hero-mini-item"><i class="fa-solid fa-check"></i> Emergency response dan radius analysis</div>
+              <div class="hero-mini-item"><i class="fa-solid fa-check"></i> Network analysis menuju lokasi pilihan</div>
+            </div>
+          </div>
+
+          <div class="hero-info-card">
+            <div class="icon blue"><i class="fa-solid fa-location-dot"></i></div>
+            <h3>Berbasis Lokasi</h3>
+            <p>Informasi ditampilkan dalam peta interaktif agar mahasiswa lebih cepat menentukan pilihan.</p>
+          </div>
+
+          <div class="hero-info-card">
+            <div class="icon navy"><i class="fa-solid fa-shield-heart"></i></div>
+            <h3>Emergency Ready</h3>
+            <p>Menyediakan akses titik darurat terdekat sebagai nilai tambah untuk kebutuhan mahasiswa.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tentang" class="section section-light">
+        <h2 class="section-title reveal">Tentang Aplikasi</h2>
+        <p class="section-subtitle reveal delay-1">
+          Student Survival Map merupakan rancangan WebGIS terapan yang fokus pada kebutuhan
+          mahasiswa sekitar UPN Jogja. Aplikasi ini menggabungkan data spasial, filter tematik,
+          radius analisis, dan fitur rute untuk mendukung akses informasi yang lebih efisien.
+        </p>
+
+        <div class="about-grid">
+          <div class="about-left">
+            <div class="about-card reveal-left">
+              <h3>Tujuan Utama</h3>
+              <p>
+                Membantu mahasiswa baru maupun mahasiswa aktif dalam menemukan fasilitas penting
+                seperti kost, warung makan murah, laundry, tempat print, minimarket, ATM,
+                apotek/klinik, dan titik emergency terdekat dari kampus.
+              </p>
+            </div>
+
+            <div class="about-card reveal-left delay-1">
+              <h3>Keunggulan</h3>
+              <div class="about-list">
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Peta interaktif yang mudah dipahami</div>
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Filter murah, 24 jam, dekat kampus, dan emergency</div>
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Analisis radius dari Rektorat UPN</div>
+                <div><i class="fa-solid fa-check" style="color:#ff6a00;margin-top:4px;"></i> Network analysis untuk melihat rute lokasi</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-right reveal-right">
+            <div class="about-image">
+              <div class="about-overlay">
+                <h4>WebGIS Berbasis Kebutuhan Nyata Mahasiswa</h4>
+                <p>
+                  Dirancang sebagai media informasi spasial yang relevan, fungsional, dan dekat
+                  dengan aktivitas harian mahasiswa UPN Jogja.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fitur" class="section section-soft">
+        <h2 class="section-title reveal">Fitur Utama</h2>
+        <p class="section-subtitle reveal delay-1">
+          Rancangan ini menampilkan solusi WebGIS yang sederhana namun fungsional untuk mendukung
+          kebutuhan informasi mahasiswa di sekitar kampus.
+        </p>
+
+        <div class="feature-showcase">
+          <div class="feature-column">
+            <div class="feature-tile reveal-left">
+              <div class="feature-icon"><i class="fa-solid fa-house"></i></div>
+              <h4>Peta Fasilitas Mahasiswa</h4>
+              <p>Menampilkan lokasi kost, warung makan murah, laundry, print/fotokopi, minimarket, ATM, dan apotek/klinik.</p>
+            </div>
+
+            <div class="feature-tile reveal-left delay-1">
+              <div class="feature-icon"><i class="fa-solid fa-filter"></i></div>
+              <h4>Filter Interaktif</h4>
+              <p>Pengguna dapat memfilter data berdasarkan kategori fasilitas, harga murah, buka 24 jam, dan dekat kampus.</p>
+            </div>
+
+            <div class="feature-tile reveal-left delay-2">
+              <div class="feature-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <h4>Emergency Response</h4>
+              <p>Menyediakan titik fasilitas darurat seperti rumah sakit, klinik, atau layanan penting yang bisa diakses mahasiswa.</p>
+            </div>
+          </div>
+
+          <div class="feature-center reveal">
+            <div class="feature-center-image">
+              <div class="feature-center-badge">Dashboard WebGIS Mahasiswa</div>
+              <div class="feature-center-caption">
+                <h3>Student Survival Map</h3>
+                <p>
+                  Solusi peta kebutuhan mahasiswa sekitar UPN Jogja yang menggabungkan data spasial,
+                  informasi lokasi, filter, dan analisis rute dalam satu platform.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-column">
+            <div class="feature-tile reveal-right">
+              <div class="feature-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+              <h4>Radius Analysis</h4>
+              <p>WebGIS menampilkan lokasi dalam radius tetap 5 km dari Rektorat UPN sebagai pusat analisis.</p>
+            </div>
+
+            <div class="feature-tile reveal-right delay-1">
+              <div class="feature-icon"><i class="fa-solid fa-route"></i></div>
+              <h4>Network Analysis</h4>
+              <p>Fitur rute membantu pengguna melihat jalur dari titik pusat kampus menuju lokasi fasilitas yang dipilih.</p>
+            </div>
+
+            <div class="feature-tile reveal-right delay-2">
+              <div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div>
+              <h4>Basemap Variatif</h4>
+              <p>Tersedia pilihan basemap dark, streets, light, dan satellite agar visualisasi peta lebih fleksibel.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="manfaat" class="section section-light">
+        <h2 class="section-title reveal">Manfaat Aplikasi</h2>
+        <p class="section-subtitle reveal delay-1">
+          Student Survival Map tidak hanya menampilkan peta, tetapi juga membantu mahasiswa
+          mengambil keputusan lebih cepat terkait kebutuhan harian di sekitar kampus.
+        </p>
+
+        <div class="benefit-wrap">
+          <div class="benefit-side">
+            <h3 class="reveal-left">Sebelum Ada WebGIS</h3>
+            <div class="benefit-card left reveal-left delay-1">
+              <h4>Informasi Terpisah</h4>
+              <p>Mahasiswa harus mencari kost, warung makan, laundry, atau fasilitas darurat secara manual dari banyak sumber berbeda.</p>
+            </div>
+            <div class="benefit-card left reveal-left delay-2">
+              <h4>Kurang Efisien</h4>
+              <p>Proses pencarian lokasi sering memakan waktu dan kurang akurat karena tidak terintegrasi dalam satu sistem spasial.</p>
+            </div>
+          </div>
+
+          <div class="benefit-middle reveal delay-1">
+            <i class="fa-solid fa-wifi"></i>
+            <i class="fa-solid fa-forward-fast"></i>
+          </div>
+
+          <div class="benefit-side">
+            <h3 class="reveal-right">Dengan Student Survival Map</h3>
+            <div class="benefit-card right reveal-right delay-1">
+              <h4>Akses Cepat dan Terpusat</h4>
+              <p>Mahasiswa bisa menemukan berbagai fasilitas penting secara cepat dalam satu platform berbasis peta interaktif.</p>
+            </div>
+            <div class="benefit-card right reveal-right delay-2">
+              <h4>Lebih Tepat dan Praktis</h4>
+              <p>Filter, radius, dan network analysis membantu pengguna memilih lokasi yang paling sesuai dengan kebutuhan mereka.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tim" class="section section-soft">
+        <div class="team-layout">
+          <div class="team-banner reveal">
+            <div class="team-banner-content">
+              <h2>ANGGOTA <span>KELOMPOK 1</span></h2>
+              <p>
+                Tim pengembang WebGIS Student Survival Map yang berfokus pada pemetaan fasilitas mahasiswa
+                dan emergency response sekitar UPN Jogja.
+              </p>
+            </div>
+          </div>
+
+          <div class="team-photo-wrap reveal delay-1">
+            <h3>Tentang Kami</h3>
+            <img class="team-photo" src="assets/images/anggota-kelompok.png.jpeg" alt="Anggota Kelompok 1" />
+          </div>
+
+          <div>
+            <h2 class="section-title reveal">Profil Anggota</h2>
+            <p class="section-subtitle reveal delay-1">
+              Kelompok 1 merupakan tim perancang WebGIS Student Survival Map yang berfokus pada
+              pemetaan fasilitas mahasiswa dan emergency response sekitar UPN Jogja.
+            </p>
+
+            <div class="member-grid">
+              <div class="member-card reveal delay-1">
+                <img class="member-photo" src="assets/images/imelda.jpeg" alt="Imeldha Nuradharani" />
+                <div class="member-info">
+                  <h4>Imeldha Nuradharani</h4>
+                  <p>117230002</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-2">
+                <img class="member-photo" src="assets/images/delima.jpeg" alt="Delima Arsiti Maemunah" />
+                <div class="member-info">
+                  <h4>Delima Arsiti Maemunah</h4>
+                  <p>117230016</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-3">
+                <img class="member-photo" src="assets/images/eka.jpg" alt="Eka Pungky Aprillia" />
+                <div class="member-info">
+                  <h4>Eka Pungky Aprillia</h4>
+                  <p>117230034</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-4">
+                <img class="member-photo" src="assets/images/firda.jpeg" alt="Firda Auliya Rahma" />
+                <div class="member-info">
+                  <h4>Firda Auliya Rahma</h4>
+                  <p>117230060</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+
+              <div class="member-card reveal delay-5">
+                <img class="member-photo" src="assets/images/ariyel.jpeg" alt="Ariyel Kunaka Gustama" />
+                <div class="member-info">
+                  <h4>Ariyel Kunaka Gustama</h4>
+                  <p>117230076</p>
+                  <span class="member-role">Anggota Kelompok</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-light">
+        <div class="cta-box reveal">
+          <h3>Tertarik Menjelajahi WebGIS?</h3>
+          <p>
+            Buka dashboard peta interaktif untuk melihat fasilitas mahasiswa, emergency response,
+            radius analysis, dan network analysis sekitar UPN Jogja.
+          </p>
+          <a class="btn-primary" id="enterMapBtnBottom" href="map.html">
+            <i class="fa-solid fa-map"></i> Masuk ke WebGIS
+          </a>
+        </div>
+      </section>
+
+      <footer id="kontak" class="footer">
+        <div class="footer-grid">
+          <div class="footer-card reveal-left">
+            <h3>Kontak Proyek</h3>
+            <p>
+              Student Survival Map merupakan proyek WebGIS terapan berbasis kebutuhan mahasiswa
+              sekitar UPN Jogja.
+            </p>
+            <p style="margin-top:10px;">
+              Email: <b>ekapungky11@gmail.com</b><br />
+              Lokasi Studi: UPN “Veteran” Yogyakarta
+            </p>
+          </div>
+
+          <div class="footer-card reveal delay-1">
+            <h3>Menu Cepat</h3>
+            <ul>
+              <li><a href="#beranda" style="color:inherit;text-decoration:none;">Beranda</a></li>
+              <li><a href="#tentang" style="color:inherit;text-decoration:none;">Tentang</a></li>
+              <li><a href="#fitur" style="color:inherit;text-decoration:none;">Fitur</a></li>
+              <li><a href="#tim" style="color:inherit;text-decoration:none;">Kelompok 1</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-card reveal-right delay-2">
+            <h3>Media Sosial</h3>
+            <p>Tambahkan link media sosial kelompok jika diperlukan.</p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+              <a href="#"><i class="fa-brands fa-google"></i></a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    
+  </div>
+  <script src="js/landing-lite.js" defer></script>
+</body>
+</html>
