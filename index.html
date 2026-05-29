@@ -10913,6 +10913,175 @@ input::placeholder,textarea::placeholder{color:rgba(93,111,80,.78) !important;}
   .hero{background-position:center center !important;}
 }
 
+
+
+/* =========================================================
+   FIX POSISI INSIGHT DASHBOARD - CENTER PREMIUM
+   Menjaga dashboard Insight tetap di tengah map, tidak mepet kiri.
+   ========================================================= */
+#mapSection .insight-dashboard,
+.map-shell .insight-dashboard{
+  position:absolute !important;
+  top:92px !important;
+  left:50% !important;
+  right:auto !important;
+  width:min(980px, calc(100vw - 48px)) !important;
+  max-width:980px !important;
+  max-height:calc(100vh - 132px) !important;
+  transform:translateX(-50%) !important;
+  z-index:2300 !important;
+  padding:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr) !important;
+  gap:16px !important;
+  scrollbar-width:thin !important;
+  scrollbar-color:rgba(91,126,60,.45) rgba(232,245,189,.22) !important;
+}
+
+#mapSection .insight-dashboard.hidden-dashboard,
+.map-shell .insight-dashboard.hidden-dashboard{
+  opacity:0 !important;
+  pointer-events:none !important;
+  transform:translateX(-50%) translateY(-14px) scale(.98) !important;
+}
+
+#mapSection .insight-dashboard.energy-index-mode,
+.map-shell .insight-dashboard.energy-index-mode{
+  top:92px !important;
+  left:50% !important;
+  right:auto !important;
+  width:min(980px, calc(100vw - 48px)) !important;
+  max-width:980px !important;
+  max-height:calc(100vh - 132px) !important;
+  transform:translateX(-50%) !important;
+  padding:0 !important;
+  grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr) !important;
+}
+
+#mapSection .insight-dashboard.energy-index-mode.hidden-dashboard,
+.map-shell .insight-dashboard.energy-index-mode.hidden-dashboard{
+  opacity:0 !important;
+  pointer-events:none !important;
+  transform:translateX(-50%) translateY(-14px) scale(.98) !important;
+}
+
+#mapSection .insight-card,
+.map-shell .insight-card,
+#mapSection .energy-index-mode .insight-card,
+.map-shell .energy-index-mode .insight-card{
+  background:
+    radial-gradient(circle at 14% 8%, rgba(162,203,139,.24), transparent 28%),
+    radial-gradient(circle at 92% 12%, rgba(196,69,69,.18), transparent 28%),
+    linear-gradient(145deg, rgba(31,54,23,.96), rgba(72,103,48,.94)) !important;
+  border:1px solid rgba(232,245,189,.28) !important;
+  color:#fffdf0 !important;
+  box-shadow:0 26px 72px rgba(13,28,10,.38) !important;
+}
+
+#mapSection .insight-kicker,
+.map-shell .insight-kicker,
+#mapSection .energy-summary-desc,
+.map-shell .energy-summary-desc,
+#mapSection .insight-note,
+.map-shell .insight-note{
+  color:rgba(232,245,189,.86) !important;
+}
+
+#mapSection .insight-title,
+.map-shell .insight-title,
+#mapSection .energy-summary-title,
+.map-shell .energy-summary-title,
+#mapSection .visual-card-title,
+.map-shell .visual-card-title{
+  color:#fffdf0 !important;
+  text-shadow:0 2px 10px rgba(0,0,0,.22) !important;
+}
+
+#mapSection .metric-tile,
+.map-shell .metric-tile,
+#mapSection .energy-mini-stat,
+.map-shell .energy-mini-stat,
+#mapSection .intensity-bars-card,
+.map-shell .intensity-bars-card,
+#mapSection .category-donut-card,
+.map-shell .category-donut-card,
+#mapSection .energy-rank-card,
+.map-shell .energy-rank-card,
+#mapSection .rank-item,
+.map-shell .rank-item{
+  background:rgba(232,245,189,.13) !important;
+  border:1px solid rgba(232,245,189,.22) !important;
+  color:#fffdf0 !important;
+}
+
+#mapSection .insight-pill,
+.map-shell .insight-pill{
+  background:#E8F5BD !important;
+  color:#263d1f !important;
+  border:1px solid rgba(162,203,139,.65) !important;
+}
+
+#mapSection .energy-action,
+.map-shell .energy-action,
+#mapSection .insight-action,
+.map-shell .insight-action{
+  background:#C44545 !important;
+  color:#ffffff !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+}
+
+#mapSection .energy-action:hover,
+.map-shell .energy-action:hover,
+#mapSection .insight-action:hover,
+.map-shell .insight-action:hover{
+  background:#a93636 !important;
+  color:#ffffff !important;
+}
+
+/* Agar panel kiri tidak menimpa dashboard insight saat terbuka */
+#mapSection:has(.insight-dashboard:not(.hidden-dashboard)) .left-panel,
+.map-shell:has(.insight-dashboard:not(.hidden-dashboard)) .left-panel{
+  opacity:.18 !important;
+  filter:blur(3px) !important;
+  pointer-events:none !important;
+}
+
+@media (max-width:1180px){
+  #mapSection .insight-dashboard,
+  .map-shell .insight-dashboard,
+  #mapSection .insight-dashboard.energy-index-mode,
+  .map-shell .insight-dashboard.energy-index-mode{
+    top:92px !important;
+    width:calc(100vw - 32px) !important;
+    grid-template-columns:1fr !important;
+  }
+}
+
+@media (max-width:900px){
+  #mapSection .insight-dashboard,
+  .map-shell .insight-dashboard,
+  #mapSection .insight-dashboard.energy-index-mode,
+  .map-shell .insight-dashboard.energy-index-mode{
+    position:absolute !important;
+    top:82px !important;
+    left:50% !important;
+    transform:translateX(-50%) !important;
+    width:calc(100vw - 24px) !important;
+    max-height:calc(100vh - 110px) !important;
+    overflow-y:auto !important;
+    grid-template-columns:1fr !important;
+  }
+
+  #mapSection .insight-dashboard.hidden-dashboard,
+  .map-shell .insight-dashboard.hidden-dashboard,
+  #mapSection .insight-dashboard.energy-index-mode.hidden-dashboard,
+  .map-shell .insight-dashboard.energy-index-mode.hidden-dashboard{
+    transform:translateX(-50%) translateY(-14px) scale(.98) !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -14888,33 +15057,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('load', function(){
     applyFinalStrawberryMatchaFix();
     setInterval(applyFinalStrawberryMatchaFix, 900);
-  });
-})();
-</script>
-
-
-<script>
-(function(){
-  const finalPolishCSS = '\n/* =========================================================\n   ULTRA FINAL POLISH - STRAWBERRY MATCHA CONTRAST\n   Dipasang paling akhir lewat JS agar menang dari style patch lain.\n   ========================================================= */\n:root{\n  --sm-dark:#24331D;\n  --sm-matcha:#5B7E3C;\n  --sm-light:#A2CB8B;\n  --sm-cream:#E8F5BD;\n  --sm-paper:#FFFDF2;\n  --sm-red:#C44545;\n  --sm-muted:#5D6F50;\n}\n\n/* ===== Landing sections: tidak lagi hijau polos/gelap norak ===== */\n#tentang.section,\n#manfaat.section,\n#tim.section,\n#fitur.section,\n.section.section-light,\n.section.section-soft{\n  background:\n    radial-gradient(circle at 8% 0%, rgba(232,245,189,.72), transparent 28%),\n    radial-gradient(circle at 100% 20%, rgba(162,203,139,.42), transparent 30%),\n    linear-gradient(180deg, #F7FBE8 0%, #E8F5BD 100%) !important;\n  color:#24331D !important;\n}\n\n#tentang .section-title,\n#fitur .section-title,\n#manfaat .section-title,\n#tim .section-title,\n.section-title{\n  color:#24331D !important;\n  text-shadow:none !important;\n}\n\n#tentang .section-subtitle,\n#fitur .section-subtitle,\n#manfaat .section-subtitle,\n#tim .section-subtitle,\n.section-subtitle{\n  color:#405A30 !important;\n  opacity:1 !important;\n}\n\n/* ===== Tentang Aplikasi ===== */\n#tentang .about-card,\n#tentang .about-left .about-card{\n  background:linear-gradient(145deg, #FFFDF2 0%, #F7FBE8 100%) !important;\n  border:1px solid rgba(91,126,60,.24) !important;\n  box-shadow:0 18px 38px rgba(36,51,29,.13) !important;\n  color:#24331D !important;\n}\n\n#tentang .about-card h3{\n  color:#5B7E3C !important;\n}\n\n#tentang .about-card p,\n#tentang .about-list div{\n  color:#24331D !important;\n  opacity:1 !important;\n}\n\n#tentang .about-list i{\n  color:#C44545 !important;\n}\n\n#tentang .about-image{\n  border:1px solid rgba(91,126,60,.28) !important;\n  box-shadow:0 18px 42px rgba(36,51,29,.18) !important;\n}\n\n#tentang .about-overlay{\n  background:linear-gradient(135deg, rgba(91,126,60,.94), rgba(64,95,45,.96)) !important;\n  color:#FFFDF2 !important;\n  border:1px solid rgba(232,245,189,.34) !important;\n}\n#tentang .about-overlay *{color:#FFFDF2 !important;}\n\n/* ===== Manfaat Aplikasi ===== */\n#manfaat .benefit-side > h3{\n  color:#5B7E3C !important;\n  opacity:1 !important;\n}\n\n#manfaat .benefit-card.left{\n  background:linear-gradient(145deg, #FFFDF2 0%, #E8F5BD 100%) !important;\n  border:1px solid rgba(196,69,69,.34) !important;\n  border-left:7px solid #C44545 !important;\n  color:#24331D !important;\n  box-shadow:0 16px 34px rgba(36,51,29,.13) !important;\n}\n\n#manfaat .benefit-card.right{\n  background:linear-gradient(145deg, #5B7E3C 0%, #3F5F2D 100%) !important;\n  border:1px solid rgba(232,245,189,.38) !important;\n  border-left:7px solid #A2CB8B !important;\n  color:#FFFDF2 !important;\n  box-shadow:0 16px 34px rgba(36,51,29,.18) !important;\n}\n\n#manfaat .benefit-card.left h4,\n#manfaat .benefit-card.left p{color:#24331D !important;opacity:1 !important;}\n#manfaat .benefit-card.right h4,\n#manfaat .benefit-card.right p{color:#FFFDF2 !important;opacity:1 !important;}\n#manfaat .benefit-middle i{color:#C44545 !important;text-shadow:0 10px 28px rgba(196,69,69,.22) !important;}\n\n/* ===== Team / Anggota ===== */\n#tim .team-banner{\n  background:linear-gradient(135deg, #24331D 0%, #5B7E3C 100%) !important;\n  border:1px solid rgba(232,245,189,.36) !important;\n  box-shadow:0 18px 42px rgba(36,51,29,.20) !important;\n}\n#tim .team-banner h2{color:#E8F5BD !important;opacity:1 !important;}\n#tim .team-banner h2 span{color:#FFFDF2 !important;}\n#tim .team-banner p{color:#E8F5BD !important;opacity:1 !important;}\n#tim .team-photo-wrap,\n#tim .member-card{\n  background:#FFFDF2 !important;\n  color:#24331D !important;\n  border:1px solid rgba(91,126,60,.22) !important;\n}\n#tim .team-photo-wrap h3,\n#tim .member-card h4{color:#5B7E3C !important;}\n#tim .member-role{background:#E8F5BD !important;color:#24331D !important;}\n\n/* ===== Feature cards ===== */\n#fitur .feature-tile,\n#fitur .feature-center{\n  background:#FFFDF2 !important;\n  color:#24331D !important;\n  border:1px solid rgba(91,126,60,.22) !important;\n}\n#fitur .feature-tile h4{color:#5B7E3C !important;}\n#fitur .feature-tile p{color:#405A30 !important;opacity:1 !important;}\n#fitur .feature-icon{background:#E8F5BD !important;color:#C44545 !important;}\n\n/* ===== Map topbar: judul jangan putih di background cream ===== */\nbody.map-active .topbar,\n#mapPage .topbar{\n  background:linear-gradient(135deg, #FFFDF2 0%, #E8F5BD 100%) !important;\n  border:1px solid rgba(91,126,60,.28) !important;\n  box-shadow:0 12px 30px rgba(36,51,29,.13) !important;\n}\nbody.map-active .brand-map-title h1,\n#mapPage .brand-map-title h1{\n  color:#5B7E3C !important;\n  text-shadow:none !important;\n  opacity:1 !important;\n}\nbody.map-active .brand-map-title p,\n#mapPage .brand-map-title p,\nbody.map-active .topbar-right,\n#mapPage .topbar-right{\n  color:#405A30 !important;\n  opacity:1 !important;\n}\n\nbody.map-active .topbar-action-btn,\n#mapPage .topbar-action-btn,\nbody.map-active .reset-btn,\nbody.map-active .back-btn,\nbody.map-active .tutorial-toggle-btn{\n  background:linear-gradient(135deg, #C44545 0%, #A83A3A 100%) !important;\n  color:#ffffff !important;\n  border:1px solid rgba(232,245,189,.42) !important;\n  box-shadow:0 10px 22px rgba(196,69,69,.22) !important;\n}\nbody.map-active .topbar-action-btn *,\n#mapPage .topbar-action-btn *,\nbody.map-active .reset-btn *,\nbody.map-active .back-btn *,\nbody.map-active .tutorial-toggle-btn *{color:#ffffff !important;}\n\n/* ===== Tutorial modal: ganti navy ke matcha gelap, card tetap cream ===== */\n.tutorial-modal{\n  background:linear-gradient(145deg, #24331D 0%, #5B7E3C 100%) !important;\n  border:1px solid rgba(232,245,189,.35) !important;\n  box-shadow:0 30px 80px rgba(36,51,29,.34) !important;\n}\n.tutorial-kicker{color:#E8F5BD !important;}\n.tutorial-title{color:#ffffff !important;text-shadow:none !important;}\n.tutorial-subtitle{color:#E8F5BD !important;opacity:1 !important;}\n.tutorial-card,\n.tutorial-tip,\n.tutorial-legend{\n  background:#FFFDF2 !important;\n  border:1px solid rgba(91,126,60,.20) !important;\n  color:#24331D !important;\n}\n.tutorial-card h4,\n.tutorial-tip h4,\n.tutorial-legend h4{color:#5B7E3C !important;}\n.tutorial-card p,\n.tutorial-tip li,\n.tutorial-legend,\n.tutorial-dont-show{color:#24331D !important;opacity:1 !important;}\n.tutorial-number,\n.tutorial-close,\n.tutorial-start-btn{background:#C44545 !important;color:#ffffff !important;}\n.tutorial-close *, .tutorial-start-btn *{color:#ffffff !important;}\n\n/* ===== Map panel & popup: hilangkan navy/ungu dan teks hijau gelap yang tenggelam ===== */\nbody.map-active .left-panel,\nbody.map-active .right-panel,\nbody.map-active .route-planner,\nbody.map-active .top-controls,\nbody.map-active #openInfoPanel,\nbody.map-active .legend-text{\n  background:linear-gradient(180deg, #FFFDF2 0%, #F7FBE8 100%) !important;\n  color:#24331D !important;\n  border:1px solid rgba(91,126,60,.28) !important;\n  box-shadow:0 18px 44px rgba(36,51,29,.16) !important;\n}\nbody.map-active .left-panel *,\nbody.map-active .right-panel *,\nbody.map-active .route-planner *,\nbody.map-active .top-controls *,\nbody.map-active #openInfoPanel *,\nbody.map-active .legend-text{\n  color:#24331D !important;\n  opacity:1 !important;\n}\nbody.map-active .panel-title,\nbody.map-active .right-header h3,\nbody.map-active #detailTitle,\nbody.map-active .place-title{\n  color:#5B7E3C !important;\n}\nbody.map-active .distance,\nbody.map-active .meta,\nbody.map-active .meta *{color:#405A30 !important;}\nbody.map-active .price,\nbody.map-active #detailPrice{\n  background:rgba(196,69,69,.12) !important;\n  color:#C44545 !important;\n  border:1px solid rgba(196,69,69,.24) !important;\n}\nbody.map-active .close-btn,\nbody.map-active #closeInfoPanel{\n  background:#C44545 !important;\n  color:#ffffff !important;\n  border:1px solid rgba(232,245,189,.36) !important;\n}\n\n/* Marker popup card di tengah peta */\n.leaflet-popup-content-wrapper,\n.student-popup .leaflet-popup-content-wrapper,\n.map-popup-card{\n  background:#FFFDF2 !important;\n  color:#24331D !important;\n  border:1px solid rgba(91,126,60,.24) !important;\n  box-shadow:0 18px 40px rgba(36,51,29,.20) !important;\n}\n.leaflet-popup-tip{background:#FFFDF2 !important;}\n.leaflet-popup-content *,\n.map-popup-card *{color:#24331D !important;opacity:1 !important;}\n.map-popup-title{color:#5B7E3C !important;}\n.map-popup-badge,\n.map-popup-pill{background:#E8F5BD !important;color:#24331D !important;border:1px solid rgba(91,126,60,.20) !important;}\n.map-popup-row i{color:#C44545 !important;}\n.map-popup-btn.primary,\n#detailButton{\n  background:linear-gradient(135deg,#C44545,#A83A3A) !important;\n  color:#ffffff !important;\n}\n.map-popup-btn.secondary,\n#routeButton{\n  background:linear-gradient(135deg,#5B7E3C,#A2CB8B) !important;\n  color:#ffffff !important;\n}\n.map-popup-btn.primary *,\n.map-popup-btn.secondary *,\n#detailButton *,\n#routeButton *{color:#ffffff !important;}\n\n/* Filter/chip lebih kalem */\nbody.map-active .filter-item,\nbody.map-active .chip,\nbody.map-active .route-field,\nbody.map-active .search-box,\nbody.map-active .top-select{\n  background:#FFFDF2 !important;\n  color:#24331D !important;\n  border:1px solid rgba(91,126,60,.24) !important;\n}\nbody.map-active .filter-item.active,\nbody.map-active .chip.active{\n  background:linear-gradient(135deg,#A2CB8B,#E8F5BD) !important;\n  color:#24331D !important;\n  border-color:rgba(91,126,60,.42) !important;\n}\nbody.map-active .chip.emergency,\nbody.map-active .chip.emergency.active{\n  background:linear-gradient(135deg,#C44545,#E8F5BD) !important;\n  color:#24331D !important;\n}\nbody.map-active .badge{background:#C44545 !important;color:#ffffff !important;}\nbody.map-active .cat-icon{background:#5B7E3C !important;color:#ffffff !important;}\nbody.map-active .filter-item[data-category="minimarket"] .cat-icon,\nbody.map-active .filter-item[data-category="rumah_makan"] .cat-icon{background:#E8F5BD !important;color:#24331D !important;}\n\n/* Dashboard insight */\nbody.map-active #insightDashboard .insight-card,\nbody.map-active .energy-index-mode .insight-card{\n  background:linear-gradient(145deg,#FFFDF2,#E8F5BD) !important;\n  color:#24331D !important;\n  border:1px solid rgba(91,126,60,.25) !important;\n}\nbody.map-active #insightDashboard *{color:#24331D !important;opacity:1 !important;}\nbody.map-active #insightDashboard .insight-title,\nbody.map-active #insightDashboard .energy-summary-title{color:#5B7E3C !important;}\nbody.map-active #insightDashboard .gauge-value,\nbody.map-active #insightDashboard .rank-dist{color:#C44545 !important;}\n\n/* Jangan bikin semua ikon ikut gelap di tombol merah */\nbody.map-active button,\nbody.map-active button *,\n.btn-primary,\n.btn-primary *,\n.btn-secondary,\n.btn-secondary *,\n.btn-orange,\n.btn-orange *{\n  color:#ffffff !important;\n}\n';
-  function injectFinalPolish(){
-    const old = document.getElementById('ultraFinalStrawberryMatchaPolish');
-    if (old) old.remove();
-    const style = document.createElement('style');
-    style.id = 'ultraFinalStrawberryMatchaPolish';
-    style.textContent = finalPolishCSS;
-    document.head.appendChild(style);
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){
-      setTimeout(injectFinalPolish, 80);
-      setTimeout(injectFinalPolish, 800);
-    });
-  } else {
-    setTimeout(injectFinalPolish, 80);
-    setTimeout(injectFinalPolish, 800);
-  }
-  window.addEventListener('load', function(){
-    setTimeout(injectFinalPolish, 1200);
   });
 })();
 </script>
