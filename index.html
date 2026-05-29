@@ -434,5 +434,34 @@
     
   </div>
   <script src="js/landing-lite.js" defer></script>
+  <script>
+(function(){
+  function forceCloseIntro(){
+    const intro = document.getElementById("ewIntro");
+    if (!intro) return;
+
+    intro.classList.add("hide", "force-hide");
+    intro.setAttribute("hidden", "hidden");
+
+    intro.style.setProperty("display", "none", "important");
+    intro.style.setProperty("visibility", "hidden", "important");
+    intro.style.setProperty("opacity", "0", "important");
+    intro.style.setProperty("pointer-events", "none", "important");
+
+    document.body.classList.remove("ew-intro-active");
+  }
+
+  const skipBtn = document.getElementById("ewSkipIntro");
+  if (skipBtn) {
+    skipBtn.addEventListener("click", forceCloseIntro, true);
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(forceCloseIntro, 1800);
+  });
+
+  setTimeout(forceCloseIntro, 5000);
+})();
+</script>
 </body>
 </html>
