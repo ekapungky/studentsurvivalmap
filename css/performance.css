@@ -1,0 +1,83 @@
+/* =========================================================
+   PERFORMANCE MODE UNTUK HALAMAN MAP
+   Dipanggil saat body punya class .map-active
+   Tujuan: kurangi lag Leaflet dengan mematikan efek visual berat.
+========================================================= */
+
+body.map-active .map-overlay{
+  display:none !important;
+}
+
+body.map-active .left-panel,
+body.map-active .right-panel,
+body.map-active .topbar,
+body.map-active .toggle-btn,
+body.map-active .search-btn,
+body.map-active .back-btn,
+body.map-active .top-select,
+body.map-active .search-box,
+body.map-active .legend-text,
+body.map-active #openInfoPanel,
+body.map-active .route-planner{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  box-shadow:0 6px 16px rgba(0,0,0,.18) !important;
+}
+
+body.map-active .right-panel::before,
+body.map-active .landing-navbar::before,
+body.map-active .topbar::before{
+  display:none !important;
+}
+
+body.map-active .marker-wrap,
+body.map-active .feature-tile,
+body.map-active .member-card,
+body.map-active .about-card,
+body.map-active .hero-info-card,
+body.map-active .benefit-card,
+body.map-active .preview,
+body.map-active .filter-item,
+body.map-active .chip,
+body.map-active .toggle-btn,
+body.map-active .search-btn,
+body.map-active .back-btn,
+body.map-active .top-select,
+body.map-active #openInfoPanel{
+  transition:none !important;
+  animation:none !important;
+}
+
+body.map-active .marker-wrap:hover,
+body.map-active .feature-tile:hover,
+body.map-active .member-card:hover,
+body.map-active .about-card:hover,
+body.map-active .hero-info-card:hover,
+body.map-active .benefit-card:hover,
+body.map-active .preview:hover,
+body.map-active .filter-item:hover,
+body.map-active .chip:hover{
+  transform:none !important;
+}
+
+body.map-active .leaflet-tile,
+body.map-active .leaflet-marker-icon,
+body.map-active .leaflet-marker-shadow,
+body.map-active .leaflet-overlay-pane svg{
+  will-change:auto !important;
+}
+
+body.map-active .leaflet-container{
+  background:#0f172a !important;
+}
+
+/* Mode hemat gerak dari sistem/laptop user */
+@media (prefers-reduced-motion: reduce){
+  *,
+  *::before,
+  *::after{
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior:auto !important;
+  }
+}
