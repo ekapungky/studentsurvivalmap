@@ -1,0 +1,57 @@
+/* ===== PERFORMANCE + GITHUB PAGES FIX ===== */
+body.map-active .map-overlay{ display:none !important; }
+
+body.map-active .left-panel,
+body.map-active .right-panel,
+body.map-active .topbar,
+body.map-active .toggle-btn,
+body.map-active .search-btn,
+body.map-active .back-btn,
+body.map-active .top-select,
+body.map-active .search-box,
+body.map-active .legend-text,
+body.map-active #openInfoPanel{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  box-shadow:0 6px 16px rgba(0,0,0,.18) !important;
+}
+
+body.map-active .marker-wrap,
+body.map-active .feature-tile,
+body.map-active .member-card,
+body.map-active .about-card,
+body.map-active .hero-info-card,
+body.map-active .benefit-card{
+  transition:none !important;
+  animation:none !important;
+}
+
+body.map-active .marker-wrap:hover,
+body.map-active .feature-tile:hover,
+body.map-active .member-card:hover,
+body.map-active .about-card:hover,
+body.map-active .hero-info-card:hover,
+body.map-active .benefit-card:hover{
+  transform:none !important;
+}
+
+/* Fix intro agar tidak stuck karena ada display:flex !important pada CSS lama */
+#ewIntro.hide,
+#ewIntro.force-hide,
+.ew-intro.hide,
+.ew-intro.force-hide,
+.ew-intro.intro-orbit.hide,
+.ew-intro.intro-orbit.force-hide{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  display:none !important;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior:auto !important;
+  }
+}
