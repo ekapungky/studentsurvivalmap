@@ -122,3 +122,15 @@ body.map-active .leaflet-fade-anim .leaflet-tile,
 body.map-active .leaflet-zoom-animated{
   transition:none !important;
 }
+/* ===== FIX INTRO STUCK DI GITHUB PAGES ===== */
+#ewIntro.hide,
+#ewIntro.force-hide,
+.ew-intro.hide,
+.ew-intro.force-hide,
+.ew-intro.intro-orbit.hide,
+.ew-intro.intro-orbit.force-hide{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  display:none !important;
+}
