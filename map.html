@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WebGIS Student Survival Map</title>
+  <title>Map - WebGIS Student Survival Map</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -11376,60 +11376,6 @@ section.hero::before{
         </div>
       </section>
 
-
-      <section id="berita" class="section section-light">
-        <div class="section-head reveal">
-          <h2 class="section-title">News / Spotlight Project</h2>
-          <p class="section-subtitle">
-            Bagian ini menampilkan ringkasan perkembangan, isu, dan informasi penting terkait WebGIS Student Survival Map.
-          </p>
-        </div>
-
-        <div class="feature-grid reveal">
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-            <h4>Pengembangan Peta Fasilitas Mahasiswa</h4>
-            <p>WebGIS dikembangkan untuk menyatukan informasi kost, laundry, rumah makan, minimarket, apotek/klinik, dan titik emergency dalam satu peta interaktif.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-route"></i></div>
-            <h4>Analisis Radius dan Rute</h4>
-            <p>Fitur radius 5 km dan routing membantu pengguna memilih lokasi berdasarkan jarak, kategori, dan akses tercepat dari area kampus.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h4>Emergency Response Ready</h4>
-            <p>Titik darurat seperti fasilitas kesehatan, kantor polisi, dan lokasi bantuan penting ditampilkan untuk mendukung kebutuhan mendesak mahasiswa.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="galeri" class="section section-soft">
-        <div class="section-head reveal">
-          <h2 class="section-title">Gallery</h2>
-          <p class="section-subtitle">
-            Dokumentasi tampilan dan komponen utama WebGIS Student Survival Map.
-          </p>
-        </div>
-
-        <div class="feature-grid reveal">
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-house-laptop"></i></div>
-            <h4>Homepage</h4>
-            <p>Tampilan awal berisi identitas project, tujuan, dan tombol untuk masuk ke WebGIS.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-map"></i></div>
-            <h4>Interactive Maps</h4>
-            <p>Halaman peta Leaflet menampilkan marker fasilitas, filter kategori, radius, dan panel detail lokasi.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-chart-simple"></i></div>
-            <h4>Insight Dashboard</h4>
-            <p>Dashboard menampilkan ringkasan jumlah fasilitas, kategori, titik terdekat, dan kesiapan area sekitar kampus.</p>
-          </article>
-        </div>
-      </section>
       <footer id="kontak" class="footer">
         <div class="footer-grid">
           <div class="footer-card reveal-left">
@@ -15080,23 +15026,38 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script>
-/* PAGE SPLIT PATCH - tampilkan halaman index.html sesuai section tanpa mengubah isi utama */
+/* MAP PAGE FIX - map.html langsung membuka WebGIS, bukan landing */
 (function(){
-  function openSectionPage(){
+  function openMapDirect(){
     var landing = document.getElementById('landingPage');
     var mapPage = document.getElementById('mapPage');
-    if(landing) landing.classList.remove('hidden');
-    if(mapPage) mapPage.classList.add('hidden');
-    document.body.classList.remove('map-active');
-    var target = document.getElementById('beranda');
-    if(target && 'beranda' !== 'beranda') {
-      setTimeout(function(){ target.scrollIntoView({behavior:'instant', block:'start'}); }, 80);
-    } else {
-      window.scrollTo(0,0);
+    if(landing) landing.classList.add('hidden');
+    if(mapPage) mapPage.classList.remove('hidden');
+    document.body.classList.add('map-active');
+
+    if (typeof initMap === 'function') {
+      try { initMap(); } catch(e) { console.warn('initMap retry:', e); }
+    }
+    setTimeout(function(){
+      if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize(true);
+      if (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') map.invalidateSize(true);
+    }, 500);
+    setTimeout(function(){
+      if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize(true);
+      if (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') map.invalidateSize(true);
+    }, 1400);
+
+    var homeBtn = document.getElementById('topbarHomeBtn') || document.getElementById('backHomeBtn');
+    if(homeBtn){
+      homeBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        window.location.href = 'index.html';
+      }, true);
     }
   }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openSectionPage);
-  else openSectionPage();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(openMapDirect, 120); });
+  else setTimeout(openMapDirect, 120);
 })();
 </script>
 
