@@ -11679,7 +11679,7 @@ section.hero::before{
             </div>
           </div>
 
-          <div class="insight-dashboard energy-index-mode" id="insightDashboard">
+          <div class="insight-dashboard energy-index-mode hidden-dashboard" id="insightDashboard">
             <div class="insight-card insight-main">
               <div class="insight-head">
                 <div>
@@ -12050,7 +12050,7 @@ const categories = {
   let places = [];
 
 const state = {
-  categories: new Set(["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"]),
+  categories: new Set(),
   cheap: false,
   open24: false,
   nearCampus: false,
@@ -13764,7 +13764,7 @@ function resetOriginToCampus() {
 
  function renderFilterList() {
   const filterList = document.getElementById("filterList");
-  const keys = ["laundry", "minimarket", "rumah_makan", "fasilitas_kesehatan", "emergency"];
+  const keys = ["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"];
 
   filterList.innerHTML = keys.map(key => {
     const cfg = categories[key];
@@ -14010,7 +14010,7 @@ function handleResponsivePanels() {
     landingPage.classList.add("hidden");
     mapPage.classList.remove("hidden");
     initMap();
-    if (insightDashboard) insightDashboard.classList.remove("hidden-dashboard");
+    if (insightDashboard) insightDashboard.classList.add("hidden-dashboard");
     setTimeout(() => showTutorial(false), 650);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -14081,7 +14081,7 @@ function handleResponsivePanels() {
   });
 
   document.getElementById("resetBtn").addEventListener("click", () => {
-    state.categories = new Set(["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"]);
+    state.categories = new Set();
     state.cheap = false;
     state.open24 = false;
     state.nearCampus = false;
@@ -14888,7 +14888,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function resetWebgisFinal() {
     if (typeof state !== "undefined") {
-      state.categories = new Set(["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"]);
+      state.categories = new Set();
       state.cheap = false;
       state.open24 = false;
       state.nearCampus = false;
@@ -15274,6 +15274,428 @@ document.addEventListener("DOMContentLoaded", () => {
         img.src = IMAGE_PATH + EXACT_IMAGES[fileName];
       }
     });
+  });
+})();
+</script>
+
+
+
+<script>
+/* =========================================================
+   PATCH FINAL MAP UX - icon terlihat, insight tengah, panel tidak bertumpuk,
+   network lokasi saya, dan map tidak langsung menampilkan semua objek.
+   ========================================================= */
+(function(){
+  const patchCSS = `
+  /* ===== Marker icon biar kelihatan jelas ===== */
+  .marker-wrap{
+    width:46px !important;
+    height:46px !important;
+    border-radius:18px 18px 18px 4px !important;
+    transform:rotate(-45deg) !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:2px solid rgba(255,253,242,.92) !important;
+    box-shadow:0 10px 22px rgba(36,51,29,.34), inset 0 0 0 1px rgba(255,255,255,.18) !important;
+  }
+  .marker-wrap svg,
+  .marker-wrap i{
+    transform:rotate(45deg) !important;
+    width:23px !important;
+    height:23px !important;
+    font-size:20px !important;
+    display:block !important;
+    color:currentColor !important;
+  }
+  .marker-wrap svg *{
+    stroke:currentColor !important;
+    fill:none !important;
+    vector-effect:non-scaling-stroke !important;
+  }
+  .marker-wrap svg circle,
+  .marker-wrap svg .dot{
+    fill:currentColor !important;
+    stroke:none !important;
+  }
+  .marker-kost,
+  .marker-laundry,
+  .marker-print_fotocopy,
+  .marker-fasilitas_kesehatan,
+  .marker-emergency{
+    color:#FFFDF2 !important;
+  }
+  .marker-rumah_makan,
+  .marker-minimarket,
+  .marker-atm{
+    color:#24331D !important;
+  }
+  .origin-marker-wrap{
+    width:42px !important;
+    height:42px !important;
+    border-radius:50% !important;
+    background:linear-gradient(135deg,#C44545,#A83A3A) !important;
+    color:#fff !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:3px solid #FFFDF2 !important;
+    box-shadow:0 12px 28px rgba(196,69,69,.35) !important;
+  }
+
+  /* ===== Guide saat map baru dibuka: user pilih kategori dulu ===== */
+  .map-choice-guide{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:820;
+    width:min(560px, calc(100% - 42px));
+    padding:24px 26px;
+    border-radius:28px;
+    background:linear-gradient(145deg, rgba(255,253,242,.97), rgba(232,245,189,.94));
+    border:1px solid rgba(91,126,60,.28);
+    box-shadow:0 26px 70px rgba(36,51,29,.28);
+    color:#24331D;
+    text-align:center;
+    pointer-events:auto;
+  }
+  .map-choice-guide.hidden-guide{display:none !important;}
+  .map-choice-guide .guide-icon{
+    width:62px;height:62px;border-radius:22px;margin:0 auto 12px;
+    background:linear-gradient(135deg,#5B7E3C,#A2CB8B);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:28px;box-shadow:0 16px 32px rgba(91,126,60,.26);
+  }
+  .map-choice-guide h3{font-size:26px;margin:0 0 8px;color:#5B7E3C;font-weight:900;}
+  .map-choice-guide p{font-size:15px;line-height:1.65;color:#405A30;margin:0 0 16px;}
+  .map-choice-guide .guide-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .map-choice-guide button{
+    border:0;border-radius:16px;padding:12px 16px;font-weight:900;cursor:pointer;
+    background:#C44545;color:#fff;box-shadow:0 12px 24px rgba(196,69,69,.24);
+  }
+  .map-choice-guide button.secondary{background:#5B7E3C;}
+
+  /* ===== Insight dashboard selalu center dan tidak kepotong ===== */
+  body.map-active #insightDashboard.energy-index-mode{
+    position:absolute !important;
+    left:50% !important;
+    top:52% !important;
+    right:auto !important;
+    bottom:auto !important;
+    transform:translate(-50%,-50%) !important;
+    z-index:1050 !important;
+    width:min(1040px, calc(100vw - 58px)) !important;
+    max-height:calc(100vh - 210px) !important;
+    overflow:auto !important;
+    padding:0 !important;
+    border-radius:30px !important;
+    background:transparent !important;
+  }
+  body.map-active #insightDashboard.energy-index-mode.hidden-dashboard{
+    opacity:0 !important;
+    pointer-events:none !important;
+    visibility:hidden !important;
+    transform:translate(-50%,-48%) scale(.96) !important;
+  }
+  body.map-active #insightDashboard.energy-index-mode .insight-card{
+    max-height:none !important;
+    min-height:0 !important;
+    border-radius:30px !important;
+    padding:24px !important;
+    box-shadow:0 30px 80px rgba(36,51,29,.34) !important;
+  }
+  body.map-active #insightDashboard.energy-index-mode .index-visual-row,
+  body.map-active #insightDashboard.energy-index-mode .energy-side-panel{
+    display:grid !important;
+    gap:14px !important;
+  }
+  body.map-active #insightDashboard.energy-index-mode .rank-list{
+    max-height:210px !important;
+    overflow:auto !important;
+  }
+  @media(max-width:900px){
+    body.map-active #insightDashboard.energy-index-mode{
+      top:54% !important;
+      width:calc(100vw - 24px) !important;
+      max-height:calc(100vh - 150px) !important;
+    }
+    body.map-active #insightDashboard.energy-index-mode .insight-card{padding:16px !important;}
+  }
+
+  /* ===== Panel tidak saling numpuk ===== */
+  body.map-active .top-controls{z-index:940 !important;}
+  body.map-active .left-panel{z-index:930 !important;}
+  body.map-active .right-panel{z-index:900 !important;}
+  body.map-active .route-planner{z-index:1040 !important;}
+  body.map-active .floating-actions{z-index:1100 !important;}
+
+  /* ===== Route planner dipercantik dan tidak kepotong ===== */
+  body.map-active .route-planner{
+    left:50% !important;
+    right:auto !important;
+    bottom:24px !important;
+    top:auto !important;
+    transform:translateX(-50%) !important;
+    width:min(760px, calc(100vw - 42px)) !important;
+    max-height:calc(100vh - 190px) !important;
+    overflow:auto !important;
+    border-radius:28px !important;
+    padding:16px !important;
+    background:linear-gradient(145deg, rgba(255,253,242,.98), rgba(232,245,189,.95)) !important;
+    border:1px solid rgba(91,126,60,.32) !important;
+    box-shadow:0 28px 72px rgba(36,51,29,.30) !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr auto auto !important;
+    gap:10px !important;
+  }
+  body.map-active .route-planner.hidden-route{display:none !important;}
+  body.map-active .route-field{
+    min-height:46px !important;
+    border-radius:15px !important;
+    background:#FFFDF2 !important;
+    color:#24331D !important;
+    border:1px solid rgba(91,126,60,.28) !important;
+    font-weight:800 !important;
+  }
+  body.map-active .route-mini-btn{
+    min-height:46px !important;
+    border-radius:15px !important;
+    font-weight:900 !important;
+  }
+  body.map-active .route-hint,
+  body.map-active .route-directions{
+    grid-column:1 / -1 !important;
+    background:rgba(255,253,242,.78) !important;
+    border:1px solid rgba(91,126,60,.22) !important;
+    border-radius:18px !important;
+    color:#405A30 !important;
+  }
+  body.map-active .route-directions ol{
+    max-height:180px !important;
+    overflow:auto !important;
+    padding-right:6px !important;
+  }
+  body.map-active .route-directions li{
+    background:#FFFDF2 !important;
+    color:#24331D !important;
+    border:1px solid rgba(91,126,60,.18) !important;
+    border-radius:14px !important;
+    margin-bottom:8px !important;
+    padding:10px !important;
+  }
+  body.map-active .leaflet-routing-container{display:none !important;}
+  @media(max-width:760px){
+    body.map-active .route-planner{grid-template-columns:1fr !important;bottom:12px !important;}
+  }
+  `;
+
+  function inject(){
+    let style = document.getElementById('ssm-final-map-fix-style');
+    if(!style){
+      style = document.createElement('style');
+      style.id = 'ssm-final-map-fix-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = patchCSS;
+  }
+  inject();
+
+  function safe(fn){try{return fn();}catch(e){console.warn('SSM patch:', e);}}
+
+  function closeFloatingPanels(except){
+    safe(function(){
+      if(except !== 'top' && typeof topControls !== 'undefined' && topControls) topControls.classList.add('collapsed');
+      if(except !== 'filter' && typeof leftPanel !== 'undefined' && leftPanel) leftPanel.classList.add('collapsed');
+      if(except !== 'route' && typeof routePlanner !== 'undefined' && routePlanner) routePlanner.classList.add('hidden-route');
+      if(except !== 'insight' && typeof insightDashboard !== 'undefined' && insightDashboard) insightDashboard.classList.add('hidden-dashboard');
+      if(except !== 'info' && typeof infoPanel !== 'undefined' && infoPanel) infoPanel.classList.add('hidden');
+      if(typeof syncPanelPositions === 'function') syncPanelPositions();
+    });
+  }
+
+  function ensureGuide(){
+    let guide = document.getElementById('mapChoiceGuide');
+    if(guide) return guide;
+    const mapEl = document.getElementById('map');
+    if(!mapEl || !mapEl.parentElement) return null;
+    guide = document.createElement('div');
+    guide.id = 'mapChoiceGuide';
+    guide.className = 'map-choice-guide';
+    guide.innerHTML = `
+      <div class="guide-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <h3>Mau cari fasilitas apa?</h3>
+      <p>Pilih kategori dulu lewat tombol <b>Filter</b>, supaya peta tidak langsung penuh marker. Setelah kategori dipilih, klik marker untuk melihat detail atau buat rute.</p>
+      <div class="guide-actions">
+        <button type="button" id="guideOpenFilter"><i class="fa-solid fa-filter"></i> Pilih Kategori</button>
+        <button type="button" class="secondary" id="guideShowEmergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency</button>
+      </div>
+    `;
+    mapEl.parentElement.appendChild(guide);
+    guide.querySelector('#guideOpenFilter')?.addEventListener('click', function(){
+      closeFloatingPanels('filter');
+      if(typeof leftPanel !== 'undefined' && leftPanel) leftPanel.classList.remove('collapsed');
+      if(typeof syncPanelPositions === 'function') syncPanelPositions();
+    });
+    guide.querySelector('#guideShowEmergency')?.addEventListener('click', function(){
+      safe(function(){
+        state.categories = new Set(['emergency']);
+        state.emergencyOnly = false;
+        renderFilterList();
+        syncChips();
+        renderMarkers();
+      });
+    });
+    return guide;
+  }
+
+  function updateGuide(){
+    const guide = ensureGuide();
+    if(!guide) return;
+    let show = false;
+    safe(function(){
+      const noCat = typeof state !== 'undefined' && state.categories && state.categories.size === 0 && !state.search && !state.emergencyOnly;
+      show = noCat;
+    });
+    guide.classList.toggle('hidden-guide', !show);
+  }
+
+  function updateIconContrast(){
+    document.querySelectorAll('.marker-wrap svg *').forEach(function(el){
+      el.style.setProperty('stroke','currentColor','important');
+    });
+    document.querySelectorAll('.marker-wrap svg circle').forEach(function(el){
+      el.style.setProperty('fill','currentColor','important');
+      el.style.setProperty('stroke','none','important');
+    });
+  }
+
+  function patchGlobals(){
+    safe(function(){
+      if(typeof state !== 'undefined' && state.categories && state.categories.size > 0 && !sessionStorage.getItem('ssmInitialChoiceApplied')){
+        state.categories = new Set();
+        sessionStorage.setItem('ssmInitialChoiceApplied','1');
+      }
+    });
+
+    safe(function(){
+      if(typeof renderMarkers === 'function' && !renderMarkers.__ssmPatched){
+        const originalRenderMarkers = renderMarkers;
+        renderMarkers = function(){
+          const result = originalRenderMarkers.apply(this, arguments);
+          updateGuide();
+          setTimeout(updateIconContrast, 30);
+          return result;
+        };
+        renderMarkers.__ssmPatched = true;
+      }
+    });
+
+    safe(function(){
+      if(typeof showRoutePlanner === 'function' && !showRoutePlanner.__ssmPatched){
+        const oldShowRoutePlanner = showRoutePlanner;
+        showRoutePlanner = function(){
+          closeFloatingPanels('route');
+          const result = oldShowRoutePlanner.apply(this, arguments);
+          if(routeHint && (!routeHint.textContent || routeHint.textContent.includes('Pilih asal'))){
+            routeHint.textContent = 'Pilih asal dan tujuan, lalu klik Rute. Untuk Asal: Lokasi Saya, izinkan akses lokasi browser.';
+          }
+          return result;
+        };
+        showRoutePlanner.__ssmPatched = true;
+      }
+    });
+
+    safe(function(){
+      if(typeof showInsightDashboard === 'function' && !showInsightDashboard.__ssmPatched){
+        const oldShowInsight = showInsightDashboard;
+        showInsightDashboard = function(){
+          closeFloatingPanels('insight');
+          const result = oldShowInsight.apply(this, arguments);
+          setTimeout(function(){
+            if(insightDashboard) insightDashboard.scrollTop = 0;
+          }, 20);
+          return result;
+        };
+        showInsightDashboard.__ssmPatched = true;
+      }
+    });
+  }
+
+  function patchNetworkFromMyLocation(){
+    const btn = document.getElementById('routeNowBtn');
+    if(!btn || btn.__ssmGeoPatched) return;
+    btn.__ssmGeoPatched = true;
+    btn.addEventListener('click', function(e){
+      if(!originSelect || originSelect.value !== 'mylocation') return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const destinationId = destinationSelect ? destinationSelect.value : '';
+      const destination = destinationId && typeof getPlaceById === 'function' ? getPlaceById(destinationId) : (typeof selectedPlace !== 'undefined' ? selectedPlace : null);
+      if(!destination){
+        if(routeHint) routeHint.textContent = 'Pilih tujuan dulu sebelum membuat rute dari Lokasi Saya.';
+        return false;
+      }
+      if(!navigator.geolocation){
+        if(routeHint) routeHint.textContent = 'Browser tidak mendukung lokasi saya. Gunakan Asal: Rektorat UPN atau Klik di Peta.';
+        return false;
+      }
+
+      if(routeHint) routeHint.textContent = 'Mengambil Lokasi Saya. Kalau muncul izin lokasi, klik Allow/Izinkan.';
+      navigator.geolocation.getCurrentPosition(function(pos){
+        const latlng = [pos.coords.latitude, pos.coords.longitude];
+        if(typeof setOriginMarker === 'function') setOriginMarker(latlng, 'Lokasi Saya');
+        if(typeof state !== 'undefined') state.networkOn = true;
+        if(typeof syncChips === 'function') syncChips();
+        if(typeof setDestinationPlace === 'function') setDestinationPlace(destination, true);
+        if(typeof drawRouteTo === 'function') drawRouteTo(destination);
+        if(routeHint) routeHint.textContent = 'Rute dari Lokasi Saya sedang dihitung.';
+      }, function(err){
+        if(routeHint) routeHint.textContent = 'Lokasi Saya gagal diambil. Pastikan izin lokasi aktif di browser, lalu coba lagi.';
+      }, {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+      return false;
+    }, true);
+  }
+
+  function bindPanelButtons(){
+    document.getElementById('toggleTopPanel')?.addEventListener('click', function(){
+      setTimeout(function(){ if(topControls && !topControls.classList.contains('collapsed')) closeFloatingPanels('top'); }, 35);
+    });
+    document.getElementById('toggleLeftPanel')?.addEventListener('click', function(){
+      setTimeout(function(){ if(leftPanel && !leftPanel.classList.contains('collapsed')) closeFloatingPanels('filter'); }, 35);
+    });
+    document.getElementById('toggleDashboard')?.addEventListener('click', function(){
+      setTimeout(function(){ if(insightDashboard && !insightDashboard.classList.contains('hidden-dashboard')) closeFloatingPanels('insight'); }, 35);
+    });
+    document.querySelectorAll('[data-chip="network"]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        setTimeout(function(){ if(routePlanner && !routePlanner.classList.contains('hidden-route')) closeFloatingPanels('route'); }, 35);
+      });
+    });
+  }
+
+  function bootstrap(){
+    patchGlobals();
+    patchNetworkFromMyLocation();
+    bindPanelButtons();
+    ensureGuide();
+    updateGuide();
+    updateIconContrast();
+    setTimeout(function(){
+      safe(function(){
+        if(typeof insightDashboard !== 'undefined' && insightDashboard) insightDashboard.classList.add('hidden-dashboard');
+        if(typeof state !== 'undefined' && state.categories && state.categories.size === 0 && typeof renderMarkers === 'function') renderMarkers();
+      });
+      updateGuide();
+      updateIconContrast();
+    }, 850);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrap);
+  else bootstrap();
+  window.addEventListener('load', function(){
+    setTimeout(function(){ patchGlobals(); patchNetworkFromMyLocation(); updateGuide(); updateIconContrast(); }, 1000);
   });
 })();
 </script>
