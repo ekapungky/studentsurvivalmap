@@ -911,7 +911,7 @@
     .team-banner{
       background:
         linear-gradient(180deg, rgba(5,18,42,.82), rgba(8,24,55,.88)),
-        url("assets/images/bg-team.jpg") center/cover no-repeat;
+        url("assets/images/bg-utama.png") center/cover no-repeat;
       border-radius:30px;
       overflow:hidden;
       box-shadow:var(--shadow-lg);
@@ -10990,6 +10990,38 @@ section.hero::before{
   opacity:.15 !important;
 }
 
+
+
+/* =========================================================
+   FINAL IMAGE PATH FIX - memakai acuan path dari script asli
+   Folder gambar harus: assets/images/
+   ========================================================= */
+.hero,
+.landing .hero,
+.page-hero,
+.digital-hero,
+.dashboard-hero,
+.home-hero{
+  background:
+    linear-gradient(115deg, rgba(28,45,20,.86) 0%, rgba(91,126,60,.66) 45%, rgba(196,69,69,.28) 100%),
+    url('./assets/images/bg-utama.png') center center / cover no-repeat !important;
+}
+
+.intro-orbit .io-bg,
+.ew-intro.intro-orbit .io-bg{
+  background:
+    linear-gradient(135deg, rgba(28,45,20,.86) 0%, rgba(91,126,60,.68) 44%, rgba(196,69,69,.22) 100%),
+    url('./assets/images/bg-depan.png') center center / cover no-repeat,
+    url('./assets/images/bg-utama.png') center center / cover no-repeat !important;
+}
+
+.team-photo,
+.member-photo,
+.gallery-img,
+.brand-logo img,
+.secondary-logo img{
+  object-fit: cover;
+}
 </style>
 </head>
 <body>
@@ -15097,6 +15129,49 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openSectionPage);
   else openSectionPage();
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   FINAL IMAGE PATH FIX - sesuai penamaan di script asli
+   Semua gambar diarahkan ke assets/images/ dengan nama file persis.
+   Catatan: fitur baca banyak format di script asli berlaku untuk gambar lokasi/detail data.
+   Untuk gambar statis HTML/CSS, nama file tetap harus sama persis.
+   ========================================================= */
+(function(){
+  const IMAGE_PATH = 'assets/images/';
+  const EXACT_IMAGES = {
+    'LOGO UPN.png': 'LOGO UPN.png',
+    'LOGO SURVIVAL MAP.jpeg': 'LOGO SURVIVAL MAP.jpeg',
+    'anggota-kelompok.png.jpeg': 'anggota-kelompok.png.jpeg',
+    'imelda.jpeg': 'imelda.jpeg',
+    'delima.jpeg': 'delima.jpeg',
+    'eka.jpg': 'eka.jpg',
+    'firda.jpeg': 'firda.jpeg',
+    'ariyel.jpeg': 'ariyel.jpeg'
+  };
+
+  function cleanName(src){
+    try{
+      return decodeURIComponent(src.split('/').pop().split('?')[0].split('#')[0]);
+    }catch(e){
+      return src.split('/').pop().split('?')[0].split('#')[0];
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('img').forEach(function(img){
+      const src = img.getAttribute('src') || '';
+      if(!src || src.startsWith('data:')) return;
+
+      const fileName = cleanName(src);
+      if(EXACT_IMAGES[fileName]){
+        img.src = IMAGE_PATH + EXACT_IMAGES[fileName];
+      }
+    });
+  });
 })();
 </script>
 
