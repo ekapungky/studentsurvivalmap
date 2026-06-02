@@ -11022,6 +11022,31 @@ section.hero::before{
 .secondary-logo img{
   object-fit: cover;
 }
+
+
+/* ===== PATCH FINAL: marker icon sesuai konsep survival map + gambar/data folder GitHub ===== */
+.marker-wrap svg{
+  width:24px !important;
+  height:24px !important;
+  display:block !important;
+  filter:none !important;
+}
+.marker-wrap.marker-rumah_makan svg,
+.marker-wrap.marker-atm svg,
+.marker-wrap.marker-minimarket svg{
+  filter:none !important;
+}
+.marker-wrap.marker-emergency{
+  background:#fff8ec !important;
+  border-color:#C44545 !important;
+}
+.marker-wrap.marker-emergency svg{width:25px !important;height:25px !important;}
+.filter-item[data-category="atm"] .cat-icon,
+.filter-item[data-category="rumah_makan"] .cat-icon,
+.filter-item[data-category="minimarket"] .cat-icon{
+  color:#24331d !important;
+}
+
 </style>
 </head>
 <body>
@@ -11950,34 +11975,52 @@ section.hero::before{
   const upnLatLng = [-7.7620236, 110.4092470];
 
 const categories = {
+  kost: {
+    label: "Kost",
+    color: "#5B7E3C",
+    icon: "fa-solid fa-house",
+    folder: "kost"
+  },
+  rumah_makan: {
+    label: "Rumah Makan",
+    color: "#E8F5BD",
+    icon: "fa-solid fa-bowl-food",
+    folder: "rumah_makan_murah"
+  },
   laundry: {
     label: "Laundry",
-    color: "#5B7E3C",
-    icon: "fa-solid fa-shirt",
+    color: "#A2CB8B",
+    icon: "fa-solid fa-soap",
     folder: "laundry"
   },
   minimarket: {
     label: "Minimarket",
     color: "#A2CB8B",
-    icon: "fa-solid fa-basket-shopping",
+    icon: "fa-solid fa-store",
     folder: "minimarket"
   },
-  rumah_makan: {
-    label: "Rumah Makan",
+  atm: {
+    label: "ATM",
     color: "#E8F5BD",
-    icon: "fa-solid fa-utensils",
-    folder: "rumah_makan"
+    icon: "fa-solid fa-money-bill-wave",
+    folder: "atm"
+  },
+  print_fotocopy: {
+    label: "Print/Fotokopi",
+    color: "#5B7E3C",
+    icon: "fa-solid fa-print",
+    folder: "print_fotocopy"
   },
   fasilitas_kesehatan: {
     label: "Fasilitas Kesehatan",
     color: "#5B7E3C",
-    icon: "fa-solid fa-house-medical",
+    icon: "fa-solid fa-prescription-bottle-medical",
     folder: "fasilitas_kesehatan"
   },
   emergency: {
     label: "Emergency",
     color: "#C44545",
-    icon: "fa-solid fa-triangle-exclamation",
+    icon: "fa-solid fa-siren-on",
     folder: "emergency"
   }
   };
@@ -11994,9 +12037,12 @@ const categories = {
        data/emergency.xlsx
      ===================================================== */
   const EXCEL_FILES = {
+    kost: ["data/kost.xlsx"],
+    rumah_makan: ["data/rumah_makan.xlsx"],
     laundry: ["data/laundry.xlsx"],
     minimarket: ["data/minimarket.xlsx"],
-    rumah_makan: ["data/rumah_makan.xlsx"],
+    atm: ["data/atm.xlsx"],
+    print_fotocopy: ["data/print_fotocopy.xlsx"],
     fasilitas_kesehatan: ["data/fasilitas_kesehatan.xlsx"],
     emergency: ["data/emergency.xlsx"]
   };
@@ -12004,7 +12050,7 @@ const categories = {
   let places = [];
 
 const state = {
-  categories: new Set(["laundry", "minimarket", "rumah_makan", "fasilitas_kesehatan", "emergency"]),
+  categories: new Set(["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"]),
   cheap: false,
   open24: false,
   nearCampus: false,
@@ -12682,6 +12728,85 @@ function normalizeFasilitasKesehatan(row, index) {
   }
 
 
+  function normalizeGenericPlace(row, index, category, prefix, defaultLabel) {
+    const dokumentasiUntukId = getCell(row, ["Dokumentasi", "images", "Foto"], "");
+    const id = cleanId(
+      getCell(row, ["id", "ID", "Id"], ""),
+      getFileCode(dokumentasiUntukId, `${prefix}${String(index + 1).padStart(3, "0")}`)
+    );
+
+    const cfg = categories[category] || {};
+    const nama = cleanText(getCell(row, [
+      "Nama_Tempat", "Nama Tempat", "NamaTempat",
+      "Nama", "Nama Fasilitas", "Nama_Fasilitas", "NamaFasilitas",
+      "Nama Usaha", "Nama_Usaha", "NamaUsaha",
+      "Nama_Kost", "Nama Kost", "Nama_ATM", "Nama ATM",
+      "Nama_Print", "Nama Print", "Nama_Fotokopi", "Nama Fotokopi",
+      "Tempat", "Lokasi"
+    ], `${defaultLabel} ${id}`));
+
+    const kategori = cleanText(getCell(row, ["Kategori", "Jenis", "Jenis_Fasilitas", "Jenis Fasilitas"], cfg.label || defaultLabel));
+    const keterangan = cleanText(getCell(row, ["Keterangan", "Layanan", "Harga", "Jenis_Layanan", "Jenis Layanan"], kategori));
+    const hari = cleanText(getCell(row, ["Hari_operasional", "Hari Operasional", "Hari"], "-"));
+    const jam = cleanText(getCell(row, ["Jam_Operasional", "Jam_operasional", "Jam Operasional", "Jam"], "-"));
+    const harga = cleanText(getCell(row, ["Harga", "Biaya", "Tarif", "Rentang_Harga", "Rentang Harga"], keterangan));
+    const alamat = cleanText(getCell(row, ["Alamat", "Alamat_lengkap", "Alamat Lengkap", "Lokasi"], "-"));
+    const telepon = cleanText(getCell(row, ["Nomor_Kontak", "Nomor Kontak", "No.Telepon", "No_Telepon", "No Telepon", "Telepon"], "-"));
+    const lat = parseCoordinate(getCell(row, ["Latitude", "latitude", "Lat"]));
+    const lng = parseCoordinate(getCell(row, ["Longitude", "longitude", "Lng", "Long"]));
+    const rating = cleanText(getCell(row, ["Ulasan", "Rating", "Review"], "-"));
+    const maps = cleanText(getCell(row, ["Link_google_maps", "Link Google Maps", "Maps", "Google Maps"], "-"));
+    const dokumentasi = cleanText(getCell(row, ["Dokumentasi", "images", "Foto"], id));
+    const buka24 = cleanText(getCell(row, ["Buka_24_jam", "Buka 24 jam", "Buka_24_Jam"], ""));
+
+    return {
+      id,
+      category,
+      name: nama === "-" ? `${defaultLabel} ${id}` : nama,
+      Nama: nama === "-" ? `${defaultLabel} ${id}` : nama,
+      Nama_Tempat: nama === "-" ? `${defaultLabel} ${id}` : nama,
+      Kategori: kategori,
+      Keterangan: keterangan,
+      Hari_operasional: hari,
+      Jam_operasional: jam,
+      Alamat_lengkap: alamat,
+      No_Telepon: telepon,
+      Latitude: lat,
+      Longitude: lng,
+      Rating: rating,
+      Link_google_maps: maps,
+      Dokumentasi: dokumentasi,
+      Buka_24_jam: buka24,
+
+      lat,
+      lng,
+      price: harga === "-" ? keterangan : harga,
+      address: alamat,
+      contact: telepon,
+      open: `${hari}, ${jam}`,
+      rating,
+      maps,
+      image: getImagePath(category, dokumentasi, id),
+      cheap: ["kost", "rumah_makan", "print_fotocopy"].includes(category),
+      open24: isOpen24(buka24, jam),
+      nearCampus: true,
+      detailLabel: `Detail ${cfg.label || defaultLabel}`
+    };
+  }
+
+  function normalizeKost(row, index) {
+    return normalizeGenericPlace(row, index, "kost", "K", "Kost");
+  }
+
+  function normalizeATM(row, index) {
+    return normalizeGenericPlace(row, index, "atm", "A", "ATM");
+  }
+
+  function normalizePrintFotocopy(row, index) {
+    return normalizeGenericPlace(row, index, "print_fotocopy", "PF", "Print/Fotokopi");
+  }
+
+
   function getNearestPlace(list = places) {
     const valid = list.filter(item => !isNaN(item.lat) && !isNaN(item.lng));
     if (!valid.length) return null;
@@ -12877,43 +13002,41 @@ function normalizeFasilitasKesehatan(row, index) {
   async function loadAllData() {
   try {
     const [
+      kostRows,
+      rumahMakanRows,
       laundryRows,
       minimarketRows,
-      rumahMakanRows,
+      atmRows,
+      printFotocopyRows,
       fasilitasKesehatanRows,
       emergencyRows
     ] = await Promise.all([
+      readFirstExistingExcel("kost"),
+      readFirstExistingExcel("rumah_makan"),
       readFirstExistingExcel("laundry"),
       readFirstExistingExcel("minimarket"),
-      readFirstExistingExcel("rumah_makan"),
+      readFirstExistingExcel("atm"),
+      readFirstExistingExcel("print_fotocopy"),
       readFirstExistingExcel("fasilitas_kesehatan"),
       readFirstExistingExcel("emergency")
     ]);
 
-    const laundryData = laundryRows
-      .map(normalizeLaundry)
-      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
-
-    const minimarketData = minimarketRows
-      .map(normalizeMinimarket)
-      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
-
-    const rumahMakanData = rumahMakanRows
-      .map(normalizeRumahMakan)
-      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
-
-    const fasilitasKesehatanData = fasilitasKesehatanRows
-      .map(normalizeFasilitasKesehatan)
-      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
-
-    const emergencyData = emergencyRows
-      .map(normalizeEmergency)
-      .filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const kostData = kostRows.map(normalizeKost).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const rumahMakanData = rumahMakanRows.map(normalizeRumahMakan).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const laundryData = laundryRows.map(normalizeLaundry).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const minimarketData = minimarketRows.map(normalizeMinimarket).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const atmData = atmRows.map(normalizeATM).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const printFotocopyData = printFotocopyRows.map(normalizePrintFotocopy).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const fasilitasKesehatanData = fasilitasKesehatanRows.map(normalizeFasilitasKesehatan).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+    const emergencyData = emergencyRows.map(normalizeEmergency).filter(item => !isNaN(item.lat) && !isNaN(item.lng));
 
     places = [
+      ...kostData,
+      ...rumahMakanData,
       ...laundryData,
       ...minimarketData,
-      ...rumahMakanData,
+      ...atmData,
+      ...printFotocopyData,
       ...fasilitasKesehatanData,
       ...emergencyData
     ];
@@ -12931,7 +13054,7 @@ function normalizeFasilitasKesehatan(row, index) {
       detailPrice.textContent = "Cek kolom Latitude dan Longitude di file Excel";
       detailMeta.innerHTML = `
         <div>Script sudah membaca folder <b>data</b>, tapi tidak ada baris dengan koordinat valid.</div>
-        <div>Pastikan nama file: laundry.xlsx, minimarket.xlsx, rumah_makan.xlsx, fasilitas_kesehatan.xlsx, emergency.xlsx.</div>
+        <div>Pastikan nama file: kost.xlsx, rumah_makan.xlsx, laundry.xlsx, minimarket.xlsx, atm.xlsx, print_fotocopy.xlsx, fasilitas_kesehatan.xlsx, emergency.xlsx.</div>
       `;
     }
 
@@ -12947,10 +13070,13 @@ function normalizeFasilitasKesehatan(row, index) {
     detailPrice.textContent = "Cek folder data dan nama file Excel";
     detailMeta.innerHTML = `
       <div><b>Error:</b> ${error.message}</div>
-      <div>Pastikan file ada di folder:</div>
+      <div>Pastikan file ada di folder data:</div>
+      <div>data/kost.xlsx</div>
+      <div>data/rumah_makan.xlsx</div>
       <div>data/laundry.xlsx</div>
       <div>data/minimarket.xlsx</div>
-      <div>data/rumah_makan.xlsx</div>
+      <div>data/atm.xlsx</div>
+      <div>data/print_fotocopy.xlsx</div>
       <div>data/fasilitas_kesehatan.xlsx</div>
       <div>data/emergency.xlsx</div>
     `;
@@ -13021,15 +13147,37 @@ function normalizeFasilitasKesehatan(row, index) {
     return R * c;
   }
 
+
+  function categorySvgIcon(category) {
+    const stroke = category === "emergency" ? "#C44545" : "#5B7E3C";
+    const fill = "none";
+    const common = `fill="${fill}" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"`;
+    const icons = {
+      kost: `<path ${common} d="M4 12.5 12 5l8 7.5"/><path ${common} d="M6.8 11.2V20h10.4v-8.8"/><path ${common} d="M10 20v-5.2h4V20"/>`,
+      rumah_makan: `<path ${common} d="M5.5 11.2h13c-.4 4.4-3 7.3-6.5 7.3s-6.1-2.9-6.5-7.3Z"/><path ${common} d="M8.2 8.5c-.6-1 .7-1.6.1-2.7"/><path ${common} d="M12 8.5c-.6-1 .7-1.6.1-2.7"/><path ${common} d="M15.8 8.5c-.6-1 .7-1.6.1-2.7"/><circle cx="17.6" cy="10" r="1.4" fill="#C44545" stroke="none"/>`,
+      laundry: `<rect ${common} x="6" y="5" width="12" height="15" rx="1.6"/><circle ${common} cx="12" cy="13.2" r="4"/><path ${common} d="M8.2 8h.1M11 8h5"/>`,
+      minimarket: `<path ${common} d="M5 9h14l-1-4H6L5 9Z"/><path ${common} d="M6.2 9v10h11.6V9"/><path ${common} d="M9 19v-5h6v5"/><path ${common} d="M5 9c.5 1.4 2.1 1.4 2.6 0 .5 1.4 2.1 1.4 2.6 0 .5 1.4 2.1 1.4 2.6 0 .5 1.4 2.1 1.4 2.6 0 .5 1.4 2.1 1.4 2.6 0"/>`,
+      atm: `<rect ${common} x="5" y="7" width="14" height="10" rx="1.4"/><path ${common} d="M8 10h8M12 9v6M9.5 13.5c1.8 1.1 4.8 1 5-.7.2-1.8-5.1-.7-4.8-2.7.2-1.4 2.8-1.6 4.5-.8"/>`,
+      print_fotocopy: `<path ${common} d="M8 8V4h8v4"/><rect ${common} x="6" y="9" width="12" height="7" rx="1.5"/><path ${common} d="M8 15h8v5H8z"/><path ${common} d="M16 12h.1"/>`,
+      fasilitas_kesehatan: `<path ${common} d="M12 4v16"/><path ${common} d="M8.2 7h7.6"/><rect ${common} x="7" y="6" width="10" height="15" rx="2"/><path ${common} d="M9.5 14h5M12 11.5v5"/><path ${common} d="M10 4h4"/>`,
+      emergency: `<path ${common} d="M7 18h10"/><path ${common} d="M8.5 18v-5.5a3.5 3.5 0 0 1 7 0V18"/><path ${common} d="M12 6V3M5.5 8l-2-2M18.5 8l2-2"/><path ${common} d="M9.5 12.5h5"/>`
+    };
+    return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[category] || icons.kost}</svg>`;
+  }
+
+
   function createIcon(category) {
-    const cfg = categories[category] || categories.laundry;
+    const cfg = categories[category] || categories.kost || categories.laundry;
+    const lightCategories = ["minimarket", "rumah_makan", "atm"];
+    const textColor = lightCategories.includes(category) ? "#24331d" : "#ffffff";
+    const iconHtml = categorySvgIcon(category);
 
     return L.divIcon({
       className: "custom-div-icon",
-      html: `<div class="marker-wrap marker-${category}" style="background:${cfg.color};color:${["minimarket","rumah_makan"].includes(category) ? "#24331d" : "#ffffff"};"><i class="${cfg.icon}"></i></div>`,
-      iconSize: [42, 48],
-      iconAnchor: [21, 42],
-      popupAnchor: [0, -36]
+      html: `<div class="marker-wrap marker-${category}" style="background:${cfg.color};color:${textColor};">${iconHtml}</div>`,
+      iconSize: [46, 54],
+      iconAnchor: [23, 48],
+      popupAnchor: [0, -40]
     });
   }
 
@@ -13933,7 +14081,7 @@ function handleResponsivePanels() {
   });
 
   document.getElementById("resetBtn").addEventListener("click", () => {
-    state.categories = new Set(["laundry", "minimarket", "rumah_makan", "fasilitas_kesehatan", "emergency"]);
+    state.categories = new Set(["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"]);
     state.cheap = false;
     state.open24 = false;
     state.nearCampus = false;
@@ -14740,13 +14888,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function resetWebgisFinal() {
     if (typeof state !== "undefined") {
-      state.categories = new Set([
-        "laundry",
-        "minimarket",
-        "rumah_makan",
-        "fasilitas_kesehatan",
-        "emergency"
-      ]);
+      state.categories = new Set(["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"]);
       state.cheap = false;
       state.open24 = false;
       state.nearCampus = false;
