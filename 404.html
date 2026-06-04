@@ -11047,6 +11047,52 @@ section.hero::before{
   color:#24331d !important;
 }
 
+
+
+/* ===== FINAL UX POLISH PATCH - Student Survival Map ===== */
+.nav-menu a[href="news.html"], .nav-menu a[href="gallery.html"]{display:none !important;}
+#berita, #galeri{display:none !important;}
+
+.hero-stats{grid-template-columns:repeat(4,minmax(160px,1fr)) !important; gap:16px !important;}
+.stat-box{background:linear-gradient(145deg,rgba(232,245,189,.19),rgba(91,126,60,.23)) !important;border:1px solid rgba(232,245,189,.38) !important;box-shadow:0 14px 34px rgba(18,35,18,.18) !important;}
+.stat-box h3{font-size:30px !important;line-height:1 !important;letter-spacing:.2px !important;}
+.stat-box p{font-size:14px !important;line-height:1.5 !important;color:rgba(255,255,255,.94) !important;}
+
+.team-photo-wrap{display:grid !important;grid-template-columns:minmax(320px,1fr) 360px !important;align-items:stretch !important;gap:20px !important;background:rgba(255,255,255,.78) !important;border:1px solid rgba(91,126,60,.18) !important;border-radius:26px !important;padding:18px !important;box-shadow:0 20px 46px rgba(45,65,35,.12) !important;}
+.team-photo-wrap h3{grid-column:1/-1 !important;margin-bottom:0 !important;}
+.team-photo-wrap .team-photo{width:100% !important;height:100% !important;min-height:330px !important;object-fit:cover !important;border-radius:20px !important;}
+.team-extra-card{border-radius:20px;background:linear-gradient(145deg,#E8F5BD,#ffffff);border:1px solid rgba(91,126,60,.20);padding:24px;color:#263d1e;display:flex;flex-direction:column;justify-content:center;gap:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.85)}
+.team-extra-card .team-pill{display:inline-flex;align-items:center;gap:8px;width:max-content;padding:9px 13px;border-radius:999px;background:#5B7E3C;color:#fff;font-weight:900;font-size:12px;letter-spacing:.4px;text-transform:uppercase;}
+.team-extra-card h4{font-size:24px;line-height:1.2;color:#2f4f22;margin:0;}
+.team-extra-card p{font-size:15px;line-height:1.7;color:#557046;margin:0;}
+.team-extra-list{display:grid;gap:10px;margin-top:4px}.team-extra-list div{display:flex;gap:10px;align-items:flex-start;font-weight:800;color:#3f5f2f}.team-extra-list i{color:#C44545;margin-top:2px}
+
+.footer{background:#E8F5BD !important;border-top:6px solid #5B7E3C !important;color:#435f35 !important;}
+.footer h3{color:#527a3a !important}.footer p,.footer a{color:#586f49 !important}.footer b{color:#2f4f22 !important}.footer .social-btn{background:#fff7ee !important;color:#C44545 !important;border:1px solid rgba(196,69,69,.18) !important;}
+
+.marker-wrap{box-shadow:0 10px 24px rgba(28,45,22,.30),inset 0 2px 4px rgba(255,255,255,.36) !important;border:2px solid rgba(255,255,255,.88) !important;}
+.marker-wrap i{color:#ffffff !important;font-size:17px !important;text-shadow:0 2px 7px rgba(0,0,0,.45) !important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.38)) !important;}
+.marker-wrap.marker-light i{color:#3f5f2f !important;text-shadow:0 1px 0 rgba(255,255,255,.8) !important;filter:drop-shadow(0 1px 2px rgba(255,255,255,.5)) !important;}
+.cat-icon i,.feature-icon i,.detail-icon i,.legend-dot i{color:#fff !important;text-shadow:0 1px 3px rgba(0,0,0,.35) !important;}
+.filter-item .cat-icon{box-shadow:inset 0 2px 3px rgba(255,255,255,.34),0 8px 18px rgba(55,85,38,.20) !important;border:1px solid rgba(255,255,255,.42) !important;}
+
+.map-guide-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:650;max-width:560px;width:min(92vw,560px);background:rgba(255,255,245,.94);border:1px solid rgba(91,126,60,.25);border-radius:26px;padding:26px 28px;box-shadow:0 24px 70px rgba(0,0,0,.28);text-align:center;color:#2f4f22;backdrop-filter:blur(14px)}
+.map-guide-card h3{font-size:28px;margin:0 0 10px;color:#3f612c}.map-guide-card p{font-size:15px;line-height:1.7;color:#637554;margin:0 auto 18px;max-width:480px}.map-guide-card .guide-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.map-guide-card button{border:0;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer}.map-guide-card .primary{background:#C44545;color:#fff}.map-guide-card .secondary{background:#A2CB8B;color:#263d1e}.map-guide-card .ghost{background:#E8F5BD;color:#3f5f2f;border:1px solid rgba(91,126,60,.22)}
+
+.insight-dashboard,.insight-dashboard.energy-index-mode{position:absolute !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%) !important;width:min(1080px,calc(100vw - 72px)) !important;max-height:calc(100vh - 180px) !important;overflow:auto !important;z-index:900 !important;border-radius:28px !important;background:linear-gradient(145deg,rgba(246,249,226,.98),rgba(232,245,189,.95)) !important;border:1px solid rgba(91,126,60,.28) !important;box-shadow:0 28px 90px rgba(0,0,0,.34) !important;color:#22391b !important;}
+.insight-dashboard.hidden-dashboard{display:none !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important;}
+.insight-dashboard .insight-card,.energy-rank-card{background:rgba(255,255,245,.92) !important;border:1px solid rgba(91,126,60,.17) !important;color:#263d1e !important;box-shadow:0 12px 30px rgba(55,80,35,.10) !important;}
+.insight-dashboard .insight-title,.insight-dashboard h3,.visual-card-title span,.rank-name,.bar-label{color:#2f4f22 !important;}
+.insight-dashboard .insight-kicker,.visual-card-title small,.rank-cat{color:#6b7c59 !important;}
+.insight-dashboard .rank-no{background:#C44545 !important;color:#fff !important;}
+.insight-dashboard .energy-action.primary,.insight-action{background:#C44545 !important;color:#fff !important;}
+.insight-dashboard .energy-action.secondary{background:#5B7E3C !important;color:#fff !important;}
+.insight-dashboard::-webkit-scrollbar{width:9px}.insight-dashboard::-webkit-scrollbar-thumb{background:#A2CB8B;border-radius:999px}
+
+.route-planner,.route-planner:not(.hidden-route){position:absolute !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%) !important;width:min(680px,calc(100vw - 42px)) !important;max-height:calc(100vh - 180px) !important;overflow:auto !important;z-index:880 !important;border-radius:28px !important;background:linear-gradient(145deg,rgba(255,255,245,.98),rgba(232,245,189,.96)) !important;border:1px solid rgba(91,126,60,.24) !important;box-shadow:0 28px 80px rgba(0,0,0,.32) !important;color:#2f4f22 !important;}
+.route-planner.hidden-route{display:none !important}.route-planner select,.route-planner input{background:#fff !important;border:1px solid rgba(91,126,60,.22) !important;color:#263d1e !important;border-radius:14px !important}.route-planner button,.route-actions button{border-radius:16px !important}.route-planner .primary,.route-actions .primary{background:#C44545 !important;color:#fff !important}.route-planner .secondary,.route-actions .secondary{background:#5B7E3C !important;color:#fff !important}
+
+@media(max-width:900px){.team-photo-wrap{grid-template-columns:1fr !important}.insight-dashboard,.insight-dashboard.energy-index-mode{width:calc(100vw - 22px) !important;max-height:calc(100vh - 130px) !important}.hero-stats{grid-template-columns:1fr 1fr !important}}
 </style>
 </head>
 <body>
@@ -11115,8 +11161,6 @@ section.hero::before{
         <nav class="nav-menu">
           <a href="index.html">Home</a>
           <a href="map.html">Maps</a>
-          <a href="news.html">News</a>
-          <a href="gallery.html">Gallery</a>
           <a href="about.html">About</a>
           <a href="contact.html">Contact</a>
         </nav>
@@ -11154,19 +11198,19 @@ section.hero::before{
           <div class="hero-stats">
             <div class="stat-box">
               <h3>7+</h3>
-              <p>Kategori fasilitas penting untuk kebutuhan mahasiswa</p>
+              <p>Kategori utama: kost, makan, laundry, minimarket, ATM, print, kesehatan, dan emergency.</p>
             </div>
             <div class="stat-box">
-              <h3>4</h3>
-              <p>Radius analisis tetap: 5 km</p>
+              <h3>5 km</h3>
+              <p>Area analisis dibatasi radius 5 km dari Rektorat UPN Jogja.</p>
             </div>
             <div class="stat-box">
               <h3>Route</h3>
-              <p>Network analysis menuju lokasi yang dipilih</p>
+              <p>Rute dari Rektorat, Lokasi Saya, atau titik klik menuju fasilitas pilihan.</p>
             </div>
             <div class="stat-box">
               <h3>Fast</h3>
-              <p>Peta kebutuhan mahasiswa yang ringkas dan mudah dipakai</p>
+              <p>Filter cepat untuk menemukan lokasi murah, buka 24 jam, dekat kampus, dan darurat.</p>
             </div>
           </div>
         </div>
@@ -11433,70 +11477,16 @@ section.hero::before{
         </div>
       </section>
 
-
-      <section id="berita" class="section section-light">
-        <div class="section-head reveal">
-          <h2 class="section-title">News / Spotlight Project</h2>
-          <p class="section-subtitle">
-            Bagian ini menampilkan ringkasan perkembangan, isu, dan informasi penting terkait WebGIS Student Survival Map.
-          </p>
-        </div>
-
-        <div class="feature-grid reveal">
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-            <h4>Pengembangan Peta Fasilitas Mahasiswa</h4>
-            <p>WebGIS dikembangkan untuk menyatukan informasi kost, laundry, rumah makan, minimarket, apotek/klinik, dan titik emergency dalam satu peta interaktif.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-route"></i></div>
-            <h4>Analisis Radius dan Rute</h4>
-            <p>Fitur radius 5 km dan routing membantu pengguna memilih lokasi berdasarkan jarak, kategori, dan akses tercepat dari area kampus.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h4>Emergency Response Ready</h4>
-            <p>Titik darurat seperti fasilitas kesehatan, kantor polisi, dan lokasi bantuan penting ditampilkan untuk mendukung kebutuhan mendesak mahasiswa.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="galeri" class="section section-soft">
-        <div class="section-head reveal">
-          <h2 class="section-title">Gallery</h2>
-          <p class="section-subtitle">
-            Dokumentasi tampilan dan komponen utama WebGIS Student Survival Map.
-          </p>
-        </div>
-
-        <div class="feature-grid reveal">
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-house-laptop"></i></div>
-            <h4>Homepage</h4>
-            <p>Tampilan awal berisi identitas project, tujuan, dan tombol untuk masuk ke WebGIS.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-map"></i></div>
-            <h4>Interactive Maps</h4>
-            <p>Halaman peta Leaflet menampilkan marker fasilitas, filter kategori, radius, dan panel detail lokasi.</p>
-          </article>
-          <article class="feature-tile">
-            <div class="feature-icon"><i class="fa-solid fa-chart-simple"></i></div>
-            <h4>Insight Dashboard</h4>
-            <p>Dashboard menampilkan ringkasan jumlah fasilitas, kategori, titik terdekat, dan kesiapan area sekitar kampus.</p>
-          </article>
-        </div>
-      </section>
       <footer id="kontak" class="footer">
         <div class="footer-grid">
           <div class="footer-card reveal-left">
-            <h3>Kontak Proyek</h3>
+            <h3>Kontak Kelompok</h3>
             <p>
               Student Survival Map merupakan proyek WebGIS terapan berbasis kebutuhan mahasiswa
               sekitar UPN Jogja.
             </p>
             <p style="margin-top:10px;">
-              Email: <b>ekapungky11@gmail.com</b><br />
+              Email kelompok: <b>tambahkan email kelompok</b><br />
               Lokasi Studi: UPN “Veteran” Yogyakarta
             </p>
           </div>
@@ -15317,5 +15307,160 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<script>
+/* ===== FINAL BEHAVIOR PATCH - Student Survival Map ===== */
+(function(){
+  const safe = fn => { try { return fn(); } catch(e){ console.warn('SSM patch:', e); } };
+  const labelMap = {
+    kost:['Kost','fa-solid fa-house'], rumah_makan:['Rumah Makan','fa-solid fa-bowl-food'], laundry:['Laundry','fa-solid fa-shirt'], minimarket:['Minimarket','fa-solid fa-store'], atm:['ATM','fa-solid fa-money-bill-wave'], print_fotocopy:['Print/Fotokopi','fa-solid fa-print'], fasilitas_kesehatan:['Fasilitas Kesehatan','fa-solid fa-briefcase-medical'], emergency:['Emergency','fa-solid fa-siren-on']
+  };
+
+  function polishStaticContent(){
+    document.querySelectorAll('a[href="news.html"],a[href="gallery.html"]').forEach(a=>a.remove());
+    document.querySelectorAll('#berita,#galeri').forEach(el=>el.remove());
+    document.querySelectorAll('.stat-box').forEach(box=>{
+      const h=(box.querySelector('h3')?.textContent||'').trim().toLowerCase();
+      const p=box.querySelector('p'); if(!p) return;
+      if(h==='7+') p.textContent='Kategori utama: kost, makan, laundry, minimarket, ATM, print, kesehatan, dan emergency.';
+      if(h==='4') { box.querySelector('h3').textContent='5 km'; p.textContent='Area analisis dibatasi radius 5 km dari Rektorat UPN Jogja.'; }
+      if(h==='route') p.textContent='Rute dari Rektorat, lokasi saya, atau titik klik menuju fasilitas pilihan.';
+      if(h==='fast') p.textContent='Filter cepat untuk menemukan lokasi murah, buka 24 jam, dekat kampus, dan darurat.';
+    });
+    const teamWrap=document.querySelector('.team-photo-wrap');
+    if(teamWrap && !teamWrap.querySelector('.team-extra-card')){
+      teamWrap.insertAdjacentHTML('beforeend', `<div class="team-extra-card"><span class="team-pill"><i class="fa-solid fa-map-location-dot"></i> Geodesign Team</span><h4>WebGIS yang dirancang dari kebutuhan mahasiswa.</h4><p>Kelompok 1 menyusun data fasilitas, membuat tampilan peta, dan menguji fitur filter, radius, serta rute agar aplikasi lebih mudah dipakai mahasiswa sekitar UPN Jogja.</p><div class="team-extra-list"><div><i class="fa-solid fa-check"></i><span>Data fasilitas harian dan darurat.</span></div><div><i class="fa-solid fa-check"></i><span>Visual peta interaktif berbasis Leaflet.</span></div><div><i class="fa-solid fa-check"></i><span>Analisis radius 5 km dan rute lokasi.</span></div></div></div>`);
+    }
+    const footer=document.querySelector('#kontak, footer.footer');
+    if(footer){
+      const h=footer.querySelector('h3'); if(h && /Kontak Proyek/i.test(h.textContent)) h.textContent='Kontak Kelompok';
+      const ps=footer.querySelectorAll('p');
+      if(ps[0]) ps[0].textContent='Student Survival Map merupakan proyek WebGIS terapan berbasis kebutuhan mahasiswa sekitar UPN Jogja yang dikembangkan oleh Kelompok 1.';
+      if(ps[1]) ps[1].innerHTML='Email kelompok: <b>tambahkan email kelompok</b>';
+      if(ps[2]) ps[2].innerHTML='Lokasi studi: UPN “Veteran” Yogyakarta dan fasilitas sekitar kampus.';
+    }
+  }
+
+  function applyPremiumIcons(){
+    safe(()=>{
+      if(typeof categories !== 'undefined'){
+        Object.entries(labelMap).forEach(([k,v])=>{ if(categories[k]){ categories[k].label=v[0]; categories[k].icon=v[1]; }});
+      }
+      document.querySelectorAll('.marker-wrap').forEach(el=>{
+        const bg=(el.getAttribute('style')||'').toLowerCase();
+        if(bg.includes('e8f5bd')||bg.includes('a2cb8b')||bg.includes('rgb(232')||bg.includes('rgb(162')) el.classList.add('marker-light');
+      });
+    });
+  }
+
+  function closeMapOverlays(except){
+    safe(()=>{
+      if(except!=='filter' && typeof leftPanel!=='undefined' && leftPanel) leftPanel.classList.add('collapsed');
+      if(except!=='top' && typeof topControls!=='undefined' && topControls) topControls.classList.add('collapsed');
+      if(except!=='insight' && typeof insightDashboard!=='undefined' && insightDashboard) insightDashboard.classList.add('hidden-dashboard');
+      if(except!=='route' && typeof routePlanner!=='undefined' && routePlanner) routePlanner.classList.add('hidden-route');
+      if(typeof syncPanelPositions==='function') syncPanelPositions();
+    });
+  }
+
+  function installGuide(){
+    if(!document.getElementById('map') || document.getElementById('mapChoiceGuide')) return;
+    const guide=document.createElement('div');
+    guide.id='mapChoiceGuide';
+    guide.className='map-guide-card';
+    guide.innerHTML=`<h3>Mau cari fasilitas apa?</h3><p>Pilih kebutuhanmu dulu agar peta tidak penuh marker. Kamu bisa mulai dari kategori utama, cari yang murah, atau buka titik emergency terdekat.</p><div class="guide-buttons"><button class="primary" data-guide="filter"><i class="fa-solid fa-filter"></i> Pilih Kategori</button><button class="secondary" data-guide="cheap"><i class="fa-solid fa-tags"></i> Cari yang Murah</button><button class="ghost" data-guide="emergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency</button></div>`;
+    document.getElementById('map').appendChild(guide);
+    guide.addEventListener('click',e=>{
+      const btn=e.target.closest('[data-guide]'); if(!btn) return;
+      const mode=btn.dataset.guide;
+      safe(()=>{
+        if(mode==='filter') { if(leftPanel) leftPanel.classList.remove('collapsed'); closeMapOverlays('filter'); }
+        if(mode==='cheap') { state.cheap=true; state.emergencyOnly=false; state.categories=new Set(['kost','rumah_makan','print_fotocopy']); syncChips(); renderFilterList(); renderMarkers(); }
+        if(mode==='emergency') { state.emergencyOnly=true; state.categories=new Set(['emergency']); syncChips(); renderFilterList(); renderMarkers(); }
+      });
+      guide.style.display='none';
+    });
+  }
+  function refreshGuide(){
+    const g=document.getElementById('mapChoiceGuide'); if(!g) return;
+    const has = safe(()=> (typeof filteredPlaces==='function' && filteredPlaces().length>0)) || false;
+    const hasState = safe(()=> state && (state.categories.size>0 || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search)) || false;
+    g.style.display = hasState ? 'none' : 'block';
+  }
+
+  function overrideFilterLogic(){
+    safe(()=>{
+      window.filteredPlaces = filteredPlaces = function(){
+        const radius=5000;
+        return (places||[]).filter(place=>{
+          const searchText=[place.id,place.name,place.Nama,place.Nama_Laundry,place.Nama_Minimarket,place.Nama_Rumah_Makan,place.Nama_Emergency,place.Keterangan,place.Alamat_lengkap,place.No_Telepon,place.Rating,place.Dokumentasi].join(' ').toLowerCase();
+          const matchSearch=!state.search || searchText.includes(state.search);
+          let matchCategory=false;
+          if(state.emergencyOnly) matchCategory = place.category==='emergency';
+          else if(state.categories && state.categories.size>0) matchCategory = state.categories.has(place.category);
+          else if(state.cheap || state.open24 || state.nearCampus || state.search) matchCategory = true;
+          else matchCategory = false;
+          const matchCheap=!state.cheap || !!place.cheap || /murah|terjangkau|hemat/i.test([place.Harga,place.Keterangan,place.name,place.Nama].join(' '));
+          const match24=!state.open24 || !!place.open24 || /24\s*jam|buka\s*24/i.test([place.Jam_operasional,place.Jam_Operasional,place.Hari_operasional].join(' '));
+          const matchNear=!state.nearCampus || !!place.nearCampus || (typeof distanceKm==='function' && distanceKm(upnLatLng[0],upnLatLng[1],place.lat,place.lng)<=1.5);
+          const distMeters=typeof distanceKm==='function' ? distanceKm(upnLatLng[0],upnLatLng[1],place.lat,place.lng)*1000 : 0;
+          return matchSearch && matchCategory && matchCheap && match24 && matchNear && distMeters <= radius;
+        });
+      };
+      const oldRender = renderMarkers;
+      window.renderMarkers = renderMarkers = function(){ oldRender(); applyPremiumIcons(); refreshGuide(); };
+    });
+  }
+
+  function bindExtraEvents(){
+    document.getElementById('toggleDashboard')?.addEventListener('click',()=>setTimeout(()=>closeMapOverlays('insight'),40),true);
+    document.getElementById('toggleLeftPanel')?.addEventListener('click',()=>setTimeout(()=>closeMapOverlays('filter'),40),true);
+    document.getElementById('toggleTopPanel')?.addEventListener('click',()=>setTimeout(()=>closeMapOverlays('top'),40),true);
+    document.querySelectorAll('[data-chip="murah"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(()=>{safe(()=>{ if(state.cheap && (!state.categories || state.categories.size===0)){ state.categories=new Set(['kost','rumah_makan','print_fotocopy']); renderFilterList(); renderMarkers(); }});},20),true));
+    document.querySelectorAll('[data-chip="emergency"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(()=>{safe(()=>{ if(state.emergencyOnly){ state.categories=new Set(['emergency']); renderFilterList(); renderMarkers(); }});},20),true));
+  }
+
+  function updateTutorial(){
+    const cards=[...document.querySelectorAll('.tutorial-card')];
+    const data=[
+      ['Buka WebGIS','Masuk ke halaman Maps dari tombol Buka WebGIS. Peta awal sengaja kosong agar tidak penuh marker.'],
+      ['Pilih Kategori','Klik tombol Filter, lalu pilih kategori fasilitas yang ingin dicari: kost, makan, laundry, ATM, print, kesehatan, atau emergency.'],
+      ['Gunakan Filter Cepat','Aktifkan Murah, 24 Jam, Dekat Kampus, atau Emergency untuk mempersempit hasil pencarian.'],
+      ['Klik Marker','Klik salah satu pin untuk melihat nama tempat, status buka, rating, alamat, foto, dan Google Maps.'],
+      ['Buat Rute','Buka Network/Rute, pilih asal dari Rektorat, Lokasi Saya, atau Klik di Peta, lalu pilih tujuan.'],
+      ['Lokasi Saya','Saat memilih Lokasi Saya, izinkan akses lokasi browser agar rute dapat dihitung dari posisimu.'],
+      ['Buka Insight','Klik Insight untuk melihat jumlah fasilitas, kategori dominan, dan lokasi terdekat dalam radius 5 km.'],
+      ['Reset Tampilan','Gunakan Reset untuk menghapus filter, rute, panel aktif, dan mengembalikan peta ke kondisi awal.'],
+      ['Ganti Basemap','Pilih Dark, Light, Streets, atau Satellite sesuai kebutuhan visual saat presentasi.']
+    ];
+    cards.forEach((c,i)=>{ if(data[i]){ c.querySelector('h4').textContent=data[i][0]; c.querySelector('p').innerHTML=data[i][1]; }});
+  }
+
+  function initializeMapClean(){
+    safe(()=>{
+      if(typeof state!=='undefined' && sessionStorage.getItem('ssmUserStarted')!=='yes'){
+        state.categories=new Set(); state.cheap=false; state.open24=false; state.nearCampus=false; state.emergencyOnly=false; state.search='';
+        if(typeof syncChips==='function') syncChips();
+        if(typeof renderFilterList==='function') renderFilterList();
+        if(typeof renderMarkers==='function') renderMarkers();
+      }
+    });
+    ['filterList','mapChoiceGuide'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>sessionStorage.setItem('ssmUserStarted','yes'),true));
+  }
+
+  function boot(){
+    polishStaticContent();
+    overrideFilterLogic();
+    bindExtraEvents();
+    installGuide();
+    updateTutorial();
+    applyPremiumIcons();
+    setTimeout(()=>{ initializeMapClean(); refreshGuide(); applyPremiumIcons(); },900);
+    setTimeout(()=>{ initializeMapClean(); refreshGuide(); applyPremiumIcons(); },1800);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script>
 </body>
 </html>
