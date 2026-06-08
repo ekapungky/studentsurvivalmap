@@ -8,130 +8,129 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
   <style>
     :root{
       --green:#5B7E3C;
-      --green-2:#7FA65D;
+      --green-2:#A2CB8B;
       --mint:#E8F5BD;
+      --mint-2:#F7FBE7;
       --red:#C44545;
-      --cream:#FFFBEA;
-      --panel:#FAFFE8;
-      --text:#22301E;
-      --muted:#6B785F;
-      --shadow:0 18px 45px rgba(0,0,0,.18);
-      --radius:22px;
+      --cream:#FFFDEB;
+      --text:#24341f;
+      --muted:#6b7a5f;
+      --shadow:0 18px 48px rgba(0,0,0,.20);
       --topbar:92px;
     }
     *{box-sizing:border-box;margin:0;padding:0;font-family:"Inter","Segoe UI",Arial,sans-serif;}
-    html,body{height:100%;overflow:hidden;background:#0d130b;color:var(--text);}
-    button{font:inherit;cursor:pointer;border:none;}
+    html,body{width:100%;height:100%;overflow:hidden;background:#0d120b;color:var(--text);}
+    button,a{font:inherit;}
+    button{border:none;cursor:pointer;}
     .topbar{
-      height:var(--topbar);display:flex;align-items:center;justify-content:space-between;gap:16px;
-      padding:14px 22px;background:linear-gradient(90deg,#fbffe6,#e8f5bd);
-      border-bottom:1px solid rgba(91,126,60,.28);position:relative;z-index:900;
-      box-shadow:0 8px 20px rgba(91,126,60,.14);
+      height:var(--topbar);position:relative;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:13px 22px;background:linear-gradient(90deg,#fbffe6,#e8f5bd);border-bottom:1px solid rgba(91,126,60,.28);
+      box-shadow:0 8px 22px rgba(91,126,60,.13);
     }
-    .brand{display:flex;align-items:center;gap:14px;min-width:0;}
-    .logos{display:flex;gap:8px;align-items:center;flex-shrink:0;}
-    .logos img{width:48px;height:48px;object-fit:cover;border-radius:50%;background:white;border:2px solid rgba(91,126,60,.35);}
-    .brand h1{font-size:clamp(16px,2.1vw,25px);line-height:1.05;font-weight:950;color:var(--green);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .brand p{font-size:12px;color:#4b5d42;margin-top:4px;}
-    .nav-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .brand{display:flex;align-items:center;gap:13px;min-width:0;}
+    .logos{display:flex;gap:8px;align-items:center;flex:0 0 auto;}
+    .logos img{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#fff;border:2px solid rgba(91,126,60,.28);box-shadow:0 8px 16px rgba(91,126,60,.15);}
+    .brand h1{font-size:clamp(17px,2.1vw,25px);line-height:1.05;color:var(--green);font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .brand p{font-size:12px;color:#4f6046;margin-top:4px;}
+    .nav-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
     .nav-btn,.pill-btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:15px;
-      background:var(--red);color:white;font-weight:900;box-shadow:0 10px 20px rgba(196,69,69,.24);transition:.18s ease;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 17px;border-radius:15px;background:var(--red);color:#fff;
+      font-weight:950;text-decoration:none;box-shadow:0 10px 22px rgba(196,69,69,.25);transition:.18s ease;
     }
-    .nav-btn:hover,.pill-btn:hover{transform:translateY(-1px);filter:brightness(1.02);}
-    .map-shell{position:relative;height:calc(100vh - var(--topbar));padding:12px;background:#eaf5bf;}
-    #map{height:100%;width:100%;border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(91,126,60,.28);background:#10150f;}
-    .leaflet-container{background:#111;}
+    .nav-btn:hover,.pill-btn:hover{transform:translateY(-1px);filter:brightness(1.03);}
+    .map-shell{height:calc(100vh - var(--topbar));position:relative;padding:12px;background:#eaf5bf;}
+    #map{height:100%;width:100%;border-radius:20px;overflow:hidden;background:#111;box-shadow:inset 0 0 0 1px rgba(91,126,60,.28);}
+    .leaflet-container{background:#10140f;font-family:"Inter","Segoe UI",Arial,sans-serif;}
+    .leaflet-control-zoom a{font-weight:950;color:var(--green)!important;}
     .leaflet-popup-content-wrapper{border-radius:18px;box-shadow:var(--shadow);}
-    .leaflet-popup-content{margin:14px 16px;min-width:230px;}
-    .popup-title{font-size:15px;font-weight:950;color:var(--green);margin-bottom:8px;line-height:1.25;}
-    .popup-line{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#37452f;margin:6px 0;line-height:1.35;}
+    .leaflet-popup-content{margin:14px 16px;min-width:240px;}
+    .popup-title{font-size:15px;font-weight:950;color:var(--green);line-height:1.25;margin-bottom:8px;}
+    .popup-line{display:flex;align-items:flex-start;gap:8px;margin:6px 0;font-size:12px;line-height:1.38;color:#37472f;}
     .popup-line i{width:16px;color:var(--red);margin-top:2px;}
-    .popup-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
-    .popup-btn{padding:9px 10px;border-radius:11px;font-size:12px;font-weight:900;text-decoration:none;background:var(--green);color:white;display:inline-flex;align-items:center;gap:6px;}
+    .popup-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;}
+    .popup-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 10px;border-radius:11px;background:var(--green);color:#fff;text-decoration:none;font-size:12px;font-weight:950;}
     .popup-btn.alt{background:var(--red);}
-    .toolbar{position:absolute;z-index:700;left:25px;top:25px;display:flex;gap:10px;flex-wrap:wrap;max-width:420px;}
-    .tool-btn{background:var(--red);color:#fff;font-weight:950;padding:14px 18px;border-radius:16px;box-shadow:0 12px 28px rgba(0,0,0,.22);display:flex;align-items:center;gap:8px;}
+    .toolbar{position:absolute;z-index:700;left:25px;top:25px;display:flex;gap:10px;flex-wrap:wrap;max-width:430px;}
+    .tool-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 18px;border-radius:16px;background:var(--red);color:#fff;font-weight:950;box-shadow:0 12px 28px rgba(0,0,0,.22);}
     .tool-btn.active{background:var(--green);}
     .side-panel{
-      position:absolute;z-index:710;left:25px;top:86px;width:min(360px,calc(100vw - 50px));
-      max-height:calc(100vh - var(--topbar) - 120px);overflow:auto;
-      background:linear-gradient(180deg,rgba(255,255,235,.98),rgba(232,245,189,.96));
-      border:1px solid rgba(91,126,60,.32);border-radius:24px;padding:18px;box-shadow:var(--shadow);
+      position:absolute;z-index:710;left:25px;top:86px;width:min(382px,calc(100vw - 50px));
+      max-height:calc(100vh - var(--topbar) - 120px);overflow:auto;padding:18px;border-radius:24px;
+      background:linear-gradient(180deg,rgba(255,255,236,.98),rgba(232,245,189,.96));border:1px solid rgba(91,126,60,.30);box-shadow:var(--shadow);
       scrollbar-width:thin;scrollbar-color:rgba(91,126,60,.45) transparent;
     }
-    .side-panel.hidden{display:none;}
-    .side-panel::-webkit-scrollbar{width:8px}.side-panel::-webkit-scrollbar-thumb{background:rgba(91,126,60,.45);border-radius:999px;}
-    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px;position:sticky;top:-18px;background:linear-gradient(180deg,#fbffe9,#eef8cb);padding:14px 0 10px;z-index:3;}
-    .panel-head h2{font-size:23px;line-height:1;font-weight:950;color:var(--green);display:flex;align-items:center;gap:10px;}
-    .panel-head p{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.35;}
-    .close-btn{width:34px;height:34px;border-radius:12px;background:rgba(196,69,69,.12);color:var(--red);font-weight:950;}
+    .side-panel.hidden{display:none!important;}
+    .side-panel::-webkit-scrollbar{width:8px}.side-panel::-webkit-scrollbar-thumb{background:rgba(91,126,60,.45);border-radius:99px;}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px;position:sticky;top:-18px;padding:14px 0 10px;background:linear-gradient(180deg,#fbffe8,#eef8cb);z-index:3;}
+    .panel-head h2{font-size:23px;font-weight:950;line-height:1;color:var(--green);display:flex;align-items:center;gap:9px;}
+    .panel-head p{font-size:12px;line-height:1.35;color:var(--muted);margin-top:5px;}
+    .close-btn{width:34px;height:34px;flex:0 0 auto;border-radius:12px;background:rgba(196,69,69,.11);color:var(--red);font-size:22px;font-weight:900;}
     .filter-grid{display:grid;gap:10px;}
-    .filter-card{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;
-      background:rgba(255,255,250,.82);border:1px solid rgba(91,126,60,.22);border-radius:17px;padding:13px 13px;
-      color:var(--text);font-weight:950;box-shadow:0 6px 14px rgba(91,126,60,.08);transition:.18s ease;
-    }
-    .filter-card:hover{transform:translateY(-1px);border-color:rgba(91,126,60,.45);}
-    .filter-card.active{background:#d8efae;border-color:rgba(91,126,60,.55);}
+    .filter-card{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:13px;border-radius:17px;background:rgba(255,255,250,.86);border:1px solid rgba(91,126,60,.23);color:var(--text);font-weight:950;box-shadow:0 7px 16px rgba(91,126,60,.08);transition:.18s ease;}
+    .filter-card.active{background:#d9efae;border-color:rgba(91,126,60,.58);}
+    .filter-card:hover{transform:translateY(-1px);}
     .filter-left{display:flex;align-items:center;gap:11px;min-width:0;}
-    .cat-icon{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#5B7E3C,#A2CB8B);color:white;box-shadow:0 7px 14px rgba(91,126,60,.24);flex-shrink:0;}
-    .filter-label{font-size:14px;line-height:1.15;white-space:normal;}
-    .filter-sub{font-size:11px;color:#6b785f;margin-top:2px;font-weight:800;}
-    .checkmark{font-size:18px;color:var(--green);font-weight:950;min-width:20px;text-align:right;}
+    .cat-icon{width:38px;height:38px;flex:0 0 auto;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--green-2));color:white;box-shadow:0 7px 14px rgba(91,126,60,.25);}
+    .filter-label{font-size:14px;line-height:1.15;}
+    .filter-sub{font-size:11px;color:var(--muted);font-weight:850;margin-top:2px;}
+    .checkmark{font-size:18px;min-width:20px;text-align:right;color:var(--green);font-weight:950;}
     .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0 14px;}
-    .quick-card{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 10px;border-radius:15px;background:#fffdf0;border:1px solid rgba(91,126,60,.25);font-weight:950;color:#2c3a27;}
-    .quick-card.active{background:#d8efae;border-color:rgba(91,126,60,.6);}
-    .reset-wide{margin-top:12px;width:100%;padding:14px;border-radius:16px;background:var(--red);color:white;font-weight:950;box-shadow:0 10px 18px rgba(196,69,69,.2);}
-    .status-chip{position:absolute;z-index:650;left:26px;bottom:26px;background:#fffdf0;border:1px solid rgba(91,126,60,.25);border-radius:14px;padding:12px 16px;font-size:12px;font-weight:950;color:#2a3824;box-shadow:0 8px 20px rgba(0,0,0,.16);}
-    .info-btn{position:absolute;z-index:650;right:26px;bottom:26px;background:#fffdf0;border-radius:14px;padding:13px 17px;font-weight:950;color:#2a3824;box-shadow:0 8px 20px rgba(0,0,0,.16);border:1px solid rgba(91,126,60,.25);}
-    .intro-card{position:absolute;z-index:640;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 54px));background:linear-gradient(135deg,#fffde9,#e8f5bd);border:1px solid rgba(91,126,60,.28);border-radius:28px;padding:34px;text-align:center;box-shadow:var(--shadow);}
+    .quick-card{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 10px;border-radius:15px;background:#fffdf0;border:1px solid rgba(91,126,60,.25);font-weight:950;color:#2e3d28;}
+    .quick-card.active{background:#d9efae;border-color:rgba(91,126,60,.62);}
+    .reset-wide{width:100%;margin-top:12px;padding:14px;border-radius:16px;background:var(--red);color:white;font-weight:950;box-shadow:0 10px 18px rgba(196,69,69,.2);}
+    .input-search{width:100%;padding:12px 13px;border-radius:14px;border:1px solid rgba(91,126,60,.26);outline:none;background:#fffef4;font-weight:850;color:#26341f;}
+    .status-chip{position:absolute;z-index:650;left:26px;bottom:26px;background:#fffdf0;border:1px solid rgba(91,126,60,.25);border-radius:14px;padding:12px 16px;font-size:12px;font-weight:950;color:#2a3824;box-shadow:0 8px 20px rgba(0,0,0,.16);max-width:calc(100vw - 52px);}
+    .info-btn{position:absolute;z-index:650;right:26px;bottom:26px;background:#fffdf0;border:1px solid rgba(91,126,60,.25);border-radius:14px;padding:13px 17px;font-weight:950;color:#2a3824;box-shadow:0 8px 20px rgba(0,0,0,.16);}
+    .intro-card{position:absolute;z-index:640;left:50%;top:50%;transform:translate(-50%,-50%);width:min(545px,calc(100vw - 54px));padding:34px;border-radius:28px;text-align:center;background:linear-gradient(135deg,#fffde9,#e8f5bd);border:1px solid rgba(91,126,60,.28);box-shadow:var(--shadow);}
     .intro-card.hidden{display:none;}
-    .intro-icon{width:62px;height:62px;margin:0 auto 16px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,#5B7E3C,#A2CB8B);color:white;font-size:27px;box-shadow:0 12px 25px rgba(91,126,60,.25);}
+    .intro-icon{width:62px;height:62px;margin:0 auto 16px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--green-2));color:#fff;font-size:27px;box-shadow:0 12px 25px rgba(91,126,60,.25);}
     .intro-card h2{font-size:26px;font-weight:950;color:#26341f;margin-bottom:10px;}
     .intro-card p{font-size:15px;line-height:1.55;color:#617056;margin-bottom:22px;}
     .intro-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-    .insight-card{background:rgba(255,255,250,.86);border:1px solid rgba(91,126,60,.2);border-radius:18px;padding:13px;margin-bottom:10px;}
+    .notice{position:absolute;z-index:1500;left:50%;top:16px;transform:translateX(-50%);width:min(620px,calc(100vw - 40px));background:#fffdf0;border:1px solid rgba(91,126,60,.28);color:#2a3824;border-radius:16px;padding:12px 16px;box-shadow:0 12px 28px rgba(0,0,0,.18);font-size:13px;line-height:1.4;}
+    .notice.hidden{display:none;}
+    .notice.error{background:#fff3f0;border-color:rgba(196,69,69,.32);color:#5a2424;}
+    .notice b{font-weight:950;}
+    .map-error{position:absolute;z-index:2000;inset:12px;border-radius:20px;background:#fff3f0;color:#4d1e1e;border:1px solid rgba(196,69,69,.35);display:grid;place-items:center;text-align:center;padding:26px;}
+    .map-error.hidden{display:none;}
+    .map-error h2{font-size:22px;color:var(--red);margin-bottom:8px;}
+    .map-error p{font-size:14px;line-height:1.5;max-width:720px;margin:auto;}
+    .map-error pre{margin-top:14px;background:rgba(255,255,255,.7);border-radius:12px;padding:12px;text-align:left;white-space:pre-wrap;max-width:720px;max-height:170px;overflow:auto;font-size:12px;}
+    .insight-card{background:rgba(255,255,250,.88);border:1px solid rgba(91,126,60,.20);border-radius:18px;padding:13px;margin-bottom:10px;}
     .insight-card h3{font-size:13px;color:#425239;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
     .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
     .kpi{background:#fffef2;border:1px solid rgba(91,126,60,.18);border-radius:15px;padding:12px;}
     .kpi b{font-size:22px;color:var(--green);display:block;line-height:1;}
     .kpi span{font-size:11px;color:#6b785f;font-weight:850;}
-    .bar-row{display:grid;grid-template-columns:110px 1fr 35px;align-items:center;gap:8px;margin:9px 0;font-size:12px;font-weight:900;color:#33422c;}
+    .bar-row{display:grid;grid-template-columns:112px 1fr 34px;gap:8px;align-items:center;margin:9px 0;font-size:12px;font-weight:900;color:#33422c;}
     .bar-track{height:10px;border-radius:999px;background:rgba(91,126,60,.16);overflow:hidden;}
-    .bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#5B7E3C,#A2CB8B);min-width:4px;}
+    .bar-fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--green-2));min-width:4px;}
     .near-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px dashed rgba(91,126,60,.22);}
     .near-item:first-child{border-top:none;padding-top:0;}
-    .near-item b{font-size:12px;color:#26341f;display:block;line-height:1.25;}
-    .near-item span{font-size:11px;color:#6b785f;}
-    .guide-modal{position:fixed;inset:0;background:rgba(6,10,5,.54);z-index:2000;display:grid;place-items:center;padding:18px;}
+    .near-item b{display:block;font-size:12px;line-height:1.25;color:#26341f;}
+    .near-item span{font-size:11px;color:#6b785f;line-height:1.35;}
+    .guide-modal{position:fixed;inset:0;z-index:2200;display:grid;place-items:center;background:rgba(6,10,5,.56);padding:18px;}
     .guide-modal.hidden{display:none;}
-    .guide-box{width:min(720px,100%);max-height:min(760px,90vh);overflow:auto;background:#fffde9;border-radius:26px;border:1px solid rgba(91,126,60,.3);box-shadow:var(--shadow);padding:24px;}
-    .guide-box h2{font-size:24px;color:var(--green);margin-bottom:12px;display:flex;gap:10px;align-items:center;}
+    .guide-box{width:min(730px,100%);max-height:min(760px,90vh);overflow:auto;background:#fffde9;border:1px solid rgba(91,126,60,.30);border-radius:26px;padding:24px;box-shadow:var(--shadow);}
+    .guide-box h2{font-size:24px;color:var(--green);display:flex;align-items:center;gap:10px;margin-bottom:12px;}
     .guide-list{display:grid;gap:11px;margin-top:12px;}
-    .guide-step{background:#f6fadf;border:1px solid rgba(91,126,60,.2);border-radius:16px;padding:12px 14px;line-height:1.45;font-size:14px;}
+    .guide-step{background:#f6fadf;border:1px solid rgba(91,126,60,.20);border-radius:16px;padding:12px 14px;line-height:1.45;font-size:14px;}
     .guide-step b{color:#2c3a27;}
     .custom-marker{background:transparent;border:none;}
-    .marker-pin{width:38px;height:38px;border-radius:50% 50% 50% 9px;transform:rotate(-45deg);display:grid;place-items:center;border:2px solid rgba(255,255,255,.92);box-shadow:0 10px 22px rgba(0,0,0,.28);}
-    .marker-pin i{transform:rotate(45deg);color:#fff;font-size:16px;text-shadow:0 1px 3px rgba(0,0,0,.3);}
-    .marker-kost{background:linear-gradient(135deg,#4D8F52,#A4D17A);} .marker-rumah_makan{background:linear-gradient(135deg,#D5673E,#F4B36C);} .marker-laundry{background:linear-gradient(135deg,#3F8FB5,#9BD5EE);} .marker-minimarket{background:linear-gradient(135deg,#6B56B3,#C2AAFF);} .marker-atm{background:linear-gradient(135deg,#385C96,#88AAE6);} .marker-print_fotocopy{background:linear-gradient(135deg,#5B5B5B,#B6B6B6);} .marker-fasilitas_kesehatan{background:linear-gradient(135deg,#2F9B82,#98E0D2);} .marker-emergency{background:linear-gradient(135deg,#C44545,#FF8E8E);}
-    .loading{position:absolute;z-index:1500;inset:12px;background:rgba(18,25,16,.75);border-radius:20px;display:grid;place-items:center;color:white;text-align:center;padding:24px;}
-    .loading.hidden{display:none;}
-    .loading b{font-size:18px;display:block;margin-bottom:6px;}
-    .error-box{position:absolute;z-index:1600;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 40px));background:#fff3f0;border:1px solid rgba(196,69,69,.3);border-radius:22px;padding:22px;box-shadow:var(--shadow);color:#4b1e1e;}
-    .error-box.hidden{display:none;}
-    .error-box h3{color:var(--red);font-size:20px;margin-bottom:8px;}
-    .error-box pre{white-space:pre-wrap;font-size:12px;background:rgba(255,255,255,.7);padding:10px;border-radius:12px;margin-top:10px;max-height:170px;overflow:auto;}
+    .marker-pin{width:38px;height:38px;border-radius:16px 16px 16px 4px;transform:rotate(-45deg);display:grid;place-items:center;color:white;box-shadow:0 10px 22px rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.55);}
+    .marker-pin i{transform:rotate(45deg);font-size:15px;text-shadow:0 1px 3px rgba(0,0,0,.22);}
+    .marker-kost{background:linear-gradient(135deg,#5B7E3C,#A2CB8B);} .marker-rumah_makan{background:linear-gradient(135deg,#C44545,#F2A365);} .marker-laundry{background:linear-gradient(135deg,#2B8C99,#91D5D9);} .marker-minimarket{background:linear-gradient(135deg,#6B56B3,#C2AAFF);} .marker-atm{background:linear-gradient(135deg,#385C96,#88AAE6);} .marker-print_fotocopy{background:linear-gradient(135deg,#555,#B6B6B6);} .marker-fasilitas_kesehatan{background:linear-gradient(135deg,#2F9B82,#98E0D2);} .marker-emergency{background:linear-gradient(135deg,#C44545,#FF8E8E);}
     .leaflet-routing-container{display:none;}
     @media(max-width:780px){
-      :root{--topbar:124px}.topbar{height:var(--topbar);align-items:flex-start;flex-direction:column;padding:12px}.brand h1{white-space:normal;font-size:18px}.brand p{font-size:11px}.logos img{width:38px;height:38px}.nav-actions{width:100%;justify-content:space-between}.nav-btn{padding:10px 11px;font-size:12px}.toolbar{left:18px;right:18px;top:18px}.tool-btn{padding:12px 13px;font-size:13px}.side-panel{left:18px;top:76px;width:calc(100vw - 36px);max-height:calc(100vh - var(--topbar) - 105px)}.intro-card{padding:24px}.quick-grid{grid-template-columns:1fr}.bar-row{grid-template-columns:88px 1fr 28px}.status-chip{left:20px;bottom:20px}.info-btn{right:20px;bottom:20px}.kpi-grid{grid-template-columns:1fr 1fr}
+      :root{--topbar:124px}.topbar{height:var(--topbar);align-items:flex-start;flex-direction:column;padding:12px}.brand h1{white-space:normal;font-size:18px}.brand p{font-size:11px}.logos img{width:38px;height:38px}.nav-actions{width:100%;justify-content:space-between}.nav-btn{padding:10px 11px;font-size:12px}.map-shell{padding:9px}.toolbar{left:18px;right:18px;top:18px}.tool-btn{padding:12px 13px;font-size:13px}.side-panel{left:18px;top:76px;width:calc(100vw - 36px);max-height:calc(100vh - var(--topbar) - 105px)}.intro-card{padding:23px}.quick-grid{grid-template-columns:1fr}.bar-row{grid-template-columns:92px 1fr 28px}.status-chip{left:18px;bottom:18px}.info-btn{right:18px;bottom:18px}.kpi-grid{grid-template-columns:1fr 1fr}
     }
   </style>
 </head>
@@ -150,14 +149,14 @@
     <div class="nav-actions">
       <button class="nav-btn" id="guideBtn"><i class="fa-solid fa-circle-question"></i> Panduan</button>
       <button class="nav-btn" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
-      <a class="nav-btn" href="index.html" style="text-decoration:none"><i class="fa-solid fa-house"></i> Beranda</a>
+      <a class="nav-btn" href="index.html"><i class="fa-solid fa-house"></i> Beranda</a>
     </div>
   </header>
 
   <main class="map-shell">
     <div id="map"></div>
-    <div class="loading" id="loading"><div><b>Membaca data Excel...</b><span>Pastikan file .xlsx ada di folder data.</span></div></div>
-    <div class="error-box hidden" id="errorBox"><h3>Map belum bisa dibuka</h3><p id="errorText"></p><pre id="errorDetail"></pre></div>
+    <div class="notice" id="notice"><b>Memuat peta dan membaca Excel...</b> Kalau marker belum muncul, pastikan file .xlsx ada di folder data.</div>
+    <div class="map-error hidden" id="mapError"><div><h2>Map belum bisa dibuka</h2><p id="mapErrorText"></p><pre id="mapErrorDetail"></pre></div></div>
 
     <div class="toolbar">
       <button class="tool-btn" id="layerBtn"><i class="fa-solid fa-layer-group"></i> Atas</button>
@@ -166,13 +165,13 @@
     </div>
 
     <section class="side-panel hidden" id="layerPanel">
-      <div class="panel-head"><div><h2><i class="fa-solid fa-layer-group"></i> Layer</h2><p>Pilih kategori layer yang ingin ditampilkan di peta.</p></div><button class="close-btn" data-close="layerPanel">×</button></div>
+      <div class="panel-head"><div><h2><i class="fa-solid fa-layer-group"></i> Layer</h2><p>Pilih kategori fasilitas yang ingin ditampilkan.</p></div><button class="close-btn" data-close="layerPanel">×</button></div>
       <div id="categoryList" class="filter-grid"></div>
       <button class="reset-wide" id="showAllBtn"><i class="fa-solid fa-eye"></i> Lihat Semua</button>
     </section>
 
     <section class="side-panel hidden" id="filterPanel">
-      <div class="panel-head"><div><h2><i class="fa-solid fa-sliders"></i> Filter</h2><p>Filter membaca kolom harga, jam operasional, dan buka 24 jam dari Excel.</p></div><button class="close-btn" data-close="filterPanel">×</button></div>
+      <div class="panel-head"><div><h2><i class="fa-solid fa-sliders"></i> Filter</h2><p>Filter membaca langsung kolom Harga, Jam Operasional, dan Buka 24 Jam dari Excel.</p></div><button class="close-btn" data-close="filterPanel">×</button></div>
       <div class="quick-grid">
         <button class="quick-card" id="cheapBtn"><i class="fa-solid fa-tags"></i> Murah</button>
         <button class="quick-card" id="open24Btn"><i class="fa-regular fa-clock"></i> 24 Jam</button>
@@ -181,20 +180,20 @@
       </div>
       <div class="insight-card">
         <h3><i class="fa-solid fa-magnifying-glass"></i> Cari tempat</h3>
-        <input id="searchInput" placeholder="Ketik nama/alamat..." style="width:100%;padding:12px 13px;border-radius:14px;border:1px solid rgba(91,126,60,.25);outline:none;background:#fffef4;font-weight:800;color:#26341f;" />
+        <input id="searchInput" class="input-search" placeholder="Ketik nama/alamat/kategori..." />
       </div>
       <button class="reset-wide" id="resetFilterBtn"><i class="fa-solid fa-rotate-right"></i> Reset Filter</button>
     </section>
 
     <section class="side-panel hidden" id="insightPanel">
-      <div class="panel-head"><div><h2><i class="fa-solid fa-chart-simple"></i> Insight</h2><p>Panel Insight membaca data yang sedang tampil setelah filter aktif.</p></div><button class="close-btn" data-close="insightPanel">×</button></div>
+      <div class="panel-head"><div><h2><i class="fa-solid fa-chart-simple"></i> Insight</h2><p>Insight tampil sebagai layer seperti Filter dan mengikuti data yang sedang aktif.</p></div><button class="close-btn" data-close="insightPanel">×</button></div>
       <div id="insightContent"></div>
     </section>
 
     <div class="intro-card" id="introCard">
       <div class="intro-icon"><i class="fa-solid fa-map-location-dot"></i></div>
       <h2>Mau cari fasilitas apa?</h2>
-      <p>Pilih kategori atau filter dulu supaya peta tidak penuh marker. Setelah marker muncul, klik marker untuk melihat jam, harga, kontak, dan rute.</p>
+      <p>Pilih kategori atau filter dulu supaya peta tidak langsung penuh marker. Setelah marker muncul, klik marker untuk melihat jam, harga, kontak, dan rute.</p>
       <div class="intro-actions">
         <button class="pill-btn" id="introFilter"><i class="fa-solid fa-filter"></i> Pilih Kategori</button>
         <button class="pill-btn" id="introEmergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency</button>
@@ -210,11 +209,11 @@
       <h2><i class="fa-solid fa-circle-question"></i> Panduan WebGIS</h2>
       <div class="guide-list">
         <div class="guide-step"><b>1. Buka Layer</b><br>Klik tombol <b>Atas</b> untuk memilih kategori fasilitas: Kost, Rumah Makan, Laundry, Minimarket, ATM, Print/Fotokopi, Fasilitas Kesehatan, atau Emergency.</div>
-        <div class="guide-step"><b>2. Pakai Filter</b><br>Klik <b>Murah</b>, <b>24 Jam</b>, <b>Dekat Kampus</b>, atau <b>Emergency</b>. Filter ini membaca langsung isi kolom Excel seperti Harga, Jam Operasional, dan Buka 24 Jam.</div>
+        <div class="guide-step"><b>2. Pakai Filter</b><br>Klik <b>Murah</b>, <b>24 Jam</b>, <b>Dekat Kampus</b>, atau <b>Emergency</b>. Filter membaca langsung isi Excel di folder <b>data/</b>.</div>
         <div class="guide-step"><b>3. Baca Detail</b><br>Klik marker di peta untuk melihat nama tempat, alamat, jam, harga, rating, kontak, dan link Google Maps.</div>
-        <div class="guide-step"><b>4. Buka Rute</b><br>Di popup marker, klik <b>Buka Rute</b>. Sistem akan membuat rute dari Rektorat UPN ke lokasi tujuan.</div>
-        <div class="guide-step"><b>5. Buka Insight</b><br>Klik tombol <b>Insight</b>. Panel insight akan tampil seperti layer/filter agar rapi dan mudah dibaca.</div>
-        <div class="guide-step"><b>6. Update Data</b><br>Untuk memperbarui data, cukup ganti file Excel di folder <b>data/</b> dengan nama file yang sama. Tidak perlu file JS data.</div>
+        <div class="guide-step"><b>4. Buka Rute</b><br>Di popup marker, klik <b>Buka Rute</b>. Jika routing online gagal, peta tetap menampilkan garis lurus ke lokasi.</div>
+        <div class="guide-step"><b>5. Buka Insight</b><br>Klik <b>Insight</b>. Panel Insight sekarang tampil seperti layer/filter agar rapi, bisa discroll, dan mudah dibaca.</div>
+        <div class="guide-step"><b>6. Update Data</b><br>Untuk memperbarui data, cukup ganti file Excel dengan nama yang sama di folder <b>data/</b>. Tidak perlu membuat file data JS.</div>
       </div>
       <button class="reset-wide" id="closeGuideBtn">Tutup Panduan</button>
     </div>
@@ -223,7 +222,8 @@
   <script>
   (function(){
     'use strict';
-    const CAMPUS = { lat: -7.76224, lng: 110.40907, name: 'Rektorat UPN Veteran Yogyakarta' };
+
+    const CAMPUS = { lat:-7.76224, lng:110.40907, name:'Rektorat UPN Veteran Yogyakarta' };
     const RADIUS_M = 5000;
     const CONFIG = {
       kost:{ label:'Kost', file:'data/kost.xlsx', icon:'fa-house', color:'marker-kost' },
@@ -236,46 +236,70 @@
       emergency:{ label:'Emergency', file:'data/emergency.xlsx', icon:'fa-triangle-exclamation', color:'marker-emergency' }
     };
 
-    let map, radiusCircle, routeControl;
+    let map = null;
+    let markerLayer = null;
+    let radiusCircle = null;
+    let routeControl = null;
+    let simpleRoute = null;
     let allPlaces = [];
-    let markerLayer = L.layerGroup();
     let state = { selected:new Set(Object.keys(CONFIG)), cheap:false, open24:false, near:false, emergency:false, search:'' };
 
     const $ = id => document.getElementById(id);
     const els = {
-      loading:$('loading'), errorBox:$('errorBox'), errorText:$('errorText'), errorDetail:$('errorDetail'), intro:$('introCard'),
+      notice:$('notice'), mapError:$('mapError'), mapErrorText:$('mapErrorText'), mapErrorDetail:$('mapErrorDetail'), intro:$('introCard'),
       layerPanel:$('layerPanel'), filterPanel:$('filterPanel'), insightPanel:$('insightPanel'), categoryList:$('categoryList'), insightContent:$('insightContent'), statusChip:$('statusChip')
     };
 
-    function showError(message, detail){
-      els.loading.classList.add('hidden');
-      els.errorText.textContent = message || 'Terjadi error saat membuka peta.';
-      els.errorDetail.textContent = detail || '';
-      els.errorBox.classList.remove('hidden');
+    function showNotice(html, isError){
+      els.notice.innerHTML = html;
+      els.notice.classList.toggle('error', !!isError);
+      els.notice.classList.remove('hidden');
+      if (!isError) setTimeout(() => els.notice.classList.add('hidden'), 2800);
+    }
+
+    function showMapError(message, detail){
+      els.mapErrorText.textContent = message || 'Terjadi error saat membuka peta.';
+      els.mapErrorDetail.textContent = detail || '';
+      els.mapError.classList.remove('hidden');
       console.error(message, detail);
     }
 
+    function waitForLibs(timeoutMs){
+      const start = Date.now();
+      return new Promise((resolve, reject) => {
+        const check = () => {
+          if (window.L) return resolve();
+          if (Date.now() - start > timeoutMs) return reject(new Error('Leaflet tidak berhasil dimuat dari CDN. Cek koneksi internet atau coba refresh halaman.'));
+          setTimeout(check, 80);
+        };
+        check();
+      });
+    }
+
     function initMap(){
-      if (!window.L) throw new Error('Leaflet belum termuat. Cek koneksi internet/CDN.');
       map = L.map('map', { zoomControl:false }).setView([CAMPUS.lat, CAMPUS.lng], 14);
       L.control.zoom({ position:'topright' }).addTo(map);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution:'&copy; OpenStreetMap contributors &copy; CARTO', subdomains:'abcd', maxZoom:20
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'&copy; OpenStreetMap contributors', maxZoom:19
       }).addTo(map);
-      markerLayer.addTo(map);
-      radiusCircle = L.circle([CAMPUS.lat, CAMPUS.lng], { radius:RADIUS_M, color:'#75A84F', weight:2, fillColor:'#5B7E3C', fillOpacity:.15 }).addTo(map);
-      L.marker([CAMPUS.lat, CAMPUS.lng], { icon:createIcon('fa-building-columns','marker-emergency') }).addTo(map).bindPopup('<b>Rektorat UPN Veteran Yogyakarta</b><br>Titik pusat radius 5 km.');
-      setTimeout(()=>map.invalidateSize(),250);
+      markerLayer = L.layerGroup().addTo(map);
+      radiusCircle = L.circle([CAMPUS.lat, CAMPUS.lng], {
+        radius:RADIUS_M, color:'#75A84F', weight:2, fillColor:'#5B7E3C', fillOpacity:.15
+      }).addTo(map);
+      L.marker([CAMPUS.lat, CAMPUS.lng], { icon:createIcon('fa-building-columns','marker-emergency') })
+        .addTo(map).bindPopup('<b>Rektorat UPN Veteran Yogyakarta</b><br>Titik pusat radius 5 km.');
+      setTimeout(() => map.invalidateSize(), 250);
     }
 
     function normKey(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
     function get(row, names){
       const wanted = names.map(normKey);
-      for (const key of Object.keys(row)) if (wanted.includes(normKey(key))) return row[key];
-      for (const key of Object.keys(row)) { const nk=normKey(key); if (wanted.some(w=>nk.includes(w)||w.includes(nk))) return row[key]; }
+      const keys = Object.keys(row);
+      for (const key of keys){ if (wanted.includes(normKey(key))) return row[key]; }
+      for (const key of keys){ const nk = normKey(key); if (wanted.some(w => nk.includes(w) || w.includes(nk))) return row[key]; }
       return '';
     }
-    function cleanText(v){ return String(v==null?'':v).replace(/\s+/g,' ').trim(); }
+    function cleanText(v){ return String(v == null ? '' : v).replace(/\s+/g,' ').trim(); }
     function normalizeLink(v){ return cleanText(v).replace(/,/g,'.'); }
 
     function normalizeCoord(value, type){
@@ -289,11 +313,13 @@
       else digits = raw.replace(/[^0-9]/g,'');
       digits = digits.replace(/^0+/, '');
       if (!digits) return NaN;
-      if (type === 'lng') {
-        let deg = digits.slice(0,3), rest = digits.slice(3,15);
+      if (type === 'lng'){
+        const deg = digits.slice(0,3);
+        const rest = digits.slice(3,17);
         n = sign * Number(deg + '.' + rest);
       } else {
-        let deg = digits.slice(0,1), rest = digits.slice(1,15);
+        const deg = digits.slice(0,1);
+        const rest = digits.slice(1,17);
         n = sign * Number(deg + '.' + rest);
       }
       if (type === 'lat' && (n < -12 || n > 8)) return NaN;
@@ -302,20 +328,22 @@
     }
 
     function extractNumber(text){
-      let s = String(text||'').toLowerCase();
+      const s = String(text || '').toLowerCase();
       if (!s || /^[-–—]$/.test(s.trim())) return NaN;
-      let m = s.match(/(\d[\d.,]*)/g);
-      if (!m) return NaN;
-      let nums = m.map(x=>Number(x.replace(/\./g,'').replace(/,/g,'.'))).filter(Number.isFinite);
+      const matches = s.match(/\d[\d.,]*/g);
+      if (!matches) return NaN;
+      const nums = matches.map(x => Number(x.replace(/\./g,'').replace(/,/g,'.'))).filter(Number.isFinite);
       if (!nums.length) return NaN;
-      return Math.min(...nums);
+      return Math.max(...nums.map(n => n < 100 ? n * 1000 : n));
     }
+
     function isOpen24(place){
       const s = (place.open24 + ' ' + place.hours).toLowerCase();
-      return /\b(ya|yes|true|24\s*jam|buka\s*24|00[.,:]?00\s*[-–]\s*23[.,:]?59)\b/.test(s);
+      return /(ya|yes|true|24\s*jam|buka\s*24|00[.,:]?00\s*[-–]\s*23[.,:]?59|00[.,:]?00\s*[-–]\s*24[.,:]?00)/.test(s);
     }
+
     function isCheap(place){
-      const s = String(place.price||'').toLowerCase();
+      const s = String(place.price || '').toLowerCase();
       if (!s || /^[-–—]$/.test(s.trim())) return false;
       if (s.includes('murah')) return true;
       const n = extractNumber(s);
@@ -326,21 +354,25 @@
       if (place.category === 'laundry') return n <= 10000;
       return false;
     }
+
     function haversine(a,b){
-      const R=6371000, toRad=x=>x*Math.PI/180;
-      const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
-      const lat1=toRad(a.lat), lat2=toRad(b.lat);
-      const x=Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
-      return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+      const R = 6371000;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(b.lat - a.lat);
+      const dLng = toRad(b.lng - a.lng);
+      const lat1 = toRad(a.lat);
+      const lat2 = toRad(b.lat);
+      const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+      return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
     }
-    function fmtDistance(m){ return m < 1000 ? Math.round(m)+' m' : (m/1000).toFixed(2).replace('.',',')+' km'; }
+    function fmtDistance(m){ return m < 1000 ? Math.round(m) + ' m' : (m/1000).toFixed(2).replace('.',',') + ' km'; }
 
     async function readExcel(category){
-      if (!window.XLSX) throw new Error('Library XLSX belum termuat. Cek koneksi internet/CDN SheetJS.');
+      if (!window.XLSX) throw new Error('Library SheetJS/XLSX belum termuat. Refresh halaman atau cek koneksi internet.');
       const cfg = CONFIG[category];
-      const res = await fetch(cfg.file + '?v=' + Date.now(), { cache:'no-store' });
-      if (!res.ok) throw new Error('File tidak ditemukan: ' + cfg.file + ' (HTTP ' + res.status + ')');
-      const buffer = await res.arrayBuffer();
+      const response = await fetch(cfg.file + '?v=' + Date.now(), { cache:'no-store' });
+      if (!response.ok) throw new Error('File tidak ditemukan: ' + cfg.file + ' (HTTP ' + response.status + ')');
+      const buffer = await response.arrayBuffer();
       const workbook = XLSX.read(buffer, { type:'array', cellDates:false });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false });
@@ -348,21 +380,21 @@
     }
 
     function normalizeRow(row, category){
-      const lat = normalizeCoord(get(row,['Latitude','Lat']), 'lat');
-      const lng = normalizeCoord(get(row,['Longitude','Long','Lng']), 'lng');
+      const lat = normalizeCoord(get(row, ['Latitude','Lat']), 'lat');
+      const lng = normalizeCoord(get(row, ['Longitude','Long','Lng']), 'lng');
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
       const cfg = CONFIG[category];
-      const name = cleanText(get(row,['Nama_Tempat','Nama Tempat','Nama Tempat Makan Murah','Nama','Tempat'])) || cfg.label;
-      const address = cleanText(get(row,['Alamat_lengkap','Alamat Lengkap','Alamat']));
-      const hours = cleanText(get(row,['Jam_Operasional','Jam_operasional','Jam Operasional','Jam Operasional ']));
-      const days = cleanText(get(row,['Hari_operasional','Hari_Operasional','Hari Operasional']));
-      const price = cleanText(get(row,['Harga','Biaya','Tarif']));
-      const contact = cleanText(get(row,['Nomor_Kontak','Nomor Kontak','NoTelepon','No,Telepon','No Telepon','Kontak']));
-      const rating = cleanText(get(row,['Rating','Ulasan']));
-      const maps = normalizeLink(get(row,['Link_google_maps','Link_Google Maps','Link Google Maps','Google Maps']));
-      const image = cleanText(get(row,['Dokumentasi','Dokumentasi ']));
-      const open24 = cleanText(get(row,['Buka_24_jam','Buka 24 Jam','Buka 24 jam','Buka_24_Jam']));
-      const layanan = cleanText(get(row,['Layanan','Layanan ','Kategori','Keterangan']));
+      const name = cleanText(get(row, ['Nama_Tempat','Nama Tempat','Nama Tempat Makan Murah','Nama','Tempat'])) || cfg.label;
+      const address = cleanText(get(row, ['Alamat_lengkap','Alamat Lengkap','Alamat_Lengkap','Alamat']));
+      const hours = cleanText(get(row, ['Jam_Operasional','Jam_operasional','Jam Operasional','Jam Operasional ']));
+      const days = cleanText(get(row, ['Hari_operasional','Hari_Operasional','Hari Operasional']));
+      const price = cleanText(get(row, ['Harga','Biaya','Tarif']));
+      const contact = cleanText(get(row, ['Nomor_Kontak','Nomor Kontak','NoTelepon','No Telepon','No,Telepon','Kontak']));
+      const rating = cleanText(get(row, ['Rating','Ulasan']));
+      const maps = normalizeLink(get(row, ['Link_google_maps','Link_Google Maps','Link Google Maps','Google Maps']));
+      const image = cleanText(get(row, ['Dokumentasi','Dokumentasi ']));
+      const open24 = cleanText(get(row, ['Buka_24_jam','Buka 24 Jam','Buka 24 jam','Buka_24_Jam']));
+      const layanan = cleanText(get(row, ['Layanan','Layanan ','Kategori','Keterangan']));
       const place = { id:cleanText(get(row,['Id','ID'])), category, categoryLabel:cfg.label, name, address, hours, days, price, contact, rating, maps, image, open24, layanan, lat, lng };
       place.distance = haversine(CAMPUS, place);
       place.isOpen24 = isOpen24(place);
@@ -371,52 +403,68 @@
     }
 
     async function loadData(){
-      const categories = Object.keys(CONFIG);
-      const results = await Promise.allSettled(categories.map(readExcel));
-      allPlaces = [];
+      const cats = Object.keys(CONFIG);
+      const results = await Promise.allSettled(cats.map(readExcel));
       const errors = [];
-      results.forEach((r,i)=>{
-        const cat = categories[i];
-        if (r.status === 'fulfilled') allPlaces.push(...r.value);
-        else errors.push(CONFIG[cat].label + ': ' + r.reason.message);
+      allPlaces = [];
+      results.forEach((result, idx) => {
+        const cat = cats[idx];
+        if (result.status === 'fulfilled') allPlaces.push(...result.value);
+        else errors.push(CONFIG[cat].label + ': ' + result.reason.message);
       });
-      if (!allPlaces.length) throw new Error('Tidak ada data Excel yang berhasil dibaca.\n' + errors.join('\n'));
-      if (errors.length) console.warn('Sebagian data gagal dibaca:', errors);
       renderCategoryList();
       applyFilters();
-      els.loading.classList.add('hidden');
+      if (allPlaces.length) {
+        showNotice(`<b>${allPlaces.length} titik berhasil dibaca dari Excel.</b> Data tetap memakai file .xlsx di folder data.`, false);
+      } else {
+        showNotice(`<b>Map terbuka, tapi data Excel belum terbaca.</b><br>Pastikan folder <b>data/</b> dan nama file .xlsx sudah benar.`, true);
+      }
+      if (errors.length) console.warn('Sebagian data gagal dibaca:', errors.join('\n'));
     }
 
     function createIcon(icon, colorClass){
       return L.divIcon({ className:'custom-marker', html:`<div class="marker-pin ${colorClass}"><i class="fa-solid ${icon}"></i></div>`, iconSize:[38,38], iconAnchor:[19,36], popupAnchor:[0,-32] });
     }
-    window.routeTo = function(lat,lng){
-      if (routeControl) map.removeControl(routeControl);
-      routeControl = L.Routing.control({
-        waypoints:[L.latLng(CAMPUS.lat,CAMPUS.lng), L.latLng(lat,lng)],
-        routeWhileDragging:false, show:false, addWaypoints:false, draggableWaypoints:false,
-        lineOptions:{ styles:[{color:'#C44545',opacity:.88,weight:6},{color:'#fff',opacity:.6,weight:2}] },
-        createMarker:()=>null
-      }).addTo(map);
-      map.fitBounds(L.latLngBounds([[CAMPUS.lat,CAMPUS.lng],[lat,lng]]).pad(.25));
-      closePanels();
-    };
+
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     function popup(place){
       const price = place.price && place.price !== '-' ? place.price : 'Tidak ada data harga';
       const hours = place.hours || (place.isOpen24 ? 'Buka 24 Jam' : 'Tidak ada data jam');
       const contact = place.contact && place.contact !== '#ERROR!' ? place.contact : 'Tidak ada kontak';
-      const maps = place.maps && /^https?:/.test(place.maps) ? `<a class="popup-btn" href="${place.maps}" target="_blank" rel="noopener"><i class="fa-solid fa-map"></i> Google Maps</a>` : '';
+      const mapsButton = place.maps && /^https?:\/\//.test(place.maps) ? `<a class="popup-btn" href="${escapeHtml(place.maps)}" target="_blank" rel="noopener"><i class="fa-solid fa-map"></i> Google Maps</a>` : '';
       return `<div><div class="popup-title">${escapeHtml(place.name)}</div>
         <div class="popup-line"><i class="fa-solid fa-layer-group"></i><span>${escapeHtml(place.categoryLabel)}${place.layanan ? ' · ' + escapeHtml(place.layanan) : ''}</span></div>
-        <div class="popup-line"><i class="fa-regular fa-clock"></i><span>${escapeHtml(hours)}${place.days ? '<br>'+escapeHtml(place.days) : ''}</span></div>
+        <div class="popup-line"><i class="fa-regular fa-clock"></i><span>${escapeHtml(hours)}${place.days ? '<br>' + escapeHtml(place.days) : ''}</span></div>
         <div class="popup-line"><i class="fa-solid fa-tags"></i><span>${escapeHtml(price)}</span></div>
         <div class="popup-line"><i class="fa-solid fa-location-dot"></i><span>${escapeHtml(place.address || 'Alamat belum tersedia')}</span></div>
         <div class="popup-line"><i class="fa-solid fa-star"></i><span>${escapeHtml(place.rating || '-')} · ${fmtDistance(place.distance)} dari kampus</span></div>
         <div class="popup-line"><i class="fa-solid fa-phone"></i><span>${escapeHtml(contact)}</span></div>
-        <div class="popup-actions"><button class="popup-btn alt" onclick="routeTo(${place.lat},${place.lng})"><i class="fa-solid fa-route"></i> Buka Rute</button>${maps}</div></div>`;
+        <div class="popup-actions"><button class="popup-btn alt" onclick="routeTo(${place.lat},${place.lng})"><i class="fa-solid fa-route"></i> Buka Rute</button>${mapsButton}</div></div>`;
     }
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    window.routeTo = function(lat,lng){
+      if (!map) return;
+      if (routeControl) { try { map.removeControl(routeControl); } catch(e){} routeControl = null; }
+      if (simpleRoute) { try { map.removeLayer(simpleRoute); } catch(e){} simpleRoute = null; }
+      const start = L.latLng(CAMPUS.lat, CAMPUS.lng);
+      const end = L.latLng(lat, lng);
+      if (window.L && L.Routing && L.Routing.control) {
+        try {
+          routeControl = L.Routing.control({
+            waypoints:[start,end], routeWhileDragging:false, show:false, addWaypoints:false, draggableWaypoints:false,
+            lineOptions:{ styles:[{color:'#C44545',opacity:.9,weight:6},{color:'#fff',opacity:.55,weight:2}] },
+            createMarker:() => null
+          }).addTo(map);
+        } catch(e) {
+          simpleRoute = L.polyline([start,end], { color:'#C44545', weight:5, dashArray:'8 8' }).addTo(map);
+        }
+      } else {
+        simpleRoute = L.polyline([start,end], { color:'#C44545', weight:5, dashArray:'8 8' }).addTo(map);
+      }
+      map.fitBounds(L.latLngBounds([start,end]).pad(.25));
+      closePanels();
+    };
 
     function filteredPlaces(){
       return allPlaces.filter(p => {
@@ -426,7 +474,7 @@
         if (state.open24 && !p.isOpen24) return false;
         if (state.near && p.distance > RADIUS_M) return false;
         if (state.search) {
-          const hay = (p.name+' '+p.address+' '+p.categoryLabel+' '+p.layanan).toLowerCase();
+          const hay = (p.name + ' ' + p.address + ' ' + p.categoryLabel + ' ' + p.layanan).toLowerCase();
           if (!hay.includes(state.search.toLowerCase())) return false;
         }
         return true;
@@ -434,18 +482,19 @@
     }
 
     function applyFilters(){
+      if (!markerLayer || !map) return;
       const data = filteredPlaces();
       markerLayer.clearLayers();
       data.forEach(p => {
         const cfg = CONFIG[p.category];
-        L.marker([p.lat,p.lng], { icon:createIcon(cfg.icon,cfg.color) }).bindPopup(popup(p)).addTo(markerLayer);
+        L.marker([p.lat,p.lng], { icon:createIcon(cfg.icon, cfg.color) }).bindPopup(popup(p)).addTo(markerLayer);
       });
       if (data.length) {
-        const group = L.featureGroup(data.map(p => L.marker([p.lat,p.lng])));
-        map.fitBounds(group.getBounds().pad(.18), { maxZoom:15, animate:true });
+        const points = data.map(p => [p.lat,p.lng]);
+        try { map.fitBounds(L.latLngBounds(points).pad(.18), { maxZoom:15, animate:true }); } catch(e){}
         els.intro.classList.add('hidden');
       } else {
-        map.setView([CAMPUS.lat, CAMPUS.lng], 14);
+        map.setView([CAMPUS.lat,CAMPUS.lng], 14);
       }
       updateUI();
       updateInsight();
@@ -453,11 +502,14 @@
     }
 
     function renderCategoryList(){
+      if (!allPlaces.length) {
+        els.categoryList.innerHTML = '<div class="insight-card"><h3><i class="fa-solid fa-circle-info"></i> Data belum terbaca</h3><p style="font-size:13px;color:#6b785f;line-height:1.45">Pastikan file Excel berada di folder data dengan nama: kost.xlsx, rumah_makan.xlsx, laundry.xlsx, minimarket.xlsx, atm.xlsx, print_fotocopy.xlsx, fasilitas_kesehatan.xlsx, emergency.xlsx.</p></div>';
+        return;
+      }
       els.categoryList.innerHTML = Object.keys(CONFIG).map(cat => {
         const cfg = CONFIG[cat];
-        const count = allPlaces.filter(p=>p.category===cat).length;
-        return `<button class="filter-card active" data-cat="${cat}">
-          <span class="filter-left"><span class="cat-icon"><i class="fa-solid ${cfg.icon}"></i></span><span><span class="filter-label">${cfg.label}</span><span class="filter-sub">${count} lokasi</span></span></span><span class="checkmark">✓</span></button>`;
+        const count = allPlaces.filter(p => p.category === cat).length;
+        return `<button class="filter-card active" data-cat="${cat}"><span class="filter-left"><span class="cat-icon"><i class="fa-solid ${cfg.icon}"></i></span><span><span class="filter-label">${cfg.label}</span><span class="filter-sub">${count} lokasi</span></span></span><span class="checkmark">✓</span></button>`;
       }).join('');
       els.categoryList.querySelectorAll('[data-cat]').forEach(btn => btn.addEventListener('click', () => {
         const cat = btn.getAttribute('data-cat');
@@ -471,7 +523,8 @@
       document.querySelectorAll('[data-cat]').forEach(btn => {
         const active = state.selected.has(btn.getAttribute('data-cat'));
         btn.classList.toggle('active', active);
-        btn.querySelector('.checkmark').textContent = active ? '✓' : '';
+        const check = btn.querySelector('.checkmark');
+        if (check) check.textContent = active ? '✓' : '';
       });
       $('cheapBtn').classList.toggle('active', state.cheap);
       $('open24Btn').classList.toggle('active', state.open24);
@@ -482,23 +535,23 @@
     function updateInsight(){
       const data = filteredPlaces();
       const total = allPlaces.length;
-      const open24 = data.filter(p=>p.isOpen24).length;
-      const cheap = data.filter(p=>p.isCheap).length;
-      const nearest = [...data].sort((a,b)=>a.distance-b.distance).slice(0,5);
-      const byCat = Object.keys(CONFIG).map(cat => ({ cat, label:CONFIG[cat].label, count:data.filter(p=>p.category===cat).length })).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
-      const max = Math.max(1, ...byCat.map(x=>x.count));
+      const open24 = data.filter(p => p.isOpen24).length;
+      const cheap = data.filter(p => p.isCheap).length;
+      const nearest = [...data].sort((a,b) => a.distance - b.distance).slice(0,5);
+      const byCat = Object.keys(CONFIG).map(cat => ({cat, label:CONFIG[cat].label, count:data.filter(p => p.category === cat).length})).filter(x => x.count > 0).sort((a,b) => b.count - a.count);
+      const max = Math.max(1, ...byCat.map(x => x.count));
       els.insightContent.innerHTML = `
         <div class="insight-card"><h3><i class="fa-solid fa-gauge-high"></i> Ringkasan aktif</h3>
           <div class="kpi-grid"><div class="kpi"><b>${data.length}</b><span>Lokasi tampil</span></div><div class="kpi"><b>${total}</b><span>Total Excel</span></div><div class="kpi"><b>${open24}</b><span>Buka 24 jam</span></div><div class="kpi"><b>${cheap}</b><span>Terbaca murah</span></div></div>
         </div>
         <div class="insight-card"><h3><i class="fa-solid fa-chart-simple"></i> Komposisi kategori</h3>
-          ${byCat.length ? byCat.map(x=>`<div class="bar-row"><span>${x.label}</span><span class="bar-track"><span class="bar-fill" style="width:${Math.max(7, x.count/max*100)}%"></span></span><b>${x.count}</b></div>`).join('') : '<p style="font-size:13px;color:#6b785f;line-height:1.4">Belum ada lokasi yang lolos filter.</p>'}
+          ${byCat.length ? byCat.map(x => `<div class="bar-row"><span>${escapeHtml(x.label)}</span><span class="bar-track"><span class="bar-fill" style="width:${Math.max(7, x.count / max * 100)}%"></span></span><b>${x.count}</b></div>`).join('') : '<p style="font-size:13px;color:#6b785f;line-height:1.45">Belum ada lokasi yang lolos filter.</p>'}
         </div>
         <div class="insight-card"><h3><i class="fa-solid fa-location-crosshairs"></i> Lokasi terdekat dari kampus</h3>
-          ${nearest.length ? nearest.map(p=>`<div class="near-item"><span class="cat-icon" style="width:32px;height:32px;border-radius:12px"><i class="fa-solid ${CONFIG[p.category].icon}"></i></span><span><b>${escapeHtml(p.name)}</b><span>${escapeHtml(p.categoryLabel)} · ${fmtDistance(p.distance)}${p.hours ? ' · '+escapeHtml(p.hours) : ''}</span></span></div>`).join('') : '<p style="font-size:13px;color:#6b785f;line-height:1.4">Belum ada lokasi terdekat untuk filter ini.</p>'}
+          ${nearest.length ? nearest.map(p => `<div class="near-item"><span class="cat-icon" style="width:32px;height:32px;border-radius:12px"><i class="fa-solid ${CONFIG[p.category].icon}"></i></span><span><b>${escapeHtml(p.name)}</b><span>${escapeHtml(p.categoryLabel)} · ${fmtDistance(p.distance)}${p.hours ? ' · ' + escapeHtml(p.hours) : ''}</span></span></div>`).join('') : '<p style="font-size:13px;color:#6b785f;line-height:1.45">Belum ada lokasi terdekat untuk filter ini.</p>'}
         </div>
         <div class="insight-card"><h3><i class="fa-solid fa-circle-info"></i> Status filter</h3>
-          <p style="font-size:13px;color:#53624a;line-height:1.55">Kategori aktif: <b>${state.selected.size}</b>. Murah: <b>${state.cheap?'aktif':'mati'}</b>. 24 Jam: <b>${state.open24?'aktif':'mati'}</b>. Dekat Kampus: <b>${state.near?'aktif':'mati'}</b>. Emergency: <b>${state.emergency?'aktif':'mati'}</b>.</p>
+          <p style="font-size:13px;color:#53624a;line-height:1.55">Kategori aktif: <b>${state.selected.size}</b>. Murah: <b>${state.cheap ? 'aktif' : 'mati'}</b>. 24 Jam: <b>${state.open24 ? 'aktif' : 'mati'}</b>. Dekat Kampus: <b>${state.near ? 'aktif' : 'mati'}</b>. Emergency: <b>${state.emergency ? 'aktif' : 'mati'}</b>.</p>
         </div>`;
     }
 
@@ -506,53 +559,70 @@
       closePanels(id);
       $(id).classList.remove('hidden');
       ['layerBtn','filterBtn','insightBtn'].forEach(btn => $(btn).classList.remove('active'));
-      if (id==='layerPanel') $('layerBtn').classList.add('active');
-      if (id==='filterPanel') $('filterBtn').classList.add('active');
-      if (id==='insightPanel') $('insightBtn').classList.add('active');
+      if (id === 'layerPanel') $('layerBtn').classList.add('active');
+      if (id === 'filterPanel') $('filterBtn').classList.add('active');
+      if (id === 'insightPanel') $('insightBtn').classList.add('active');
       els.intro.classList.add('hidden');
+      setTimeout(() => map && map.invalidateSize(), 80);
     }
     function togglePanel(id){ $(id).classList.contains('hidden') ? openPanel(id) : closePanels(); }
     function closePanels(except){
-      ['layerPanel','filterPanel','insightPanel'].forEach(id => { if(id!==except) $(id).classList.add('hidden'); });
+      ['layerPanel','filterPanel','insightPanel'].forEach(id => { if (id !== except) $(id).classList.add('hidden'); });
       ['layerBtn','filterBtn','insightBtn'].forEach(btn => $(btn).classList.remove('active'));
     }
     window.closePanels = closePanels;
 
     function resetAll(){
-      state.selected = new Set(Object.keys(CONFIG)); state.cheap=false; state.open24=false; state.near=false; state.emergency=false; state.search='';
-      $('searchInput').value=''; if(routeControl){ map.removeControl(routeControl); routeControl=null; }
-      applyFilters(); closePanels();
+      state = { selected:new Set(Object.keys(CONFIG)), cheap:false, open24:false, near:false, emergency:false, search:'' };
+      $('searchInput').value = '';
+      if (routeControl) { try { map.removeControl(routeControl); } catch(e){} routeControl = null; }
+      if (simpleRoute) { try { map.removeLayer(simpleRoute); } catch(e){} simpleRoute = null; }
+      applyFilters();
+      closePanels();
     }
 
     function bindUI(){
-      $('layerBtn').addEventListener('click',()=>togglePanel('layerPanel'));
-      $('filterBtn').addEventListener('click',()=>togglePanel('filterPanel'));
-      $('insightBtn').addEventListener('click',()=>togglePanel('insightPanel'));
-      document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closePanels()));
-      $('showAllBtn').addEventListener('click',()=>{ state.selected=new Set(Object.keys(CONFIG)); state.emergency=false; applyFilters(); });
-      $('cheapBtn').addEventListener('click',()=>{ state.cheap=!state.cheap; applyFilters(); });
-      $('open24Btn').addEventListener('click',()=>{ state.open24=!state.open24; applyFilters(); });
-      $('nearCampusBtn').addEventListener('click',()=>{ state.near=!state.near; applyFilters(); });
-      $('emergencyBtn').addEventListener('click',()=>{ state.emergency=!state.emergency; if(state.emergency){ state.selected=new Set(['emergency']); } else { state.selected=new Set(Object.keys(CONFIG)); } applyFilters(); });
-      $('resetBtn').addEventListener('click',resetAll);
-      $('resetFilterBtn').addEventListener('click',resetAll);
-      $('introFilter').addEventListener('click',()=>openPanel('layerPanel'));
-      $('introEmergency').addEventListener('click',()=>{ state.emergency=true; state.selected=new Set(['emergency']); applyFilters(); openPanel('filterPanel'); });
-      $('searchInput').addEventListener('input',e=>{ state.search=e.target.value.trim(); applyFilters(); });
-      $('guideBtn').addEventListener('click',()=>$('guideModal').classList.remove('hidden'));
-      $('closeGuideBtn').addEventListener('click',()=>$('guideModal').classList.add('hidden'));
-      $('guideModal').addEventListener('click',e=>{ if(e.target.id==='guideModal') $('guideModal').classList.add('hidden'); });
-      $('locateBtn').addEventListener('click',()=>alert('Titik pusat peta adalah Rektorat UPN Veteran Yogyakarta. Radius aktif 5 km. Klik marker untuk melihat detail dan membuka rute.'));
-      window.addEventListener('resize',()=>setTimeout(()=>map && map.invalidateSize(),180));
+      $('layerBtn').addEventListener('click', () => togglePanel('layerPanel'));
+      $('filterBtn').addEventListener('click', () => togglePanel('filterPanel'));
+      $('insightBtn').addEventListener('click', () => togglePanel('insightPanel'));
+      document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closePanels()));
+      $('showAllBtn').addEventListener('click', () => { state.selected = new Set(Object.keys(CONFIG)); state.emergency = false; applyFilters(); });
+      $('cheapBtn').addEventListener('click', () => { state.cheap = !state.cheap; applyFilters(); });
+      $('open24Btn').addEventListener('click', () => { state.open24 = !state.open24; applyFilters(); });
+      $('nearCampusBtn').addEventListener('click', () => { state.near = !state.near; applyFilters(); });
+      $('emergencyBtn').addEventListener('click', () => { state.emergency = !state.emergency; state.selected = state.emergency ? new Set(['emergency']) : new Set(Object.keys(CONFIG)); applyFilters(); });
+      $('resetBtn').addEventListener('click', resetAll);
+      $('resetFilterBtn').addEventListener('click', resetAll);
+      $('introFilter').addEventListener('click', () => openPanel('layerPanel'));
+      $('introEmergency').addEventListener('click', () => { state.emergency = true; state.selected = new Set(['emergency']); applyFilters(); openPanel('filterPanel'); });
+      $('searchInput').addEventListener('input', e => { state.search = e.target.value.trim(); applyFilters(); });
+      $('guideBtn').addEventListener('click', () => $('guideModal').classList.remove('hidden'));
+      $('closeGuideBtn').addEventListener('click', () => $('guideModal').classList.add('hidden'));
+      $('guideModal').addEventListener('click', e => { if (e.target.id === 'guideModal') $('guideModal').classList.add('hidden'); });
+      $('locateBtn').addEventListener('click', () => alert('Titik pusat peta adalah Rektorat UPN Veteran Yogyakarta. Radius aktif 5 km. Klik marker untuk melihat detail dan membuka rute.'));
+      window.addEventListener('resize', () => setTimeout(() => map && map.invalidateSize(), 180));
     }
 
+    window.addEventListener('error', e => {
+      if (!map) showMapError('Ada error JavaScript sebelum peta siap dibuka.', e.message || String(e.error || e));
+    });
+
     document.addEventListener('DOMContentLoaded', async () => {
+      bindUI();
       try {
-        bindUI();
+        await waitForLibs(7000);
         initMap();
+      } catch(err) {
+        showMapError('Leaflet gagal dimuat, jadi peta tidak bisa tampil. Coba refresh, cek koneksi internet, atau pastikan CDN tidak diblokir.', err && (err.stack || err.message || String(err)));
+        return;
+      }
+      try {
         await loadData();
       } catch(err) {
-        showError('Gagal membuka map. Biasanya karena file data Excel belum ada di folder data, CDN Leaflet/SheetJS gagal dimuat, atau nama file tidak sesuai.', err && (err.stack || err.message || String(err)));
+        renderCategoryList();
+        updateInsight();
+        showNotice('<b>Map sudah terbuka, tapi data Excel gagal dibaca.</b><br>Pastikan halaman dibuka lewat GitHub Pages/server, bukan langsung file lokal, dan folder data sudah benar.', true);
+        console.error(err);
       }
     });
   })();
