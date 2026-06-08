@@ -15900,527 +15900,1126 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
-
-<!-- =========================================================
-     PATCH 2026-06-08: INSIGHT, FILTER, JAM, HARGA READABILITY
-     - memperbaiki parsing koordinat Excel yang desimalnya hilang
-     - memperbaiki deteksi 24 jam dari Ya/Yes/Buka 24 Jam/00.00-23.59
-     - membuat filter Murah, 24 Jam, Dekat Kampus benar-benar memengaruhi hasil
-     - membuat Insight menghitung data sesuai filter aktif dan lebih mudah dibaca
-     ========================================================= -->
-<script>
+<script id="excelLiveFinalPatch">
+/* =========================================================
+   EXCEL LIVE FINAL PATCH
+   Data tetap dibaca dari file Excel di folder data/.
+   Tidak ada konversi data ke file JS.
+   ========================================================= */
 (function(){
-  const CAT_KEYS = ["kost", "rumah_makan", "laundry", "minimarket", "atm", "print_fotocopy", "fasilitas_kesehatan", "emergency"];
-  const safe = (fn, fallback) => { try { return fn(); } catch (error) { console.warn("Patch WebGIS:", error); return fallback; } };
+  const CATEGORY_KEYS = ["kost","rumah_makan","laundry","minimarket","atm","print_fotocopy","fasilitas_kesehatan","emergency"];
+  const NAME_KEYS = {
+    kost: ["Nama_Tempat","Nama Tempat","Nama_Kost","Nama Kost","Nama","Tempat","Lokasi"],
+    rumah_makan: ["Nama Tempat Makan Murah","Nama_Tempat_Makan_Murah","Nama_Rumah_Makan","Nama Rumah Makan","Nama Tempat","Nama_Tempat","Nama Warung","Nama_Warung","Nama","Tempat"],
+    laundry: ["Nama_Tempat","Nama Tempat","Nama_Laundry","Nama Laundry","Nama","Nama Usaha","Nama_Usaha"],
+    minimarket: ["Nama_Tempat","Nama Tempat","Nama_Minimarket","Nama Minimarket","Nama Toko","Nama_Toko","Nama"],
+    atm: ["Nama_Tempat","Nama Tempat","Nama_ATM","Nama ATM","Nama"],
+    print_fotocopy: ["Nama_Tempat","Nama Tempat","Nama_Print","Nama Print","Nama_Fotokopi","Nama Fotokopi","Nama"],
+    fasilitas_kesehatan: ["Nama_Tempat","Nama Tempat","Nama_Fasilitas_Kesehatan","Nama Fasilitas Kesehatan","Nama Klinik","Nama_Klinik","Nama Apotek","Nama_Apotek","Nama Rumah Sakit","Nama_Rumah_Sakit","Nama"],
+    emergency: ["Nama_Tempat","Nama Tempat","Nama_Emergency","Nama Emergency","Nama Fasilitas","Nama_Fasilitas","Nama Layanan","Nama_Layanan","Nama"]
+  };
+  const PREFIX = {kost:"KS",rumah_makan:"R",laundry:"L",minimarket:"M",atm:"A",print_fotocopy:"P",fasilitas_kesehatan:"FK",emergency:"E"};
 
-  function normalizeCoordinatePatched(value){
-    if (value === undefined || value === null || value === "") return NaN;
+  function safe(fn){ try { return fn(); } catch(e){ console.warn("Excel live patch:", e); return undefined; } }
+  function val(v, fallback="-"){
+    if(v === undefined || v === null) return fallback;
+    const text = String(v).trim();
+    if(!text || text === "-" || text.toUpperCase() === "#ERROR!" || text.toLowerCase() === "nan") return fallback;
+    return text;
+  }
+  function textJoin(){
+    return Array.from(arguments).map(v => val(v, "")).filter(Boolean).join(" ").trim();
+  }
+  function esc(value){
+    return val(value, "-").replace(/[&<>"]/g, function(ch){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch];
+    });
+  }
+  function cleanDecimalText(raw){
+    let s = String(raw ?? "").trim();
+    if(!s) return "";
+    s = s.replace(/\s+/g, "");
+    if(s.includes(",") && !s.includes(".")) s = s.replace(/,/g, ".");
+    return s;
+  }
 
-    let original = String(value).trim();
-    if (!original || original === "-") return NaN;
-    original = original.replace(/−/g, "-");
+  function finalNormalizeHeaderKey(value){
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+  }
 
-    // Excel tertentu menyimpan koordinat sebagai angka panjang tanpa titik desimal.
-    // Contoh: -7783425284431660 harus dibaca menjadi -7.783425284431660.
-    const rawDigits = original.replace(/[^0-9-]/g, "");
-    const hasExplicitSeparator = /[.,]/.test(original);
-    if (!hasExplicitSeparator && rawDigits.replace("-", "").length > 6) {
-      const negative = rawDigits.startsWith("-");
-      const digits = rawDigits.replace("-", "");
-      if (negative && (digits.startsWith("7") || digits.startsWith("8"))) {
-        const fixed = Number(`-${digits.slice(0,1)}.${digits.slice(1)}`);
-        if (Number.isFinite(fixed)) return fixed;
-      }
-      if (digits.startsWith("110") || digits.startsWith("109") || digits.startsWith("111")) {
-        const fixed = Number(`${digits.slice(0,3)}.${digits.slice(3)}`);
-        if (Number.isFinite(fixed)) return fixed;
+  function finalParseCoordinate(value){
+    let raw = cleanDecimalText(value);
+    if(!raw || raw === "-") return NaN;
+    let num = Number(raw);
+    if(!Number.isFinite(num)) {
+      const match = raw.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/i);
+      num = match ? Number(match[0]) : NaN;
+    }
+    if(!Number.isFinite(num)) return NaN;
+
+    if(num < 0) {
+      while(Math.abs(num) > 10) num = num / 10;
+    } else {
+      while(Math.abs(num) > 180) num = num / 10;
+      if(num > 0 && num < 10 && raw.replace(/[^0-9]/g, "").length >= 10) {
+        while(num < 100) num = num * 10;
       }
     }
-
-    let text = original.replace(/[^0-9,.-]/g, "");
-    if (text.includes(",") && !text.includes(".")) text = text.replace(",", ".");
-    if (text.includes(",") && text.includes(".")) {
-      // Pertahankan separator terakhir sebagai desimal.
-      const lastComma = text.lastIndexOf(",");
-      const lastDot = text.lastIndexOf(".");
-      const decimalIndex = Math.max(lastComma, lastDot);
-      const intPart = text.slice(0, decimalIndex).replace(/[,.]/g, "");
-      const decPart = text.slice(decimalIndex + 1).replace(/[,.]/g, "");
-      text = `${intPart}.${decPart}`;
-    }
-
-    let number = parseFloat(text);
-    if (!Number.isFinite(number)) return NaN;
-
-    // Fallback untuk angka yang masih terlalu besar.
-    while (Math.abs(number) > 180) number = number / 10;
-    return number;
+    if(num < -90 || num > 180) return NaN;
+    return num;
   }
 
-  function patchedIsOpen24(value, jam){
-    const text = `${value || ""} ${jam || ""}`.toLowerCase().replace(/\s+/g, " ");
-    return (
-      /\b(ya|yes|y|true|24)\b/.test(text) ||
-      text.includes("24 jam") ||
-      text.includes("buka 24") ||
-      text.includes("24/7") ||
-      text.includes("00.00-23.59") ||
-      text.includes("00:00-23:59") ||
-      text.includes("00,00-23,59") ||
-      text.includes("00.00–23.59") ||
-      text.includes("00:00–23:59")
-    );
+  function normalizeGoogleLink(value){
+    let text = val(value, "");
+    if(!text) return "-";
+    text = text.replace(/\s+/g, "");
+    if(/^https?:\/\//i.test(text)) text = text.replace(/,/g, ".");
+    return text || "-";
   }
 
-  function normalizeMoneyText(value){
-    const text = String(value || "").trim();
-    if (!text || text === "-" || /^nan$/i.test(text)) return "-";
-    return text
-      .replace(/\bRP\b/g, "Rp")
-      .replace(/rp\s*/i, "Rp ")
-      .replace(/,00\b/g, "")
-      .replace(/\s+/g, " ");
+  function finalIsOpen24(flag, jam){
+    const text = textJoin(flag, jam).toLowerCase().replace(/[,]/g, ".").replace(/\s+/g, " ");
+    return /\b(ya|yes|y|true|1)\b/.test(text) ||
+      text.includes("24 jam") || text.includes("24jam") || text.includes("buka 24") ||
+      text.includes("00.00-23.59") || text.includes("00:00-23:59") ||
+      text.includes("00.00 - 23.59") || text.includes("00:00 - 23:59");
   }
 
-  function normalizedText(value){
-    const text = String(value || "").trim();
-    return text && text !== "-" ? text : "";
+  function parseRupiahNumber(value){
+    const text = val(value, "").toLowerCase();
+    if(!text) return null;
+    const rupiahMatch = text.match(/rp\s*([0-9][0-9.,]*)/i);
+    const raw = rupiahMatch ? rupiahMatch[1] : (text.match(/[0-9][0-9.,]{2,}/) || [""])[0];
+    if(!raw) return null;
+    const digits = raw.replace(/[^0-9]/g, "");
+    if(!digits) return null;
+    return Number(digits);
   }
 
   function isCheapPlace(place){
-    const text = [place.Harga, place.price, place.Keterangan, place.Layanan, place.Nama, place.name, place.category].join(" ").toLowerCase();
-    if (["rumah_makan", "print_fotocopy"].includes(place.category)) return true;
-    if (place.category === "kost") return /rp\s*([0-9.,]+)|mulai|murah|terjangkau|hemat/i.test(text);
-    return /murah|terjangkau|hemat|rp\s*1\s*-\s*25|rp\s*200|rp\s*500|mulai/i.test(text);
+    const cat = place && place.category;
+    const text = textJoin(place && place.Harga, place && place.price, place && place.Keterangan, place && place.Layanan, place && place.Nama).toLowerCase();
+    const n = parseRupiahNumber(text);
+    if(cat === "rumah_makan" || cat === "print_fotocopy") return true;
+    if(/murah|terjangkau|hemat|mulai|gratis|rp\s*1\s*-\s*25/i.test(text)) return true;
+    if(cat === "kost" && n !== null && n <= 3000000) return true;
+    if(cat === "laundry" && n !== null && n <= 15000) return true;
+    return false;
   }
 
-  function distanceFromCampusMeters(place){
-    if (typeof distanceKm !== "function" || !place || !Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return Infinity;
-    return distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000;
+  function distanceMeters(place){
+    if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return Infinity;
+    if(typeof distanceKm === "function") {
+      return Math.round(distanceKm(upnLatLng[0], upnLatLng[1], Number(place.lat), Number(place.lng)) * 1000);
+    }
+    return Infinity;
   }
 
-  function applyDataFixes(){
-    if (!Array.isArray(window.places || places)) return;
-    const data = window.places || places;
-    data.forEach(place => {
-      place.lat = normalizeCoordinatePatched(place.lat ?? place.Latitude);
-      place.lng = normalizeCoordinatePatched(place.lng ?? place.Longitude);
-      place.Latitude = place.lat;
-      place.Longitude = place.lng;
+  function isNearPlace(place){
+    return distanceMeters(place) <= 1500;
+  }
 
-      const harga = normalizeMoneyText(place.Harga || place.price || place.Keterangan);
-      const ket = normalizedText(place.Keterangan) || normalizedText(place.Layanan) || harga || "-";
-      place.Harga = harga;
-      place.price = harga !== "-" ? harga : ket;
-      place.Keterangan = ket || "-";
+  function displayOpenText(place){
+    const hari = val(place && place.Hari_operasional, "");
+    const jam = val(place && place.Jam_operasional, "");
+    if(hari && jam) return `${hari}, ${jam}`;
+    return hari || jam || "-";
+  }
 
-      const jam = normalizedText(place.Jam_operasional || place.Jam_Operasional || place.open);
-      const hari = normalizedText(place.Hari_operasional || place.Hari_Operasional);
-      place.Jam_operasional = jam || "-";
-      place.Hari_operasional = hari || "-";
-      place.open = [place.Hari_operasional, place.Jam_operasional].filter(v => v && v !== "-").join(", ") || "-";
+  function normalizeExcelPlace(row, index, category){
+    const cfg = (typeof categories !== "undefined" && categories[category]) ? categories[category] : {label: category};
+    const prefix = PREFIX[category] || "P";
+    const id = val(getCell(row, ["Id","ID","id","Kode","No"], ""), `${prefix}${String(index + 1).padStart(3,"0")}`);
+    const nama = val(getCell(row, NAME_KEYS[category] || NAME_KEYS.kost, ""), `${cfg.label || category} ${id}`);
+    const layanan = val(getCell(row, ["Layanan","Layanan ","Keterangan","Kategori","Jenis","Jenis Fasilitas","Jenis_Fasilitas","Jenis Layanan","Jenis_Layanan"], cfg.label || category), cfg.label || category);
+    const hari = val(getCell(row, ["Hari_operasional","Hari Operasional","Hari_Operasional","Hari"], "-"));
+    const jam = val(getCell(row, ["Jam_operasional","Jam Operasional","Jam_Operasional","Jam Operasional ","Jam"], "-"));
+    const alamat = val(getCell(row, ["Alamat_lengkap","Alamat Lengkap","Alamat_Lengkap","Alamat","Lokasi"], "-"));
+    const telepon = val(getCell(row, ["Nomor_Kontak","Nomor Kontak","No.Telepon","No,Telepon","No_Telepon","No Telepon","Telepon"], "-"));
+    const lat = finalParseCoordinate(getCell(row, ["Latitude","latitude","Lat","Y"], ""));
+    const lng = finalParseCoordinate(getCell(row, ["Longitude","longitude","Lng","Long","X"], ""));
+    const harga = val(getCell(row, ["Harga","Biaya","Tarif","Rentang Harga","Rentang_Harga"], "-"));
+    const rating = val(getCell(row, ["Rating","Ulasan","Review"], "-"));
+    const maps = normalizeGoogleLink(getCell(row, ["Link_google_maps","Link Google Maps","Link_Google Maps","Link Google Maps ","Maps","Google Maps"], "-"));
+    const dokumentasi = val(getCell(row, ["Dokumentasi","Dokumentasi ","images","Foto"], id), id);
+    const buka24Raw = val(getCell(row, ["Buka_24_jam","Buka 24 jam","Buka 24 Jam","Buka_24_Jam","Open 24 Hours"], ""), "");
+    const open24Flag = finalIsOpen24(buka24Raw, jam);
+    const priceText = harga !== "-" ? harga : layanan;
 
-      place.open24 = patchedIsOpen24(place.Buka_24_jam || place["Buka 24 Jam"] || place.Buka_24_Jam, place.Jam_operasional);
-      place.Buka_24_jam = place.open24 ? "Ya" : (place.Buka_24_jam || "Tidak");
-      place.cheap = isCheapPlace(place);
-      place.nearCampus = distanceFromCampusMeters(place) <= 1500;
+    const place = {
+      id,
+      category,
+      name: nama,
+      Nama: nama,
+      Nama_Tempat: nama,
+      Kategori: cfg.label || category,
+      Layanan: layanan,
+      Keterangan: layanan,
+      Harga: harga,
+      Hari_operasional: hari,
+      Jam_operasional: jam,
+      Alamat_lengkap: alamat,
+      No_Telepon: telepon,
+      Latitude: lat,
+      Longitude: lng,
+      Rating: rating,
+      Link_google_maps: maps,
+      Dokumentasi: dokumentasi,
+      Buka_24_jam: open24Flag ? "Ya" : (buka24Raw || "Tidak"),
+      lat,
+      lng,
+      price: priceText,
+      address: alamat,
+      contact: telepon,
+      open: displayOpenText({Hari_operasional:hari, Jam_operasional:jam}),
+      rating,
+      maps,
+      image: (typeof getImagePath === "function") ? getImagePath(category, dokumentasi, id) : "",
+      open24: open24Flag,
+      nearCampus: false,
+      detailLabel: `Detail ${cfg.label || category}`
+    };
+    place.cheap = isCheapPlace(place);
+    return place;
+  }
+
+  function enhancePlace(place){
+    if(!place) return place;
+    place.lat = finalParseCoordinate(place.lat ?? place.Latitude);
+    place.lng = finalParseCoordinate(place.lng ?? place.Longitude);
+    place.Latitude = place.lat;
+    place.Longitude = place.lng;
+    place.Harga = val(place.Harga ?? place.price, "-");
+    place.Keterangan = val(place.Keterangan ?? place.Layanan ?? place.price, "-");
+    place.Jam_operasional = val(place.Jam_operasional ?? place.Jam_Operasional ?? place.open, "-");
+    place.Hari_operasional = val(place.Hari_operasional ?? place.Hari_Operasional, "-");
+    place.No_Telepon = val(place.No_Telepon ?? place.Nomor_Kontak ?? place.contact, "-");
+    place.Link_google_maps = normalizeGoogleLink(place.Link_google_maps ?? place.maps);
+    place.open24 = finalIsOpen24(place.Buka_24_jam, place.Jam_operasional);
+    place.Buka_24_jam = place.open24 ? "Ya" : val(place.Buka_24_jam, "Tidak");
+    place.price = place.Harga !== "-" ? place.Harga : place.Keterangan;
+    place.open = displayOpenText(place);
+    place.cheap = isCheapPlace(place);
+    place.nearCampus = isNearPlace(place);
+    place.distanceMeters = distanceMeters(place);
+    return place;
+  }
+
+  function activeVisiblePlaces(){
+    const src = Array.isArray(places) ? places : [];
+    const cats = state && state.categories ? state.categories : new Set();
+    const allCategories = !cats || cats.size === 0;
+    const radius = 5000;
+    return src.filter(function(place){
+      enhancePlace(place);
+      if(!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return false;
+      const searchText = [place.id, place.name, place.Nama, place.Nama_Tempat, place.Keterangan, place.Harga, place.Alamat_lengkap, place.No_Telepon, place.Rating, place.Jam_operasional].join(" ").toLowerCase();
+      const matchSearch = !state.search || searchText.includes(String(state.search).toLowerCase());
+      const matchCategory = state.emergencyOnly ? place.category === "emergency" : (allCategories ? true : cats.has(place.category));
+      const matchCheap = !state.cheap || isCheapPlace(place);
+      const match24 = !state.open24 || finalIsOpen24(place.Buka_24_jam, place.Jam_operasional);
+      const matchNear = !state.nearCampus || isNearPlace(place);
+      const matchRadius = distanceMeters(place) <= radius;
+      return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
     });
   }
 
-  // Timpa fungsi awal sebelum Excel dibaca.
-  safe(() => { window.parseCoordinate = parseCoordinate = normalizeCoordinatePatched; });
-  safe(() => { window.isOpen24 = isOpen24 = patchedIsOpen24; });
+  function closeOtherPanels(except){
+    safe(function(){ if(except !== "filter" && typeof leftPanel !== "undefined" && leftPanel) leftPanel.classList.add("collapsed"); });
+    safe(function(){ if(except !== "top" && typeof topControls !== "undefined" && topControls) topControls.classList.add("collapsed"); });
+    safe(function(){ if(except !== "route" && typeof routePlanner !== "undefined" && routePlanner) routePlanner.classList.add("hidden-route"); });
+    safe(function(){ if(except !== "insight" && typeof insightDashboard !== "undefined" && insightDashboard) insightDashboard.classList.add("hidden-dashboard"); });
+    safe(function(){ if(typeof syncPanelPositions === "function") syncPanelPositions(); });
+  }
 
-  safe(() => {
-    const oldLoadAllData = loadAllData;
-    window.loadAllData = loadAllData = async function(){
-      await oldLoadAllData.apply(this, arguments);
-      applyDataFixes();
-      if (typeof populateDestinationOptions === "function") populateDestinationOptions();
-      if (typeof renderFilterList === "function") renderFilterList();
-      if (typeof syncChips === "function") syncChips();
-      if (typeof renderMarkers === "function") renderMarkers();
-      if (typeof updateInsightDashboard === "function") updateInsightDashboard();
-    };
-  });
+  function installCss(){
+    let style = document.getElementById("excelLiveFinalPatchStyle");
+    if(!style){
+      style = document.createElement("style");
+      style.id = "excelLiveFinalPatchStyle";
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      body.map-active .left-panel{top:112px !important;max-height:calc(100vh - 138px) !important;overflow-y:auto !important;padding-bottom:18px !important;z-index:740 !important;}
+      body.map-active .filter-list{max-height:43vh !important;overflow-y:auto !important;padding-right:6px !important;margin-bottom:12px !important;}
+      body.map-active .chip-grid{position:sticky !important;bottom:72px !important;background:linear-gradient(180deg,rgba(255,253,242,.88),#FFFDF2) !important;padding-top:10px !important;border-radius:18px !important;z-index:2 !important;}
+      body.map-active .reset-btn{position:sticky !important;bottom:0 !important;z-index:3 !important;}
+      body.map-active #insightDashboard.energy-index-mode{position:fixed !important;left:50% !important;top:50% !important;right:auto !important;bottom:auto !important;transform:translate(-50%,-50%) !important;width:min(1040px,calc(100vw - 36px)) !important;max-height:calc(100vh - 120px) !important;overflow:auto !important;z-index:820 !important;grid-template-columns:minmax(0,1.45fr) minmax(320px,.85fr) !important;gap:18px !important;padding:8px !important;}
+      body.map-active #insightDashboard.energy-index-mode.hidden-dashboard{opacity:0 !important;visibility:hidden !important;pointer-events:none !important;transform:translate(-50%,-46%) scale(.96) !important;}
+      body.map-active #insightDashboard .insight-card{background:linear-gradient(145deg,#FFFDF2 0%,#F2F9D7 100%) !important;color:#24331D !important;border:1px solid rgba(91,126,60,.28) !important;box-shadow:0 20px 48px rgba(36,51,29,.24) !important;}
+      body.map-active #insightDashboard *{color:#24331D !important;opacity:1 !important;text-shadow:none !important;}
+      body.map-active #insightDashboard .insight-title,body.map-active #insightDashboard .energy-summary-title{color:#315523 !important;font-weight:950 !important;}
+      body.map-active #insightDashboard .gauge-value,body.map-active #insightDashboard .rank-dist{color:#C44545 !important;font-weight:950 !important;}
+      body.map-active #insightDashboard .energy-summary-desc,body.map-active #insightDashboard .insight-note{font-size:13px !important;line-height:1.55 !important;color:#405A30 !important;}
+      body.map-active #insightDashboard .energy-mini-stat,body.map-active #insightDashboard .rank-item,body.map-active #insightDashboard .energy-rank-card,body.map-active #insightDashboard .intensity-bars-card,body.map-active #insightDashboard .category-donut-card{background:rgba(255,253,242,.86) !important;border:1px solid rgba(91,126,60,.18) !important;}
+      body.map-active .map-popup-card{min-width:280px !important;}
+      body.map-active .map-popup-row .map-popup-value{font-weight:800 !important;color:#24331D !important;}
+      body.map-active .detail-grid .detail-item{background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.18) !important;border-radius:16px !important;padding:10px !important;}
+      body.map-active .detail-label{color:#5B7E3C !important;font-weight:900 !important;font-size:11px !important;}
+      body.map-active .detail-value{color:#24331D !important;font-weight:800 !important;}
+      body.map-active .cat-icon i,body.map-active .chip i,body.map-active .toggle-btn i{filter:drop-shadow(0 2px 3px rgba(0,0,0,.18)) !important;}
+      body.map-active .marker-wrap{border-radius:18px 18px 18px 6px !important;transform:rotate(-45deg) !important;width:42px !important;height:42px !important;display:grid !important;place-items:center !important;border:3px solid #FFFDF2 !important;box-shadow:0 14px 26px rgba(36,51,29,.36), inset 0 2px 4px rgba(255,255,255,.35) !important;}
+      body.map-active .marker-wrap svg,body.map-active .marker-wrap i{transform:rotate(45deg) !important;width:22px !important;height:22px !important;color:currentColor !important;}
+      @media(max-width:900px){body.map-active #insightDashboard.energy-index-mode{grid-template-columns:1fr !important;top:54% !important;width:calc(100vw - 22px) !important;max-height:calc(100vh - 104px) !important;}body.map-active .left-panel{top:96px !important;width:min(360px,calc(100vw - 20px)) !important;}}
+    `;
+  }
 
-  safe(() => {
-    window.getOpenStatus = getOpenStatus = function(place){
-      const jam = String(place?.Jam_operasional || place?.open || "").toLowerCase();
-      if (place?.open24 || patchedIsOpen24(place?.Buka_24_jam, jam)) {
-        return { isOpen:true, text:"Buka 24 Jam", icon:"🟢" };
-      }
-
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const matches = jam.match(/\d{1,2}[.:,]\d{2}/g);
-      if (!matches || matches.length < 2) return { isOpen:null, text:"Jam tidak terbaca", icon:"⚪" };
-
-      const toMinutes = (raw) => {
-        const m = String(raw).match(/(\d{1,2})[.:,](\d{2})/);
-        if (!m) return null;
-        return Number(m[1]) * 60 + Number(m[2]);
-      };
-
-      const openTime = toMinutes(matches[0]);
-      const closeTime = toMinutes(matches[1]);
-      if (openTime === null || closeTime === null) return { isOpen:null, text:"Jam tidak terbaca", icon:"⚪" };
-
-      let isOpen = false;
-      if (openTime <= closeTime) isOpen = currentMinutes >= openTime && currentMinutes <= closeTime;
-      else isOpen = currentMinutes >= openTime || currentMinutes <= closeTime;
-      return { isOpen, text: isOpen ? "Masih Buka" : "Sudah Tutup", icon: isOpen ? "🟢" : "🔴" };
-    };
-  });
-
-  safe(() => {
-    window.filteredPlaces = filteredPlaces = function(){
-      applyDataFixes();
-      const radius = 5000;
-      return (places || []).filter(place => {
-        if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return false;
-        const searchText = [
-          place.id, place.name, place.Nama, place.Nama_Tempat, place.Nama_Laundry, place.Nama_Minimarket,
-          place.Nama_Rumah_Makan, place.Nama_Emergency, place.Keterangan, place.Harga,
-          place.Jam_operasional, place.Alamat_lengkap, place.No_Telepon, place.Rating, place.Dokumentasi
-        ].join(" ").toLowerCase();
-        const matchSearch = !state.search || searchText.includes(state.search);
-        const matchCategory = state.emergencyOnly
-          ? place.category === "emergency"
-          : (!state.categories || state.categories.size === 0 || state.categories.has(place.category));
-        const matchCheap = !state.cheap || !!place.cheap;
-        const match24 = !state.open24 || !!place.open24;
-        const matchNear = !state.nearCampus || !!place.nearCampus;
-        return matchSearch && matchCategory && matchCheap && match24 && matchNear && distanceFromCampusMeters(place) <= radius;
+  function installTutorialText(){
+    safe(function(){
+      const title = document.getElementById("tutorialTitle");
+      if(title) title.textContent = "Panduan WebGIS Student Survival Map";
+      const cards = Array.from(document.querySelectorAll(".tutorial-card"));
+      const guide = [
+        ["1. Pilih Kategori", "Buka tombol Filter, lalu pilih kategori fasilitas. Kalau tidak memilih kategori, peta menampilkan semua data Excel dalam radius 5 km."],
+        ["2. Pakai Filter Cepat", "Gunakan Murah untuk lokasi hemat, 24 Jam untuk layanan yang selalu buka, Dekat Kampus untuk titik sekitar 1,5 km, dan Emergency untuk keadaan darurat."],
+        ["3. Baca Marker", "Klik pin pada peta untuk melihat nama tempat, harga/layanan, jam operasional, rating, alamat, dan tombol Google Maps."],
+        ["4. Lihat Detail", "Panel Info Lokasi menampilkan harga dan jam langsung dari kolom Excel, termasuk status Masih Buka atau Sudah Tutup."],
+        ["5. Buat Rute", "Klik Network atau Buka Rute, pilih asal dari Rektorat UPN, Lokasi Saya, atau klik titik di peta, lalu pilih tujuan."],
+        ["6. Buka Insight", "Insight membaca data aktif dari Excel dan filter yang sedang dipakai: total lokasi, 24 jam, emergency, kategori, dan titik terdekat."],
+        ["7. Ganti Basemap", "Gunakan Dark, Streets, Light, atau Satellite sesuai kebutuhan tampilan saat presentasi."],
+        ["8. Reset Filter", "Tombol Reset menghapus pencarian, kategori, filter murah/24 jam/dekat, rute, dan mengembalikan peta ke kondisi awal."],
+        ["9. Update Data", "Untuk memperbarui lokasi, cukup ganti file .xlsx di folder data dengan nama file yang sama. Tidak perlu membuat file JS data."]
+      ];
+      cards.forEach(function(card, i){
+        if(!guide[i]) return;
+        const h = card.querySelector("h4");
+        const p = card.querySelector("p");
+        if(h) h.textContent = guide[i][0];
+        if(p) p.textContent = guide[i][1];
       });
-    };
-  });
-
-  function categoryCount(source){
-    const counts = {};
-    CAT_KEYS.forEach(key => counts[key] = 0);
-    (source || []).forEach(place => { counts[place.category] = (counts[place.category] || 0) + 1; });
-    return counts;
-  }
-
-  function nearestList(source, limit = 5){
-    return (source || [])
-      .filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng))
-      .map(place => ({ ...place, distanceMeters: Math.round(distanceFromCampusMeters(place)) }))
-      .sort((a,b) => a.distanceMeters - b.distanceMeters)
-      .slice(0, limit);
-  }
-
-  function getNamePatched(place){
-    return (typeof getDisplayName === "function" ? getDisplayName(place) : (place?.name || place?.Nama || place?.Nama_Tempat || "-"));
-  }
-
-  function activeFilterText(){
-    const labels = [];
-    if (state?.categories && state.categories.size) labels.push(`${state.categories.size} kategori`);
-    if (state?.cheap) labels.push("murah");
-    if (state?.open24) labels.push("24 jam");
-    if (state?.nearCampus) labels.push("dekat kampus");
-    if (state?.emergencyOnly) labels.push("emergency");
-    if (state?.search) labels.push(`cari: ${state.search}`);
-    return labels.length ? labels.join(" + ") : "semua data radius 5 km";
-  }
-
-  function renderCategoryBarsPatched(counts, totalVisible){
-    const container = document.querySelector("#insightDashboard .category-bars");
-    if (!container) return;
-    const max = Math.max(...Object.values(counts), 1);
-    container.innerHTML = CAT_KEYS.map(key => {
-      const cfg = categories[key] || { label:key, color:"#5B7E3C", icon:"fa-solid fa-location-dot" };
-      const count = counts[key] || 0;
-      const width = Math.max(4, (count / max) * 100);
-      return `
-        <div class="bar-row patched-bar-row">
-          <div class="bar-label"><span><i class="${cfg.icon}"></i> ${cfg.label}</span><span>${count}</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:${width}%;background:${cfg.color};"></div></div>
-        </div>`;
-    }).join("");
-  }
-
-  function renderDonutPatched(counts, totalVisible){
-    if (!categoryDonut) return;
-    const palette = CAT_KEYS.map(key => (categories[key] && categories[key].color) || "#5B7E3C");
-    let start = 0;
-    const segments = CAT_KEYS.map((key, index) => {
-      const pct = totalVisible ? ((counts[key] || 0) / totalVisible) * 100 : 0;
-      const seg = `${palette[index]} ${start}% ${start + pct}%`;
-      start += pct;
-      return seg;
     });
-    categoryDonut.style.background = totalVisible ? `conic-gradient(${segments.join(",")})` : "#E8F5BD";
-    const legend = categoryDonut.closest(".category-donut-card")?.querySelector(".donut-legend");
-    if (legend) {
-      legend.innerHTML = CAT_KEYS.map(key => {
-        const cfg = categories[key] || { label:key, color:"#5B7E3C" };
-        return `<div class="donut-item"><span><i class="dot" style="background:${cfg.color}"></i>${cfg.label}</span><b>${counts[key] || 0}</b></div>`;
-      }).join("");
+  }
+
+  function installOverrides(){
+    safe(function(){ normalizeHeaderKey = finalNormalizeHeaderKey; });
+    safe(function(){ parseCoordinate = finalParseCoordinate; });
+    safe(function(){ isOpen24 = finalIsOpen24; });
+
+    safe(function(){
+      normalizeKost = function(row,index){ return normalizeExcelPlace(row,index,"kost"); };
+      normalizeRumahMakan = function(row,index){ return normalizeExcelPlace(row,index,"rumah_makan"); };
+      normalizeLaundry = function(row,index){ return normalizeExcelPlace(row,index,"laundry"); };
+      normalizeMinimarket = function(row,index){ return normalizeExcelPlace(row,index,"minimarket"); };
+      normalizeATM = function(row,index){ return normalizeExcelPlace(row,index,"atm"); };
+      normalizePrintFotocopy = function(row,index){ return normalizeExcelPlace(row,index,"print_fotocopy"); };
+      normalizeFasilitasKesehatan = function(row,index){ return normalizeExcelPlace(row,index,"fasilitas_kesehatan"); };
+      normalizeEmergency = function(row,index){ return normalizeExcelPlace(row,index,"emergency"); };
+    });
+
+    safe(function(){
+      readExcel = async function(filePath){
+        const bust = filePath.includes("?") ? `&v=${Date.now()}` : `?v=${Date.now()}`;
+        const response = await fetch(filePath + bust, { cache: "no-store" });
+        if(!response.ok) throw new Error(`File tidak ditemukan: ${filePath}`);
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+        return workbook.SheetNames.flatMap(function(sheetName){
+          const sheet = workbook.Sheets[sheetName];
+          return XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false }).map(function(row){
+            return Object.assign({}, row, {_sheetName: sheetName});
+          });
+        }).filter(function(row){
+          return Object.entries(row).some(function(entry){
+            return entry[0] !== "_sheetName" && val(entry[1], "") !== "";
+          });
+        });
+      };
+    });
+
+    safe(function(){
+      if(typeof loadAllData === "function" && !loadAllData.__excelLiveWrapped){
+        const oldLoadAllData = loadAllData;
+        loadAllData = async function(){
+          await oldLoadAllData.apply(this, arguments);
+          places = (places || []).map(enhancePlace).filter(function(p){ return Number.isFinite(p.lat) && Number.isFinite(p.lng); });
+          if(typeof populateDestinationOptions === "function") populateDestinationOptions();
+          if(typeof renderFilterList === "function") renderFilterList();
+          if(typeof syncChips === "function") syncChips();
+          if(typeof renderMarkers === "function") renderMarkers();
+          if(typeof updateInsightDashboard === "function") updateInsightDashboard();
+        };
+        loadAllData.__excelLiveWrapped = true;
+      }
+    });
+
+    safe(function(){
+      filteredPlaces = function(){ return activeVisiblePlaces(); };
+    });
+
+    safe(function(){
+      getOpenStatus = function(place){
+        enhancePlace(place);
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const jamText = val(place.Jam_operasional, "").toLowerCase().replace(/,/g,".");
+        if(finalIsOpen24(place.Buka_24_jam, jamText)) return {isOpen:true, text:"Masih Buka", icon:"🟢"};
+        const matches = jamText.match(/\d{1,2}[.:]\d{2}/g);
+        if(!matches || matches.length < 2) return {isOpen:null, text:"Jam tidak terbaca", icon:"⚪"};
+        function toMin(t){ const m = t.match(/(\d{1,2})[.:](\d{2})/); return Number(m[1])*60 + Number(m[2]); }
+        const open = toMin(matches[0]);
+        const close = toMin(matches[1]);
+        const isOpen = open <= close ? (currentMinutes >= open && currentMinutes <= close) : (currentMinutes >= open || currentMinutes <= close);
+        return {isOpen, text:isOpen ? "Masih Buka" : "Sudah Tutup", icon:isOpen ? "🟢" : "🔴"};
+      };
+    });
+
+    safe(function(){
+      buildMarkerPopup = function(place, status){
+        enhancePlace(place);
+        status = status || getOpenStatus(place);
+        const categoryLabel = categories[place.category]?.label || place.category || "Lokasi";
+        const categoryIcon = categories[place.category]?.icon || "fa-solid fa-location-dot";
+        const mapsButton = place.Link_google_maps && place.Link_google_maps !== "-"
+          ? `<a class="map-popup-btn primary" href="${esc(place.Link_google_maps)}" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Google Maps</a>`
+          : "";
+        return `
+          <div class="map-popup-card">
+            <div class="map-popup-head"><div class="map-popup-badge"><i class="${categoryIcon}"></i>${esc(categoryLabel)}</div></div>
+            <div class="map-popup-body">
+              <h3 class="map-popup-title">${esc(getDisplayName(place))}</h3>
+              <div class="map-popup-sub">
+                <span class="map-popup-pill"><i class="fa-solid fa-route"></i> ${distanceMeters(place)} m</span>
+                <span class="map-popup-pill">${status.icon} ${esc(status.text)}</span>
+                <span class="map-popup-pill"><i class="fa-solid fa-star"></i> ${esc(place.Rating)}</span>
+              </div>
+              <div class="map-popup-info">
+                <div class="map-popup-row"><i class="fa-solid fa-money-bill-wave"></i><div><span class="map-popup-label">Harga / Biaya</span><span class="map-popup-value">${esc(place.Harga || place.price)}</span></div></div>
+                <div class="map-popup-row"><i class="fa-solid fa-clock"></i><div><span class="map-popup-label">Jam Operasional</span><span class="map-popup-value">${esc(displayOpenText(place))}</span></div></div>
+                <div class="map-popup-row"><i class="fa-solid fa-circle-info"></i><div><span class="map-popup-label">Layanan</span><span class="map-popup-value">${esc(place.Keterangan)}</span></div></div>
+              </div>
+              <div class="map-popup-actions">${mapsButton}<a class="map-popup-btn secondary" href="#" onclick="return false;"><i class="fa-solid fa-location-crosshairs"></i> Pilih Lokasi</a></div>
+            </div>
+          </div>`;
+      };
+    });
+
+    safe(function(){
+      updateDetail = function(place){
+        if(!place) return;
+        enhancePlace(place);
+        if(infoPanel) infoPanel.classList.remove("hidden");
+        if(openInfoPanel) openInfoPanel.classList.add("hidden");
+        selectedPlace = place;
+        if(destinationSelect) destinationSelect.value = place.id;
+        const status = getOpenStatus(place);
+        const isOpen = status.isOpen === true;
+        const cat = categories[place.category] || {};
+        if(detailTitle) detailTitle.textContent = getDisplayName(place);
+        if(detailDistance) detailDistance.textContent = `(${distanceMeters(place)} m)`;
+        if(detailPrice) detailPrice.innerHTML = `<span class="service-icon"><i class="fa-solid fa-money-bill-wave"></i></span><span><span class="service-label">Harga / Biaya</span>${esc(place.Harga || place.price || "-")}</span>`;
+        if(typeof setDetailImage === "function") setDetailImage(place);
+        if(detailButton) detailButton.textContent = place.Link_google_maps && place.Link_google_maps !== "-" ? "Google Maps" : (place.detailLabel || `Detail ${cat.label || "Lokasi"}`);
+        if(detailMeta) detailMeta.innerHTML = `
+          <div class="status-card ${isOpen ? "" : "closed"}"><span class="status-dot"></span><div><b>${esc(status.text)}</b><span>${isOpen ? "Layanan tersedia saat ini" : "Cek jam operasional sebelum berangkat"}</span></div></div>
+          <div class="info-section-title"><i class="fa-solid fa-circle-info"></i> Informasi dari Excel</div>
+          <div class="detail-grid compact-detail-grid">
+            <div class="detail-item"><i class="${cat.icon || "fa-solid fa-location-dot"}"></i><div><span class="detail-label">Kategori</span><span class="detail-value">${esc(cat.label || place.category)}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-circle-info"></i><div><span class="detail-label">Layanan</span><span class="detail-value">${esc(place.Keterangan)}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-calendar-days"></i><div><span class="detail-label">Hari Operasional</span><span class="detail-value">${esc(place.Hari_operasional)}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-clock"></i><div><span class="detail-label">Jam Operasional</span><span class="detail-value">${esc(place.Jam_operasional)}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-tags"></i><div><span class="detail-label">Murah</span><span class="detail-value">${isCheapPlace(place) ? "Ya" : "Tidak"}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-business-time"></i><div><span class="detail-label">Buka 24 Jam</span><span class="detail-value">${finalIsOpen24(place.Buka_24_jam, place.Jam_operasional) ? "Ya" : "Tidak"}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-phone"></i><div><span class="detail-label">No. Telepon</span><span class="detail-value">${esc(place.No_Telepon)}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-star"></i><div><span class="detail-label">Rating</span><span class="detail-value">${esc(place.Rating)}</span></div></div>
+            <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span class="detail-label">Alamat</span><span class="detail-value">${esc(place.Alamat_lengkap)}</span></div></div>
+          </div>`;
+        if(typeof updateInsightDashboard === "function") updateInsightDashboard();
+        if(state && state.networkOn && typeof drawRouteTo === "function") drawRouteTo(place);
+      };
+    });
+
+    safe(function(){
+      renderFilterList = function(){
+        const filterList = document.getElementById("filterList");
+        if(!filterList) return;
+        const allMode = !state.categories || state.categories.size === 0;
+        filterList.innerHTML = CATEGORY_KEYS.map(function(key){
+          const cfg = categories[key];
+          const count = (places || []).filter(p => p.category === key).length;
+          const active = allMode || state.categories.has(key) ? "active" : "";
+          return `<div class="filter-item ${active}" data-category="${key}"><div class="filter-left"><div class="cat-icon" style="background:${cfg.color};"><i class="${cfg.icon}"></i></div><div class="cat-label">${cfg.label}<span class="cat-count">(${count})</span></div></div><div class="check">✓</div></div>`;
+        }).join("");
+        filterList.querySelectorAll(".filter-item").forEach(function(item){
+          item.addEventListener("click", function(){
+            const key = item.dataset.category;
+            if(!state.categories || state.categories.size === 0) state.categories = new Set([key]);
+            else if(state.categories.has(key)) state.categories.delete(key);
+            else state.categories.add(key);
+            renderFilterList();
+            renderMarkers();
+          });
+        });
+      };
+    });
+
+    safe(function(){
+      renderMarkers = function(){
+        Object.values(layers || {}).forEach(function(layer){ if(layer && typeof layer.clearLayers === "function") layer.clearLayers(); });
+        const visiblePlaces = activeVisiblePlaces();
+        visiblePlaces.forEach(function(place){
+          if(!layers[place.category]) return;
+          const status = getOpenStatus(place);
+          const marker = L.marker([place.lat, place.lng], {icon:createIcon(place.category)})
+            .bindPopup(buildMarkerPopup(place, status), {maxWidth:380,minWidth:300,closeButton:true,autoPanPadding:[24,24],className:"student-popup"})
+            .on("click", function(e){
+              setDestinationPlace(place, true);
+              if(map) map.setView([place.lat, place.lng], Math.max(map.getZoom(),16), {animate:false});
+              e.target.openPopup();
+            });
+          layers[place.category].addLayer(marker);
+        });
+        const em = document.getElementById("emergencyCount");
+        if(em) em.textContent = (places || []).filter(p => p.category === "emergency").length;
+        if(!visiblePlaces.length){
+          selectedPlace = null;
+          if(infoPanel) infoPanel.classList.add("hidden");
+          if(openInfoPanel) openInfoPanel.classList.add("hidden");
+          if(detailTitle) detailTitle.textContent = "Data tidak ditemukan";
+          if(detailPrice) detailPrice.textContent = "Ubah filter atau cek Excel";
+          if(detailMeta) detailMeta.innerHTML = `<div>Data tidak ditemukan pada filter/radius aktif.</div>`;
+          if(typeof clearRoute === "function") clearRoute();
+        }
+        updateInsightDashboard();
+      };
+    });
+
+    safe(function(){
+      updateInsightDashboard = function(){
+        const all = (places || []).map(enhancePlace).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+        const visible = activeVisiblePlaces();
+        const totalVisible = visible.length;
+        const open24Count = visible.filter(p => finalIsOpen24(p.Buka_24_jam, p.Jam_operasional)).length;
+        const emergencyCount = visible.filter(p => p.category === "emergency").length;
+        const nearest = visible.slice().sort((a,b) => distanceMeters(a) - distanceMeters(b))[0] || null;
+        const byCat = {};
+        CATEGORY_KEYS.forEach(k => byCat[k] = visible.filter(p => p.category === k).length);
+        const totalAll = all.length;
+        const readinessScore = totalVisible ? Math.min(100, Math.round(35 + Math.min(totalVisible,120)*0.28 + Math.min(open24Count,50)*0.65 + Math.min(emergencyCount,20)*0.9 + Math.min(byCat.rumah_makan + byCat.laundry + byCat.minimarket,120)*0.08)) : 0;
+        if(metricTotal) metricTotal.textContent = totalVisible;
+        if(metricOpen24) metricOpen24.textContent = open24Count;
+        if(metricEmergency) metricEmergency.textContent = `${emergencyCount} emergency`;
+        if(metricNearest) metricNearest.textContent = nearest ? `${distanceMeters(nearest)}m` : "-";
+        if(survivalScore) survivalScore.textContent = readinessScore;
+        if(survivalGauge) survivalGauge.style.setProperty("--score", readinessScore);
+        if(energyHeadline) energyHeadline.textContent = totalVisible ? "Insight Filter Aktif" : "Belum Ada Data Tampil";
+        const maxCount = Math.max(byCat.laundry, byCat.minimarket, byCat.rumah_makan, byCat.emergency, 1);
+        if(barLaundry) barLaundry.style.width = `${(byCat.laundry / maxCount) * 100}%`;
+        if(barMinimarket) barMinimarket.style.width = `${(byCat.minimarket / maxCount) * 100}%`;
+        if(typeof barRumahMakan !== "undefined" && barRumahMakan) barRumahMakan.style.width = `${(byCat.rumah_makan / maxCount) * 100}%`;
+        if(barEmergency) barEmergency.style.width = `${(byCat.emergency / maxCount) * 100}%`;
+        if(barLaundryText) barLaundryText.textContent = byCat.laundry;
+        if(barMinimarketText) barMinimarketText.textContent = byCat.minimarket;
+        if(barRumahMakanText) barRumahMakanText.textContent = byCat.rumah_makan;
+        if(barEmergencyText) barEmergencyText.textContent = byCat.emergency;
+        if(barLaundryValue) barLaundryValue.textContent = byCat.laundry;
+        if(barMinimarketValue) barMinimarketValue.textContent = byCat.minimarket;
+        if(barRumahMakanValue) barRumahMakanValue.textContent = byCat.rumah_makan;
+        if(barEmergencyValue) barEmergencyValue.textContent = byCat.emergency;
+        if(categoryDonut){
+          const t = Math.max(totalVisible,1);
+          const p1 = (byCat.laundry/t)*100;
+          const p2 = p1 + (byCat.minimarket/t)*100;
+          const p3 = p2 + (byCat.rumah_makan/t)*100;
+          categoryDonut.style.background = `conic-gradient(#A2CB8B 0 ${p1}%, #5B7E3C ${p1}% ${p2}%, #E8F5BD ${p2}% ${p3}%, #C44545 ${p3}% 100%)`;
+        }
+        if(intensityChart){
+          Array.from(intensityChart.querySelectorAll(".intensity-bar")).forEach(function(bar,i){
+            const wave = totalVisible ? 26 + ((readinessScore + i*11 + totalVisible*2) % 64) : 18;
+            bar.style.height = `${wave}%`;
+            bar.classList.toggle("hot", wave > 70 || i % 4 === 2);
+          });
+        }
+        if(nearestRankList){
+          const ranked = visible.slice().sort((a,b) => distanceMeters(a) - distanceMeters(b)).slice(0,5);
+          nearestRankList.innerHTML = ranked.length ? ranked.map(function(place,index){
+            return `<div class="rank-item" data-rank-place="${esc(place.id)}"><div class="rank-no">${index+1}</div><div><div class="rank-name">${esc(getDisplayName(place))}</div><div class="rank-cat">${esc(categories[place.category]?.label || place.category)}</div></div><div class="rank-dist">${distanceMeters(place)}m</div></div>`;
+          }).join("") : `<div class="rank-item"><div class="rank-no">-</div><div><div class="rank-name">Tidak ada lokasi tampil</div><div class="rank-cat">Ubah filter atau cek Excel</div></div><div class="rank-dist">-</div></div>`;
+          nearestRankList.querySelectorAll("[data-rank-place]").forEach(function(item){
+            item.addEventListener("click", function(){
+              const place = getPlaceById(item.dataset.rankPlace);
+              if(place){ setDestinationPlace(place, true); if(map) map.setView([place.lat, place.lng], 17, {animate:false}); }
+            });
+          });
+        }
+        const filterNames = [];
+        if(state.cheap) filterNames.push("Murah");
+        if(state.open24) filterNames.push("24 Jam");
+        if(state.nearCampus) filterNames.push("Dekat Kampus");
+        if(state.emergencyOnly) filterNames.push("Emergency");
+        if(state.categories && state.categories.size) filterNames.push(`${state.categories.size} kategori`);
+        if(insightSummary){
+          insightSummary.textContent = totalVisible
+            ? `Menampilkan ${totalVisible} dari ${totalAll} titik Excel${filterNames.length ? " dengan filter " + filterNames.join(", ") : ""}. Lokasi 24 jam: ${open24Count}. Titik terdekat: ${nearest ? getDisplayName(nearest) + " (" + distanceMeters(nearest) + " m)" : "-"}.`
+            : `Tidak ada titik yang cocok dengan filter aktif. Total data Excel terbaca: ${totalAll}.`;
+        }
+        if(routeInsight){
+          routeInsight.textContent = selectedPlace ? `Tujuan aktif: ${getDisplayName(selectedPlace)}. Klik Buka Rute untuk membuat rute.` : "Klik marker atau ranking lokasi untuk menjadikan titik itu tujuan rute.";
+        }
+      };
+    });
+
+    safe(function(){
+      showInsightDashboard = function(){
+        closeOtherPanels("insight");
+        if(insightDashboard){
+          insightDashboard.classList.remove("hidden-dashboard");
+          insightDashboard.scrollTop = 0;
+          updateInsightDashboard();
+          if(typeof restartDashboardMotion === "function") setTimeout(restartDashboardMotion,120);
+        }
+      };
+      hideInsightDashboard = function(){ if(insightDashboard) insightDashboard.classList.add("hidden-dashboard"); };
+      toggleInsightDashboard = function(){ if(!insightDashboard) return; insightDashboard.classList.contains("hidden-dashboard") ? showInsightDashboard() : hideInsightDashboard(); };
+    });
+  }
+
+  function installAll(){
+    installCss();
+    installTutorialText();
+    installOverrides();
+  }
+
+  installAll();
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ installAll(); setTimeout(installAll, 250); setTimeout(installAll, 1200); });
+  else { setTimeout(installAll, 0); setTimeout(installAll, 250); setTimeout(installAll, 1200); }
+  window.addEventListener("load", function(){ setTimeout(installAll, 600); setTimeout(function(){ safe(function(){ if(typeof renderMarkers === "function") renderMarkers(); }); }, 1400); });
+})();
+
+</script>
+
+
+<!-- =========================================================
+     PATCH: Insight dibuat seperti layer Filter agar lebih rapi
+     Tetap membaca data dari Excel .xlsx di folder data/
+     ========================================================= -->
+<script id="ssm-insight-filter-layer-patch">
+(function(){
+  function safe(fn){ try { return fn(); } catch(e){ console.warn('Insight layer patch:', e); } }
+
+  const css = `
+  /* ===== Insight sekarang berbentuk panel/layer seperti Filter ===== */
+  body.map-active #insightDashboard.energy-index-mode{
+    position:absolute !important;
+    top:72px !important;
+    left:12px !important;
+    right:auto !important;
+    bottom:auto !important;
+    transform:none !important;
+    width:390px !important;
+    max-width:calc(100vw - 24px) !important;
+    max-height:calc(100% - 112px) !important;
+    display:block !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    padding:14px !important;
+    border-radius:24px !important;
+    border:1px solid rgba(91,126,60,.30) !important;
+    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+    box-shadow:0 22px 54px rgba(36,51,29,.22) !important;
+    z-index:1120 !important;
+    scrollbar-width:thin !important;
+    scrollbar-color:rgba(91,126,60,.42) transparent !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode::-webkit-scrollbar{width:8px !important;}
+  body.map-active #insightDashboard.energy-index-mode::-webkit-scrollbar-thumb{
+    background:rgba(91,126,60,.38) !important;
+    border-radius:999px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode.hidden-dashboard{
+    opacity:0 !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+    transform:translateX(-14px) scale(.98) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-card{
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    color:#24331D !important;
+    border-radius:0 !important;
+    padding:0 !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-card::before,
+  body.map-active #insightDashboard.energy-index-mode .insight-card::after{display:none !important;}
+
+  body.map-active #insightDashboard.energy-index-mode .insight-main,
+  body.map-active #insightDashboard.energy-index-mode .insight-side{
+    padding:0 !important;
+    min-height:0 !important;
+    display:block !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-side{margin-top:12px !important;}
+
+  /* Header layer seperti panel Filter */
+  body.map-active #insightDashboard.energy-index-mode .insight-main > .insight-head{
+    position:sticky !important;
+    top:-14px !important;
+    z-index:5 !important;
+    margin:-14px -14px 12px !important;
+    padding:14px 14px 12px !important;
+    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+    border-bottom:1px solid rgba(91,126,60,.20) !important;
+    border-radius:24px 24px 0 0 !important;
+    box-shadow:0 10px 18px rgba(36,51,29,.06) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-side > .insight-head{
+    margin:0 0 10px !important;
+    padding:0 !important;
+    position:relative !important;
+    top:auto !important;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-kicker{
+    color:#5B7E3C !important;
+    font-size:11px !important;
+    font-weight:950 !important;
+    letter-spacing:.7px !important;
+    text-transform:uppercase !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-title,
+  body.map-active #insightDashboard.energy-index-mode .energy-summary-title{
+    color:#24331D !important;
+    font-size:21px !important;
+    line-height:1.15 !important;
+    letter-spacing:-.3px !important;
+    font-weight:950 !important;
+    text-shadow:none !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-pill{
+    min-height:34px !important;
+    padding:8px 10px !important;
+    background:linear-gradient(135deg,#A2CB8B,#E8F5BD) !important;
+    color:#24331D !important;
+    border:1px solid rgba(91,126,60,.32) !important;
+    font-size:10px !important;
+  }
+
+  /* Ringkasan dibuat compact, bukan dashboard besar */
+  body.map-active #insightDashboard.energy-index-mode .energy-index-hero{
+    display:block !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-gauge{
+    display:none !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-summary-desc,
+  body.map-active #insightDashboard.energy-index-mode #insightSummary,
+  body.map-active #insightDashboard.energy-index-mode .insight-note{
+    margin-top:8px !important;
+    padding:11px 12px !important;
+    border-radius:15px !important;
+    background:#FFFDF2 !important;
+    border:1px solid rgba(91,126,60,.22) !important;
+    color:#405A30 !important;
+    font-size:12.5px !important;
+    line-height:1.55 !important;
+    font-weight:800 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-stat-row{
+    display:grid !important;
+    grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+    gap:8px !important;
+    margin-top:10px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-mini-stat{
+    min-height:72px !important;
+    padding:10px 8px !important;
+    border-radius:16px !important;
+    background:#FFFDF2 !important;
+    border:1px solid rgba(91,126,60,.22) !important;
+    box-shadow:0 8px 18px rgba(36,51,29,.06) !important;
+    text-align:center !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-mini-stat b{
+    display:block !important;
+    color:#C44545 !important;
+    font-size:22px !important;
+    line-height:1 !important;
+    font-weight:950 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-mini-stat span{
+    display:block !important;
+    margin-top:6px !important;
+    color:#405A30 !important;
+    font-size:10px !important;
+    line-height:1.25 !important;
+    font-weight:900 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .index-visual-row{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    margin-top:10px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .intensity-bars-card,
+  body.map-active #insightDashboard.energy-index-mode .category-donut-card,
+  body.map-active #insightDashboard.energy-index-mode .energy-rank-card{
+    padding:12px !important;
+    border-radius:18px !important;
+    background:#FFFDF2 !important;
+    border:1px solid rgba(91,126,60,.22) !important;
+    box-shadow:0 8px 18px rgba(36,51,29,.06) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .visual-card-title{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    margin:0 0 10px !important;
+    color:#24331D !important;
+    font-size:13px !important;
+    font-weight:950 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .visual-card-title small{
+    color:#5B7E3C !important;
+    font-size:10px !important;
+    font-weight:900 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .intensity-chart{
+    height:82px !important;
+    gap:5px !important;
+    align-items:end !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .intensity-bar{
+    min-width:0 !important;
+    border-radius:999px 999px 6px 6px !important;
+    background:linear-gradient(180deg,#A2CB8B,#5B7E3C) !important;
+    box-shadow:none !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .intensity-bar.hot{
+    background:linear-gradient(180deg,#C44545,#A83A3A) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .category-donut-wrap{
+    display:block !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .category-donut{
+    display:none !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .donut-legend{
+    display:grid !important;
+    gap:7px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .donut-item{
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+    padding:9px 10px !important;
+    border-radius:14px !important;
+    background:#F7FBE8 !important;
+    border:1px solid rgba(91,126,60,.18) !important;
+    color:#24331D !important;
+    font-size:12px !important;
+    font-weight:900 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .donut-item b{
+    color:#C44545 !important;
+    font-size:13px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .rank-list{
+    max-height:180px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    display:grid !important;
+    gap:8px !important;
+    padding-right:2px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .rank-item{
+    display:grid !important;
+    grid-template-columns:32px minmax(0,1fr) auto !important;
+    gap:9px !important;
+    align-items:center !important;
+    padding:9px !important;
+    border-radius:15px !important;
+    background:#F7FBE8 !important;
+    border:1px solid rgba(91,126,60,.18) !important;
+    cursor:pointer !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .rank-no{
+    width:30px !important;
+    height:30px !important;
+    border-radius:11px !important;
+    background:#5B7E3C !important;
+    color:#FFFDF2 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    font-size:12px !important;
+    font-weight:950 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .rank-name{
+    color:#24331D !important;
+    font-size:12.5px !important;
+    line-height:1.25 !important;
+    font-weight:950 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .rank-cat{
+    color:#5D6F50 !important;
+    font-size:10.5px !important;
+    font-weight:850 !important;
+    margin-top:2px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .rank-dist{
+    color:#C44545 !important;
+    font-size:11px !important;
+    font-weight:950 !important;
+    white-space:nowrap !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .category-bars{
+    display:grid !important;
+    gap:10px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .bar-label{
+    color:#24331D !important;
+    font-size:12px !important;
+    font-weight:950 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .bar-label span:last-child{
+    color:#C44545 !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .bar-track{
+    height:9px !important;
+    background:#E8F5BD !important;
+    border:1px solid rgba(91,126,60,.15) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .bar-fill{
+    background:linear-gradient(90deg,#5B7E3C,#A2CB8B) !important;
+  }
+  body.map-active #insightDashboard.energy-index-mode .bar-fill.emergency{
+    background:linear-gradient(90deg,#C44545,#E49A86) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-footer{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+    margin-top:10px !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .insight-action,
+  body.map-active #insightDashboard.energy-index-mode .energy-action{
+    width:100% !important;
+    min-height:42px !important;
+    border-radius:15px !important;
+    border:0 !important;
+    background:#C44545 !important;
+    color:#fff !important;
+    font-size:12px !important;
+    font-weight:950 !important;
+    box-shadow:0 10px 20px rgba(196,69,69,.18) !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-action.secondary{
+    background:#5B7E3C !important;
+  }
+
+  body.map-active #insightDashboard.energy-index-mode .energy-action-row{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+    margin-top:10px !important;
+  }
+
+  .ssm-insight-close{
+    width:34px !important;
+    height:34px !important;
+    border:0 !important;
+    border-radius:12px !important;
+    background:#C44545 !important;
+    color:#fff !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    cursor:pointer !important;
+    box-shadow:0 8px 16px rgba(196,69,69,.22) !important;
+    flex-shrink:0 !important;
+  }
+
+  @media(max-width:900px){
+    body.map-active #insightDashboard.energy-index-mode{
+      position:absolute !important;
+      top:72px !important;
+      left:10px !important;
+      right:auto !important;
+      width:calc(100vw - 20px) !important;
+      max-height:calc(100% - 96px) !important;
+      padding:12px !important;
+    }
+    body.map-active #insightDashboard.energy-index-mode .energy-stat-row{
+      grid-template-columns:1fr 1fr 1fr !important;
     }
   }
 
-  safe(() => {
-    window.updateInsightDashboard = updateInsightDashboard = function(){
-      applyDataFixes();
-      const allValid = (places || []).filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng));
-      const visible = (typeof filteredPlaces === "function" ? filteredPlaces() : allValid).filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng));
-      const source = visible;
-      const totalAll = allValid.length;
-      const totalVisible = source.length;
-      const counts = categoryCount(source);
-      const open24Count = source.filter(place => place.open24).length;
-      const cheapCount = source.filter(place => place.cheap).length;
-      const emergencyCount = counts.emergency || 0;
-      const nearest = nearestList(source, 1)[0] || null;
+  @media(max-width:420px){
+    body.map-active #insightDashboard.energy-index-mode .energy-stat-row,
+    body.map-active #insightDashboard.energy-index-mode .energy-action-row{
+      grid-template-columns:1fr !important;
+    }
+  }
+  `;
 
-      const readinessScore = totalVisible
-        ? Math.min(100, Math.round(30 + Math.min(totalVisible, 120) * 0.28 + Math.min(open24Count, 45) * 0.58 + Math.min(emergencyCount, 20) * 0.88 + Math.min(cheapCount, 80) * 0.16))
-        : 0;
-
-      if (metricTotal) metricTotal.textContent = totalVisible === totalAll ? totalAll : `${totalVisible}/${totalAll}`;
-      if (metricOpen24) metricOpen24.textContent = open24Count;
-      if (metricEmergency) metricEmergency.textContent = `${emergencyCount} emergency`;
-      if (metricNearest) metricNearest.textContent = nearest ? `${nearest.distanceMeters}m` : "-";
-      if (survivalScore) survivalScore.textContent = readinessScore;
-      if (survivalGauge) survivalGauge.style.setProperty("--score", readinessScore);
-      if (energyHeadline) energyHeadline.textContent = totalVisible ? "Insight Filter Aktif" : "Tidak Ada Data Sesuai Filter";
-
-      if (insightSummary) {
-        insightSummary.innerHTML = totalVisible
-          ? `Menampilkan <b>${totalVisible}</b> dari <b>${totalAll}</b> titik untuk filter <b>${activeFilterText()}</b>. Terdapat <b>${open24Count}</b> lokasi 24 jam dan <b>${cheapCount}</b> lokasi murah. Titik terdekat: <b>${getNamePatched(nearest)}</b> sekitar <b>${nearest.distanceMeters} meter</b> dari Rektorat UPN.`
-          : `Belum ada titik yang cocok dengan filter <b>${activeFilterText()}</b>. Coba matikan filter Murah/24 Jam/Dekat Kampus atau pilih kategori lain.`;
-      }
-
-      renderCategoryBarsPatched(counts, totalVisible);
-      renderDonutPatched(counts, totalVisible);
-
-      if (intensityChart) {
-        const bars = Array.from(intensityChart.querySelectorAll(".intensity-bar"));
-        bars.forEach((bar, index) => {
-          const wave = totalVisible ? 22 + ((readinessScore + index * 11 + totalVisible * 4) % 66) : 12;
-          bar.style.height = `${wave}%`;
-          bar.classList.toggle("hot", wave > 72 || index % 4 === 1);
-        });
-      }
-
-      if (nearestRankList) {
-        const ranked = nearestList(source, 5);
-        nearestRankList.innerHTML = ranked.length ? ranked.map((place, index) => {
-          const cfg = categories[place.category] || { label:place.category, icon:"fa-solid fa-location-dot" };
-          const status = typeof getOpenStatus === "function" ? getOpenStatus(place) : { text:"-", icon:"" };
-          return `
-            <div class="rank-item" data-rank-place="${place.id}">
-              <div class="rank-no">${index + 1}</div>
-              <div>
-                <div class="rank-name"><i class="${cfg.icon}"></i> ${getNamePatched(place)}</div>
-                <div class="rank-cat">${cfg.label} • ${status.icon} ${status.text}</div>
-              </div>
-              <div class="rank-dist">${place.distanceMeters}m</div>
-            </div>`;
-        }).join("") : `
-          <div class="rank-item">
-            <div class="rank-no">!</div>
-            <div>
-              <div class="rank-name">Tidak ada hasil</div>
-              <div class="rank-cat">Ubah filter untuk melihat ranking</div>
-            </div>
-            <div class="rank-dist">-</div>
-          </div>`;
-
-        nearestRankList.querySelectorAll("[data-rank-place]").forEach(item => {
-          item.addEventListener("click", () => {
-            const place = typeof getPlaceById === "function" ? getPlaceById(item.dataset.rankPlace) : null;
-            if (place) {
-              if (typeof setDestinationPlace === "function") setDestinationPlace(place, true);
-              if (map) map.setView([place.lat, place.lng], 17, { animate:false });
-            }
-          });
-        });
-      }
-
-      if (routeInsight) {
-        routeInsight.textContent = selectedPlace
-          ? `Tujuan aktif: ${getNamePatched(selectedPlace)}. Klik Buka Rute untuk menghitung rute.`
-          : "Klik salah satu marker atau ranking terdekat untuk memilih tujuan rute.";
-      }
-    };
-  });
-
-  function installInsightReadabilityStyle(){
-    if (document.getElementById("insightReadabilityFixStyle")) return;
-    const style = document.createElement("style");
-    style.id = "insightReadabilityFixStyle";
-    style.textContent = `
-      body.map-active #insightDashboard.energy-index-mode{
-        position:absolute !important;
-        top:92px !important;
-        left:18px !important;
-        right:18px !important;
-        bottom:18px !important;
-        width:auto !important;
-        max-width:none !important;
-        max-height:none !important;
-        height:auto !important;
-        z-index:2600 !important;
-        display:grid !important;
-        grid-template-columns:minmax(420px,1.2fr) minmax(330px,.8fr) !important;
-        gap:16px !important;
-        padding:0 !important;
-        overflow:auto !important;
-        pointer-events:auto !important;
-      }
-      body.map-active #insightDashboard.energy-index-mode.hidden-dashboard{
-        opacity:0 !important;
-        visibility:hidden !important;
-        pointer-events:none !important;
-        transform:translateY(-10px) scale(.985) !important;
-      }
-      body.map-active #insightDashboard .insight-card{
-        background:linear-gradient(145deg,#FFFDF2 0%,#F7FBE8 58%,#E8F5BD 100%) !important;
-        border:2px solid rgba(91,126,60,.30) !important;
-        color:#24331D !important;
-        box-shadow:0 28px 80px rgba(36,51,29,.28) !important;
-        overflow:auto !important;
-      }
-      body.map-active #insightDashboard,
-      body.map-active #insightDashboard *{
-        color:#24331D !important;
-        text-shadow:none !important;
-        opacity:1 !important;
-      }
-      body.map-active #insightDashboard .insight-title,
-      body.map-active #insightDashboard .energy-summary-title{
-        color:#5B7E3C !important;
-        font-size:clamp(22px,2.2vw,34px) !important;
-        line-height:1.08 !important;
-      }
-      body.map-active #insightDashboard .insight-kicker,
-      body.map-active #insightDashboard .visual-card-title small,
-      body.map-active #insightDashboard .rank-cat{
-        color:#405A30 !important;
-      }
-      body.map-active #insightDashboard .energy-summary-desc,
-      body.map-active #insightDashboard .insight-note{
-        color:#24331D !important;
-        font-size:14px !important;
-        line-height:1.6 !important;
-        max-width:100% !important;
-      }
-      body.map-active #insightDashboard .energy-summary-desc b,
-      body.map-active #insightDashboard .gauge-value,
-      body.map-active #insightDashboard .rank-dist{
-        color:#C44545 !important;
-        font-weight:950 !important;
-      }
-      body.map-active #insightDashboard .energy-mini-stat,
-      body.map-active #insightDashboard .intensity-bars-card,
-      body.map-active #insightDashboard .category-donut-card,
-      body.map-active #insightDashboard .energy-rank-card,
-      body.map-active #insightDashboard .rank-item{
-        background:rgba(255,255,255,.58) !important;
-        border:1px solid rgba(91,126,60,.22) !important;
-      }
-      body.map-active #insightDashboard .energy-mini-stat b{
-        color:#C44545 !important;
-        font-size:clamp(24px,2vw,34px) !important;
-      }
-      body.map-active #insightDashboard .rank-name{
-        color:#24331D !important;
-        font-size:13px !important;
-        line-height:1.25 !important;
-        font-weight:950 !important;
-      }
-      body.map-active #insightDashboard .rank-cat,
-      body.map-active #insightDashboard .rank-dist{
-        font-size:11px !important;
-      }
-      body.map-active #insightDashboard .bar-label{
-        font-size:12px !important;
-        font-weight:900 !important;
-      }
-      body.map-active #insightDashboard .bar-label i{
-        width:16px !important;
-        text-align:center !important;
-        color:#5B7E3C !important;
-      }
-      body.map-active #insightDashboard .bar-track{
-        height:10px !important;
-        background:rgba(91,126,60,.18) !important;
-      }
-      body.map-active #insightDashboard .insight-action,
-      body.map-active #insightDashboard .energy-action{
-        background:linear-gradient(135deg,#C44545,#A83A3A) !important;
-        color:white !important;
-        border:0 !important;
-      }
-      body.map-active #insightDashboard .insight-action *,
-      body.map-active #insightDashboard .energy-action *{
-        color:white !important;
-      }
-      body.map-active .left-panel,
-      body.map-active .top-controls{
-        max-height:calc(100% - 112px) !important;
-        overflow:auto !important;
-      }
-      body.map-active .filter-list{
-        max-height:42vh !important;
-        overflow:auto !important;
-        padding-right:4px !important;
-      }
-      body.map-active .chip-grid{
-        position:sticky !important;
-        bottom:0 !important;
-        background:linear-gradient(180deg,rgba(255,253,242,.74),#FFFDF2 42%) !important;
-        padding-top:10px !important;
-      }
-      @media (max-width:1100px){
-        body.map-active #insightDashboard.energy-index-mode{
-          top:86px !important;
-          grid-template-columns:1fr !important;
-        }
-      }
-      @media (max-width:760px){
-        body.map-active #insightDashboard.energy-index-mode{
-          top:74px !important;
-          left:10px !important;
-          right:10px !important;
-          bottom:10px !important;
-        }
-        body.map-active #insightDashboard .energy-index-hero,
-        body.map-active #insightDashboard .index-visual-row{
-          grid-template-columns:1fr !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
+  function installCss(){
+    let style = document.getElementById('ssm-insight-layer-style');
+    if(!style){
+      style = document.createElement('style');
+      style.id = 'ssm-insight-layer-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = css;
   }
 
   function closeOtherPanelsForInsight(){
-    safe(() => {
-      const isOpen = insightDashboard && !insightDashboard.classList.contains("hidden-dashboard");
-      if (!isOpen) return;
-      leftPanel?.classList.add("collapsed");
-      topControls?.classList.add("collapsed");
-      routePlanner?.classList.add("hidden-route");
-      infoPanel?.classList.add("hidden");
-      openInfoPanel?.classList.remove("hidden");
-      if (typeof syncPanelPositions === "function") syncPanelPositions();
+    safe(function(){ if(typeof topControls !== 'undefined' && topControls) topControls.classList.add('collapsed'); });
+    safe(function(){ if(typeof leftPanel !== 'undefined' && leftPanel) leftPanel.classList.add('collapsed'); });
+    safe(function(){ if(typeof routePlanner !== 'undefined' && routePlanner) routePlanner.classList.add('hidden-route'); });
+    safe(function(){ if(typeof infoPanel !== 'undefined' && infoPanel) infoPanel.classList.add('hidden'); });
+    safe(function(){ const guide = document.getElementById('mapChoiceGuide'); if(guide) guide.style.display = 'none'; });
+    safe(function(){ if(typeof syncPanelPositions === 'function') syncPanelPositions(); });
+  }
+
+  function ensureCloseButton(){
+    const dashboard = document.getElementById('insightDashboard');
+    if(!dashboard || dashboard.querySelector('.ssm-insight-close')) return;
+    const firstHead = dashboard.querySelector('.insight-main > .insight-head');
+    if(!firstHead) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ssm-insight-close';
+    btn.title = 'Tutup Insight';
+    btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    btn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      dashboard.classList.add('hidden-dashboard');
+      const toggle = document.getElementById('toggleDashboard');
+      if(toggle) toggle.classList.remove('active');
+    });
+    firstHead.appendChild(btn);
+  }
+
+  function renameInsightText(){
+    safe(function(){
+      const dashboard = document.getElementById('insightDashboard');
+      if(!dashboard) return;
+      const kicker = dashboard.querySelector('.insight-main .insight-kicker');
+      const title = dashboard.querySelector('.insight-main .insight-title');
+      const pill = dashboard.querySelector('.insight-pill');
+      const headline = document.getElementById('energyHeadline');
+      if(kicker) kicker.textContent = 'Insight WebGIS';
+      if(title) title.textContent = 'Ringkasan Fasilitas';
+      if(pill) pill.innerHTML = '<i class="fa-solid fa-file-excel"></i> Data Excel';
+      if(headline) headline.textContent = 'Kondisi Data Aktif';
+      const titles = dashboard.querySelectorAll('.visual-card-title span');
+      if(titles[0]) titles[0].textContent = 'Aktivitas Data';
+      if(titles[1]) titles[1].textContent = 'Komposisi Kategori';
+      if(titles[2]) titles[2].textContent = 'Ranking Terdekat';
+      if(titles[3]) titles[3].textContent = 'Jumlah per Kategori';
+      const sideKicker = dashboard.querySelector('.insight-side .insight-kicker');
+      const sideTitle = dashboard.querySelector('.insight-side .insight-title');
+      if(sideKicker) sideKicker.textContent = 'Akses Terdekat';
+      if(sideTitle) sideTitle.textContent = 'Lokasi Prioritas';
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    installInsightReadabilityStyle();
-    applyDataFixes();
-    setTimeout(() => { applyDataFixes(); if (typeof updateInsightDashboard === "function") updateInsightDashboard(); }, 600);
-    setTimeout(() => { applyDataFixes(); if (typeof updateInsightDashboard === "function") updateInsightDashboard(); }, 1600);
+  function openInsight(){
+    closeOtherPanelsForInsight();
+    safe(function(){ if(typeof updateInsightDashboard === 'function') updateInsightDashboard(); });
+    const dashboard = document.getElementById('insightDashboard');
+    if(dashboard){
+      dashboard.classList.remove('hidden-dashboard');
+      dashboard.scrollTop = 0;
+    }
+    const toggle = document.getElementById('toggleDashboard');
+    if(toggle) toggle.classList.add('active');
+  }
 
-    document.getElementById("toggleDashboard")?.addEventListener("click", () => {
-      setTimeout(() => { closeOtherPanelsForInsight(); if (typeof updateInsightDashboard === "function") updateInsightDashboard(); }, 60);
+  function closeInsight(){
+    const dashboard = document.getElementById('insightDashboard');
+    if(dashboard) dashboard.classList.add('hidden-dashboard');
+    const toggle = document.getElementById('toggleDashboard');
+    if(toggle) toggle.classList.remove('active');
+  }
+
+  function installEvents(){
+    const toggle = document.getElementById('toggleDashboard');
+    const dashboard = document.getElementById('insightDashboard');
+    if(!toggle || !dashboard || toggle.dataset.ssmInsightLayerBound === '1') return;
+    toggle.dataset.ssmInsightLayerBound = '1';
+    toggle.addEventListener('click', function(ev){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      dashboard.classList.contains('hidden-dashboard') ? openInsight() : closeInsight();
     }, true);
-  });
+
+    safe(function(){
+      showInsightDashboard = openInsight;
+      hideInsightDashboard = closeInsight;
+      toggleInsightDashboard = function(){
+        const d = document.getElementById('insightDashboard');
+        if(!d) return;
+        d.classList.contains('hidden-dashboard') ? openInsight() : closeInsight();
+      };
+    });
+  }
+
+  function installAll(){
+    installCss();
+    ensureCloseButton();
+    renameInsightText();
+    installEvents();
+  }
+
+  installAll();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installAll);
+  window.addEventListener('load', function(){ setTimeout(installAll, 100); setTimeout(installAll, 900); });
 })();
 </script>
 
