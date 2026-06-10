@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Map - WebGIS Student Survival Map v4</title>
+  <title>Map - WebGIS Student Survival Map v5 Emergency Fix</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -16105,6 +16105,422 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV4);
   else bootV4();
   window.addEventListener('load', function(){ setTimeout(bootV4, 600); });
+})();
+</script>
+
+<script>
+/* ===== SSM V5 FINAL PATCH: EMERGENCY ALL DATA + STRONG 24 JAM FILTER ===== */
+(function(){
+  const TAG = 'SSM V5';
+  const safe = (fn, fallback) => { try { return fn(); } catch (err) { console.warn(TAG, err); return fallback; } };
+
+  function hKey(value){
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function pick(row, keys, fallback = ''){
+    if (!row) return fallback;
+    const normalized = {};
+    Object.keys(row).forEach(function(k){ normalized[hKey(k)] = row[k]; });
+    for (const key of keys) {
+      if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') return row[key];
+      const val = normalized[hKey(key)];
+      if (val !== undefined && val !== null && String(val).trim() !== '') return val;
+    }
+    return fallback;
+  }
+
+  function clean(value, fallback = '-'){
+    if (value === undefined || value === null) return fallback;
+    const text = String(value).trim();
+    return text === '' ? fallback : text;
+  }
+
+  function normalizeMapsUrl(value){
+    const text = clean(value, '-');
+    if (text === '-') return text;
+    if (/^https?:/i.test(text)) return text.replace(/\s+/g, '').replace(/,/g, '.');
+    return text;
+  }
+
+  function toCoord(value){
+    if (value === undefined || value === null || value === '') return NaN;
+    let raw = String(value).trim().replace(/,/g, '.');
+    let num = (typeof value === 'number') ? value : Number(raw);
+    if (!Number.isFinite(num)) num = parseFloat(raw);
+    if (!Number.isFinite(num)) return NaN;
+
+    if (Math.abs(num) > 180) {
+      const sign = num < 0 ? -1 : 1;
+      let digits = Math.abs(num).toFixed(0).replace(/\D/g, '');
+      if (!digits) return NaN;
+      if (sign < 0 && /^[789]/.test(digits)) {
+        num = -Number(digits.slice(0, 1) + '.' + digits.slice(1, 16));
+      } else if (/^(109|110|111)/.test(digits)) {
+        num = Number(digits.slice(0, 3) + '.' + digits.slice(3, 16));
+      } else {
+        while (Math.abs(num) > 180) num = num / 10;
+      }
+    }
+    return num;
+  }
+
+  function is24Value(flag, jam, hari){
+    const parts = [flag, jam, hari].filter(v => v !== undefined && v !== null).map(String);
+    const text = parts.join(' ').toLowerCase().replace(/\s+/g, ' ').trim();
+    const flagText = String(flag || '').toLowerCase().trim();
+    if (/^(ya|yes|true|1|y)$/i.test(flagText)) return true;
+    if (/24\s*jam|buka\s*24|24\/7|setiap\s*hari.*24|00[\.:,]00\s*[-–—]\s*(23[\.:,]59|24[\.:,]00)/i.test(text)) return true;
+    if (/00[\.:,]00.*23[\.:,]59/i.test(text) || /00[\.:,]00.*24[\.:,]00/i.test(text)) return true;
+    return false;
+  }
+
+  function kmToCampus(place){
+    return safe(function(){
+      if (!place || typeof distanceKm !== 'function' || typeof upnLatLng === 'undefined') return Infinity;
+      const lat = Number(place.lat), lng = Number(place.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Infinity;
+      return distanceKm(upnLatLng[0], upnLatLng[1], lat, lng);
+    }, Infinity);
+  }
+
+  function textOf(place){
+    return [
+      place && place.id, place && place.name, place && place.Nama, place && place.Nama_Tempat,
+      place && place.Nama_Fasilitas_Kesehatan, place && place.Nama_Emergency,
+      place && place.Layanan, place && place.Keterangan, place && place.Harga,
+      place && place.Hari_operasional, place && place.Jam_operasional, place && place.Jam_Operasional,
+      place && place.Buka_24_jam, place && place.Alamat_lengkap, place && place.No_Telepon,
+      place && place.Rating, place && place.Dokumentasi
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function isOpen24Strong(place){
+    if (!place) return false;
+    if (place.open24 === true) return true;
+    return is24Value(place.Buka_24_jam, place.Jam_operasional || place.Jam_Operasional || place.open, place.Hari_operasional);
+  }
+
+  function cheapStudent(place){
+    if (!place) return false;
+    if (place.cheap === true) return true;
+    const t = textOf(place);
+    const harga = String(place.Harga || place.price || place.Keterangan || '').toLowerCase();
+    const nums = (harga.match(/\d+[\d\.,]*/g) || [])
+      .map(v => Number(v.replace(/\./g, '').replace(',', '.')))
+      .filter(Number.isFinite);
+    if (place.category === 'rumah_makan') return nums.some(v => v <= 25000) || /murah|hemat|terjangkau|mulai/.test(t);
+    if (place.category === 'print_fotocopy') return /200|300|400|500|1000|murah|terjangkau|mulai/.test(t);
+    if (place.category === 'kost') return nums.some(v => v >= 300000 && v <= 1500000) || /murah|hemat|terjangkau/.test(t);
+    if (place.category === 'laundry') return nums.some(v => v <= 15000) || /murah|hemat|terjangkau|kiloan/.test(t);
+    return /murah|hemat|terjangkau|gratis|mulai/.test(t);
+  }
+
+  function normalizeEveryPlace(){
+    safe(function(){
+      if (!Array.isArray(places)) return;
+      places.forEach(function(p){
+        if (!p) return;
+        p.id = clean(p.id || p.Id || p.ID || p.Dokumentasi, p.id || '-').replace(/\.(jpg|jpeg|png|webp)$/i, '');
+        p.name = clean(p.name || p.Nama || p.Nama_Tempat || p.Nama_Emergency || p.Nama_Fasilitas_Kesehatan, p.name || '-');
+        p.Nama = clean(p.Nama || p.name, p.name || '-');
+        p.Nama_Tempat = clean(p.Nama_Tempat || p.Nama || p.name, p.name || '-');
+        p.Jam_operasional = clean(p.Jam_operasional || p.Jam_Operasional || p.open, '-');
+        p.Hari_operasional = clean(p.Hari_operasional || p.Hari_Operasional, '-');
+        p.Buka_24_jam = clean(p.Buka_24_jam || p.Buka24Jam || p.Buka_24_Jam, is24Value('', p.Jam_operasional, p.Hari_operasional) ? 'Ya' : 'Tidak');
+        p.No_Telepon = clean(p.No_Telepon || p.NoTelepon || p.Nomor_Kontak || p.contact, '-');
+        p.Link_google_maps = normalizeMapsUrl(p.Link_google_maps || p.Link_Google_Maps || p.maps);
+        p.maps = p.Link_google_maps;
+        p.Latitude = p.lat = toCoord(p.lat !== undefined ? p.lat : p.Latitude);
+        p.Longitude = p.lng = toCoord(p.lng !== undefined ? p.lng : p.Longitude);
+        p.open24 = isOpen24Strong(p);
+        p.cheap = cheapStudent(p);
+        p.distanceMeters = Math.round(kmToCampus(p) * 1000);
+        p.nearCampus = Number.isFinite(p.distanceMeters) && p.distanceMeters <= 1000;
+      });
+      places = places.filter(function(p){
+        return p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)) && Math.abs(Number(p.lat)) <= 90 && Math.abs(Number(p.lng)) <= 180;
+      });
+      window.places = places;
+      console.info(TAG + ' normalized counts:', places.reduce(function(acc,p){ acc[p.category]=(acc[p.category]||0)+1; return acc; }, {}));
+      console.info(TAG + ' 24 jam counts:', places.reduce(function(acc,p){ if(p.open24) acc[p.category]=(acc[p.category]||0)+1; return acc; }, {}));
+    });
+  }
+
+  function buildEmergency(row, index){
+    const fallback = 'E' + String(index + 1).padStart(3, '0');
+    const id = clean(pick(row, ['Id','ID','id','Kode','Dokumentasi'], fallback), fallback)
+      .replace(/^images[\\/]/i, '')
+      .replace(/[,.](jpg|jpeg|png|webp)$/i, '')
+      .toUpperCase();
+    const nama = clean(pick(row, ['Nama_Tempat','Nama Tempat','Nama_Emergency','Nama Emergency','Nama','Layanan'], 'Emergency ' + id), 'Emergency ' + id);
+    const layanan = clean(pick(row, ['Layanan','Keterangan','Harga'], 'Fasilitas Darurat/Emergency'), 'Fasilitas Darurat/Emergency');
+    const hari = clean(pick(row, ['Hari_operasional','Hari Operasional','Hari'], 'Senin-Minggu'), 'Senin-Minggu');
+    const jam = clean(pick(row, ['Jam_operasional','Jam_Operasional','Jam Operasional','Jam'], 'Buka 24 Jam'), 'Buka 24 Jam');
+    const buka = clean(pick(row, ['Buka_24_jam','Buka 24 jam','Buka_24_Jam','24 Jam'], is24Value('', jam, hari) ? 'Ya' : 'Tidak'), 'Tidak');
+    const alamat = clean(pick(row, ['Alamat_lengkap','Alamat Lengkap','Alamat','Lokasi'], '-'), '-');
+    const telepon = clean(pick(row, ['No,Telepon','No.Telepon','No_Telepon','No Telepon','Nomor_Kontak','Telepon'], '-'), '-');
+    const lat = toCoord(pick(row, ['Latitude','latitude','Lat']));
+    const lng = toCoord(pick(row, ['Longitude','longitude','Lng','Long']));
+    const rating = clean(pick(row, ['Rating','Ulasan','Review'], '-'), '-');
+    const maps = normalizeMapsUrl(pick(row, ['Link_google_maps','Link Google Maps','Link_Google Maps','Maps'], '-'));
+    const dokumentasi = clean(pick(row, ['Dokumentasi','images','Foto'], id), id);
+    const harga = clean(pick(row, ['Harga','Biaya'], '-'), '-');
+    return {
+      id, category:'emergency', name:nama, Nama:nama, Nama_Tempat:nama, Nama_Emergency:nama,
+      Layanan:layanan, Keterangan:layanan, Harga:harga,
+      Hari_operasional:hari, Jam_operasional:jam, Buka_24_jam:buka,
+      Alamat_lengkap:alamat, No_Telepon:telepon,
+      Latitude:lat, Longitude:lng, lat:lat, lng:lng,
+      Rating:rating, Link_google_maps:maps, maps:maps,
+      Dokumentasi:dokumentasi, image: (typeof getImagePath === 'function' ? getImagePath('emergency', dokumentasi, id) : ''),
+      price: harga === '-' ? layanan : harga, address:alamat, contact:telepon, open: jam,
+      open24:is24Value(buka, jam, hari), cheap:false, detailLabel:'Detail Emergency'
+    };
+  }
+
+  function buildFaskes(row, index){
+    const fallback = 'FK' + String(index + 1).padStart(3, '0');
+    const id = clean(pick(row, ['Id','ID','id','Kode','Dokumentasi'], fallback), fallback)
+      .replace(/^images[\\/]/i, '')
+      .replace(/[,.](jpg|jpeg|png|webp)$/i, '')
+      .toUpperCase();
+    const nama = clean(pick(row, ['Nama_Tempat','Nama Tempat','Nama_Fasilitas_Kesehatan','Nama Fasilitas Kesehatan','Nama','Nama Fasilitas'], 'Fasilitas Kesehatan ' + id), 'Fasilitas Kesehatan ' + id);
+    const layanan = clean(pick(row, ['Layanan','Keterangan','Jenis_Layanan','Jenis Layanan','Kategori'], 'Fasilitas kesehatan'), 'Fasilitas kesehatan');
+    const hari = clean(pick(row, ['Hari_operasional','Hari Operasional','Hari'], '-'), '-');
+    const jam = clean(pick(row, ['Jam_operasional','Jam_Operasional','Jam Operasional','Jam'], '-'), '-');
+    const buka = clean(pick(row, ['Buka_24_jam','Buka 24 jam','Buka_24_Jam','24 Jam'], is24Value('', jam, hari) ? 'Ya' : 'Tidak'), 'Tidak');
+    const alamat = clean(pick(row, ['Alamat_lengkap','Alamat Lengkap','Alamat','Lokasi'], '-'), '-');
+    const telepon = clean(pick(row, ['No,Telepon','No.Telepon','No_Telepon','No Telepon','Nomor_Kontak','Telepon'], '-'), '-');
+    const lat = toCoord(pick(row, ['Latitude','latitude','Lat']));
+    const lng = toCoord(pick(row, ['Longitude','longitude','Lng','Long']));
+    const rating = clean(pick(row, ['Rating','Ulasan','Review'], '-'), '-');
+    const maps = normalizeMapsUrl(pick(row, ['Link_google_maps','Link Google Maps','Link_Google Maps','Maps'], '-'));
+    const dokumentasi = clean(pick(row, ['Dokumentasi','images','Foto'], id), id);
+    return {
+      id, category:'fasilitas_kesehatan', name:nama, Nama:nama, Nama_Tempat:nama, Nama_Fasilitas_Kesehatan:nama,
+      Layanan:layanan, Keterangan:layanan, Harga:'-',
+      Hari_operasional:hari, Jam_operasional:jam, Buka_24_jam:buka,
+      Alamat_lengkap:alamat, No_Telepon:telepon,
+      Latitude:lat, Longitude:lng, lat:lat, lng:lng,
+      Rating:rating, Link_google_maps:maps, maps:maps,
+      Dokumentasi:dokumentasi, image: (typeof getImagePath === 'function' ? getImagePath('fasilitas_kesehatan', dokumentasi, id) : ''),
+      price: layanan, address:alamat, contact:telepon, open: hari + ', ' + jam,
+      open24:is24Value(buka, jam, hari), cheap:false, detailLabel:'Detail Fasilitas Kesehatan'
+    };
+  }
+
+  function patchCoreFunctions(){
+    safe(function(){ window.normalizeHeaderKey = normalizeHeaderKey = hKey; });
+    safe(function(){ window.getCell = getCell = pick; });
+    safe(function(){ window.parseCoordinate = parseCoordinate = toCoord; });
+    safe(function(){ window.isOpen24 = isOpen24 = is24Value; });
+    safe(function(){ window.normalizeEmergency = normalizeEmergency = buildEmergency; });
+    safe(function(){ window.normalizeFasilitasKesehatan = normalizeFasilitasKesehatan = buildFaskes; });
+
+    safe(function(){
+      window.readExcel = readExcel = async function(filePath){
+        const joiner = filePath.indexOf('?') >= 0 ? '&' : '?';
+        const response = await fetch(filePath + joiner + 'v=ssm-v5-' + Date.now(), { cache:'no-store' });
+        if (!response.ok) throw new Error('File tidak ditemukan: ' + filePath);
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type:'array', cellDates:false });
+        return workbook.SheetNames.flatMap(function(sheetName){
+          const sheet = workbook.Sheets[sheetName];
+          return XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false }).map(function(row){ return Object.assign({_sheetName:sheetName}, row); });
+        }).filter(function(row){
+          return Object.keys(row).some(function(k){ return k !== '_sheetName' && String(row[k] || '').trim() !== ''; });
+        });
+      };
+    });
+
+    safe(function(){
+      window.getOpenStatus = getOpenStatus = function(place){
+        if (isOpen24Strong(place)) return { isOpen:true, text:'Masih Buka', icon:'🟢' };
+        const now = new Date();
+        const current = now.getHours() * 60 + now.getMinutes();
+        const jam = String((place && (place.Jam_operasional || place.Jam_Operasional || place.open)) || '').toLowerCase().replace(/,/g, '.');
+        const times = jam.match(/\d{1,2}[\.:]\d{2}/g);
+        if (!times || times.length < 2) return { isOpen:null, text:'Jam tidak terbaca', icon:'⚪' };
+        function minutes(t){ const m = String(t).match(/(\d{1,2})[\.:](\d{2})/); return m ? (parseInt(m[1],10) * 60 + parseInt(m[2],10)) : null; }
+        const open = minutes(times[0]);
+        const close = minutes(times[1]);
+        if (open === null || close === null) return { isOpen:null, text:'Jam tidak terbaca', icon:'⚪' };
+        const ok = open <= close ? (current >= open && current <= close) : (current >= open || current <= close);
+        return { isOpen:ok, text: ok ? 'Masih Buka' : 'Sudah Tutup', icon: ok ? '🟢' : '🔴' };
+      };
+    });
+
+    safe(function(){
+      const originalCreate = (typeof createIcon === 'function') ? createIcon : null;
+      if (typeof categories !== 'undefined' && categories.emergency) {
+        categories.emergency.color = '#ff1744';
+        categories.emergency.icon = 'fa-solid fa-triangle-exclamation';
+      }
+      window.createIcon = createIcon = function(category){
+        if (category === 'emergency') {
+          return L.divIcon({
+            className:'custom-div-icon ssm-emergency-div-icon',
+            html:'<div class="marker-wrap marker-emergency ssm-emergency-pin"><i class="fa-solid fa-triangle-exclamation"></i></div>',
+            iconSize:[52,60], iconAnchor:[26,54], popupAnchor:[0,-46]
+          });
+        }
+        if (originalCreate) return originalCreate(category);
+        return L.divIcon({ className:'custom-div-icon', html:'<div class="marker-wrap"><i class="fa-solid fa-location-dot"></i></div>', iconSize:[46,54], iconAnchor:[23,48], popupAnchor:[0,-40] });
+      };
+    });
+
+    safe(function(){
+      window.filteredPlaces = filteredPlaces = function(){
+        normalizeEveryPlace();
+        const list = Array.isArray(places) ? places : [];
+        return list.filter(function(place){
+          if (!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+          const hay = textOf(place);
+          const search = String((state && state.search) || '').trim().toLowerCase();
+          const matchSearch = !search || hay.includes(search);
+          let matchCategory = false;
+          if (state && state.emergencyOnly) matchCategory = place.category === 'emergency';
+          else if (state && state.categories && state.categories.size > 0) matchCategory = state.categories.has(place.category);
+          else if (state && (state.cheap || state.open24 || state.nearCampus || state.search)) matchCategory = true;
+          else matchCategory = false;
+          const matchCheap = !(state && state.cheap) || cheapStudent(place);
+          const match24 = !(state && state.open24) || isOpen24Strong(place);
+          const matchNear = !(state && state.nearCampus) || kmToCampus(place) <= 1;
+          return matchSearch && matchCategory && matchCheap && match24 && matchNear;
+        });
+      };
+    });
+
+    safe(function(){
+      window.renderMarkers = renderMarkers = function(){
+        normalizeEveryPlace();
+        if (typeof layers !== 'undefined') {
+          Object.values(layers).forEach(function(layer){ if (layer && typeof layer.clearLayers === 'function') layer.clearLayers(); });
+        }
+        const visible = (typeof filteredPlaces === 'function') ? filteredPlaces() : [];
+        visible.forEach(function(place){
+          if (!layers[place.category]) layers[place.category] = L.layerGroup().addTo(map);
+          const status = (typeof getOpenStatus === 'function') ? getOpenStatus(place) : {text:'-', icon:''};
+          const marker = L.marker([place.lat, place.lng], { icon:createIcon(place.category), zIndexOffset: place.category === 'emergency' ? 3000 : 0 })
+            .bindPopup(buildMarkerPopup(place, status), { maxWidth:360, minWidth:300, closeButton:true, autoPanPadding:[24,24], className:'student-popup' })
+            .on('click', function(e){
+              if (typeof setDestinationPlace === 'function') setDestinationPlace(place, true);
+              if (map) map.setView([place.lat, place.lng], Math.max(map.getZoom(), 16), { animate:false });
+              e.target.openPopup();
+            });
+          layers[place.category].addLayer(marker);
+        });
+        const countEl = document.getElementById('emergencyCount');
+        if (countEl) countEl.textContent = String((places || []).filter(p => p.category === 'emergency').length);
+        safe(function(){ if (typeof updateInsightDashboard === 'function') updateInsightDashboard(); });
+        safe(function(){ if (typeof restartDashboardMotion === 'function') setTimeout(restartDashboardMotion, 120); });
+        const guide = document.getElementById('mapChoiceGuide');
+        if (guide && state && (state.categories.size > 0 || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search)) guide.style.display = 'none';
+      };
+    });
+
+    safe(function(){
+      window.updateRadiusCircle = updateRadiusCircle = function(){
+        if (!map || typeof L === 'undefined') return;
+        const near = !!(state && state.nearCampus);
+        if (radiusCircle) map.removeLayer(radiusCircle);
+        radiusCircle = L.circle(upnLatLng, {
+          radius: near ? 1000 : 5000,
+          color: near ? '#ff1744' : '#5B7E3C',
+          weight: near ? 3 : 2,
+          fillColor: near ? '#ff1744' : '#5B7E3C',
+          fillOpacity: near ? 0.14 : 0.08
+        }).addTo(map);
+        if (legendText) legendText.textContent = near ? 'Dekat Kampus aktif: radius 1 km dari Rektorat UPN' : 'Radius referensi: 5 km dari Rektorat UPN';
+      };
+    });
+  }
+
+  async function forceReloadData(){
+    if (window.__ssmV5Loading) return;
+    if (typeof readFirstExistingExcel !== 'function' || typeof map === 'undefined' || !map) return;
+    window.__ssmV5Loading = true;
+    try {
+      const result = await Promise.all([
+        readFirstExistingExcel('kost'), readFirstExistingExcel('rumah_makan'), readFirstExistingExcel('laundry'), readFirstExistingExcel('minimarket'),
+        readFirstExistingExcel('atm'), readFirstExistingExcel('print_fotocopy'), readFirstExistingExcel('fasilitas_kesehatan'), readFirstExistingExcel('emergency')
+      ]);
+      const [kostRows, rmRows, laundryRows, miniRows, atmRows, printRows, faskesRows, emergencyRows] = result;
+      const valid = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+      places = [
+        ...kostRows.map(normalizeKost),
+        ...rmRows.map(normalizeRumahMakan),
+        ...laundryRows.map(normalizeLaundry),
+        ...miniRows.map(normalizeMinimarket),
+        ...atmRows.map(normalizeATM),
+        ...printRows.map(normalizePrintFotocopy),
+        ...faskesRows.map(buildFaskes),
+        ...emergencyRows.map(buildEmergency)
+      ].filter(valid);
+      window.places = places;
+      normalizeEveryPlace();
+      safe(function(){ if (typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+      safe(function(){ if (typeof renderFilterList === 'function') renderFilterList(); });
+      safe(function(){ if (typeof syncChips === 'function') syncChips(); });
+      safe(function(){ if (typeof updateRadiusCircle === 'function') updateRadiusCircle(); });
+      safe(function(){ if (typeof renderMarkers === 'function') renderMarkers(); });
+      safe(function(){ if (typeof updateInsightDashboard === 'function') updateInsightDashboard(); });
+      console.info(TAG + ' force reload done. Emergency:', places.filter(p => p.category === 'emergency').length, 'Faskes 24 jam:', places.filter(p => p.category === 'fasilitas_kesehatan' && p.open24).length, 'All 24 jam:', places.filter(p => p.open24).length);
+    } finally {
+      window.__ssmV5Loading = false;
+    }
+  }
+
+  function injectStyle(){
+    if (document.getElementById('ssm-v5-style')) return;
+    const style = document.createElement('style');
+    style.id = 'ssm-v5-style';
+    style.textContent = `
+      .marker-wrap.marker-emergency,
+      .ssm-emergency-pin{
+        background: linear-gradient(145deg, #ff1744, #b00020) !important;
+        color: #ffffff !important;
+        border: 4px solid #fff6a5 !important;
+        box-shadow: 0 0 0 5px rgba(255,23,68,.45), 0 14px 30px rgba(0,0,0,.42) !important;
+        transform: scale(1.12) !important;
+      }
+      .marker-wrap.marker-emergency::after,
+      .ssm-emergency-pin::after{
+        border-top-color:#b00020 !important;
+        filter: drop-shadow(0 4px 3px rgba(0,0,0,.38));
+      }
+      .marker-wrap.marker-emergency i,
+      .ssm-emergency-pin i{
+        color:#fff6a5 !important;
+        font-size:22px !important;
+        text-shadow:0 2px 4px rgba(0,0,0,.45);
+      }
+      .cat-icon[style*="255, 23, 68"], .filter-item[data-category="emergency"] .cat-icon{
+        background:#ff1744 !important;
+        color:#fff6a5 !important;
+        box-shadow:0 0 0 3px rgba(255,23,68,.22);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function bootV5(){
+    injectStyle();
+    patchCoreFunctions();
+    normalizeEveryPlace();
+    safe(function(){ if (typeof renderFilterList === 'function') renderFilterList(); });
+    safe(function(){ if (typeof updateRadiusCircle === 'function') updateRadiusCircle(); });
+    safe(function(){ if (typeof renderMarkers === 'function') renderMarkers(); });
+    forceReloadData();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV5);
+  else bootV5();
+  window.addEventListener('load', function(){ setTimeout(bootV5, 400); });
+  setTimeout(bootV5, 1200);
+  setTimeout(bootV5, 2600);
+  setTimeout(bootV5, 4500);
 })();
 </script>
 
