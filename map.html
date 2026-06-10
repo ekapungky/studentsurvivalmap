@@ -16808,5 +16808,190 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<script id="chatgpt-insight-nocut-layer-fix">
+/* =========================================================
+   CHATGPT PATCH - INSIGHT TIDAK KEPOTONG
+   Insight tetap berbentuk layer seperti Filter, tetapi tinggi panel
+   memakai top+bottom fixed dan isi panel scroll mandiri.
+========================================================= */
+(function(){
+  const CSS = `
+    body.map-active #insightDashboard,
+    body.map-active #insightDashboard.energy-index-mode{
+      position:fixed !important;
+      top:92px !important;
+      left:16px !important;
+      right:auto !important;
+      bottom:16px !important;
+      width:min(402px, calc(100vw - 32px)) !important;
+      max-width:min(402px, calc(100vw - 32px)) !important;
+      height:auto !important;
+      min-height:0 !important;
+      max-height:none !important;
+      display:flex !important;
+      flex-direction:column !important;
+      grid-template-columns:none !important;
+      gap:0 !important;
+      padding:0 !important;
+      overflow:hidden !important;
+      border-radius:26px !important;
+      background:linear-gradient(145deg,#FFFDF2,#E8F5BD) !important;
+      color:#24331D !important;
+      border:1px solid rgba(91,126,60,.28) !important;
+      box-shadow:0 26px 64px rgba(36,51,29,.28) !important;
+      backdrop-filter:blur(18px) saturate(1.12) !important;
+      -webkit-backdrop-filter:blur(18px) saturate(1.12) !important;
+      z-index:2600 !important;
+      transform:none !important;
+      opacity:1 !important;
+      pointer-events:auto !important;
+    }
+
+    body.map-active #insightDashboard.hidden-dashboard,
+    body.map-active #insightDashboard.energy-index-mode.hidden-dashboard,
+    #insightDashboard.hidden-dashboard{
+      display:none !important;
+      opacity:0 !important;
+      visibility:hidden !important;
+      pointer-events:none !important;
+    }
+
+    #insightDashboard .insight-layer-head{
+      flex:0 0 auto !important;
+      position:relative !important;
+      top:auto !important;
+      min-height:68px !important;
+      padding:15px 16px 12px !important;
+      background:linear-gradient(180deg,#FFFDF2 0%,#FFFDF2 78%,rgba(255,253,242,.88) 100%) !important;
+      border-bottom:1px solid rgba(91,126,60,.20) !important;
+      z-index:2 !important;
+    }
+
+    #insightDashboard .insight-layer-body{
+      flex:1 1 auto !important;
+      min-height:0 !important;
+      max-height:none !important;
+      height:auto !important;
+      overflow-y:auto !important;
+      overflow-x:hidden !important;
+      padding:14px 16px 22px !important;
+      overscroll-behavior:contain !important;
+      -webkit-overflow-scrolling:touch !important;
+      scroll-padding-bottom:22px !important;
+    }
+
+    #insightDashboard .insight-layer-body::-webkit-scrollbar{
+      width:8px !important;
+    }
+
+    #insightDashboard .insight-layer-body::-webkit-scrollbar-track{
+      background:rgba(91,126,60,.10) !important;
+      border-radius:999px !important;
+    }
+
+    #insightDashboard .insight-layer-body::-webkit-scrollbar-thumb{
+      background:rgba(91,126,60,.44) !important;
+      border-radius:999px !important;
+      border:2px solid rgba(255,253,242,.90) !important;
+    }
+
+    #insightDashboard .insight-section,
+    #insightDashboard .insight-note-box,
+    #insightDashboard .insight-mini-metrics,
+    #insightDashboard .insight-actions{
+      flex-shrink:0 !important;
+    }
+
+    #insightDashboard .insight-section:last-of-type,
+    #insightDashboard .insight-note-box:last-of-type,
+    #insightDashboard .insight-actions:last-child{
+      margin-bottom:4px !important;
+    }
+
+    #insightDashboard .insight-row-name,
+    #insightDashboard .insight-row-sub{
+      max-width:100% !important;
+    }
+
+    #insightDashboard .insight-actions{
+      position:sticky !important;
+      bottom:-22px !important;
+      z-index:2 !important;
+      padding-top:10px !important;
+      padding-bottom:4px !important;
+      background:linear-gradient(180deg,rgba(232,245,189,0),#E8F5BD 32%,#E8F5BD 100%) !important;
+    }
+
+    body.map-active .leaflet-control-container{
+      z-index:700 !important;
+    }
+
+    @media(max-width:900px){
+      body.map-active #insightDashboard,
+      body.map-active #insightDashboard.energy-index-mode{
+        top:86px !important;
+        left:10px !important;
+        right:10px !important;
+        bottom:12px !important;
+        width:auto !important;
+        max-width:none !important;
+        border-radius:22px !important;
+      }
+      #insightDashboard .insight-layer-head{
+        min-height:64px !important;
+        padding:13px 14px 10px !important;
+      }
+      #insightDashboard .insight-layer-body{
+        padding:12px 14px 20px !important;
+      }
+      #insightDashboard .insight-mini-metrics{
+        grid-template-columns:1fr 1fr !important;
+      }
+    }
+
+    @media(max-width:480px){
+      body.map-active #insightDashboard,
+      body.map-active #insightDashboard.energy-index-mode{
+        top:82px !important;
+        left:8px !important;
+        right:8px !important;
+        bottom:10px !important;
+      }
+      #insightDashboard .insight-mini-metrics,
+      #insightDashboard .insight-actions{
+        grid-template-columns:1fr !important;
+      }
+      #insightDashboard .insight-layer-title h3{
+        font-size:18px !important;
+      }
+      #insightDashboard .insight-layer-title p{
+        font-size:10px !important;
+      }
+    }
+  `;
+
+  function injectInsightNoCutCSS(){
+    const old = document.getElementById('chatgpt-insight-nocut-style');
+    if (old) old.remove();
+    const style = document.createElement('style');
+    style.id = 'chatgpt-insight-nocut-style';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+
+  injectInsightNoCutCSS();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectInsightNoCutCSS);
+  }
+  window.addEventListener('load', () => {
+    injectInsightNoCutCSS();
+    setTimeout(injectInsightNoCutCSS, 800);
+    setTimeout(injectInsightNoCutCSS, 2200);
+  });
+})();
+</script>
+
 </body>
 </html>
