@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Map - WebGIS Student Survival Map v5 Emergency Fix</title>
+  <title>Map - WebGIS Student Survival Map</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -12193,27 +12193,8 @@ function getDisplayName(place) {
 }
 
   function parseCoordinate(value) {
-    if (value === null || value === undefined || value === "") return NaN;
-    let raw = String(value).trim().replace(/,/g, ".");
-    let num = typeof value === "number" ? value : Number(raw);
-    if (!Number.isFinite(num)) num = parseFloat(raw);
-    if (!Number.isFinite(num)) return NaN;
-
-    // Fix Excel coordinates whose decimal point was removed or converted to scientific notation.
-    // Examples: -7783425284431660 -> -7.78342528443166,
-    // 1.10402946613882E+16 -> 110.402946613882.
-    if (Math.abs(num) > 180) {
-      const sign = num < 0 ? -1 : 1;
-      let digits = Math.abs(num).toFixed(0).replace(/\D/g, "");
-      if (sign < 0 && /^[789]/.test(digits)) {
-        num = -Number(digits.slice(0, 1) + "." + digits.slice(1, 16));
-      } else if (/^(109|110|111)/.test(digits)) {
-        num = Number(digits.slice(0, 3) + "." + digits.slice(3, 16));
-      } else {
-        while (Math.abs(num) > 180) num = num / 10;
-      }
-    }
-    return num;
+    if (typeof value === "number") return value;
+    return parseFloat(String(value || "").replace(",", "."));
   }
 
   const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg", "avif", "bmp", "tif", "tiff"];
@@ -15920,607 +15901,803 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 
-<script>
-/* ===== V4 FIX: ALL EMERGENCY DATA + NEAR CAMPUS ONLY WHEN ACTIVE ===== */
+<!-- =========================================================
+     CHATGPT REVISION PATCH V3 - STUDENT SURVIVAL MAP
+     Fokus revisi:
+     1. Guide kategori tidak muncul ulang setelah user memilih fitur.
+     2. Insight diganti menjadi layer kiri scrollable seperti Filter.
+     3. Emergency dibuat jauh lebih kontras.
+     4. Panel rute punya tombol close.
+     5. Tombol Pilih Lokasi di popup langsung menjadi tujuan rute.
+     6. Panduan user diperbarui step-by-step.
+     7. Murah dibaca dari harga/keterangan Excel dengan ambang mahasiswa.
+     8. Dekat kampus memakai radius <= 1 km dan menampilkan lingkar radius.
+     9. Lokasi Saya memakai geolocation, marker asal, dan bisa dipakai rute.
+========================================================= -->
+<style id="ssm-v3-css">
+  body.map-active .map-shell{position:relative !important;overflow:hidden !important;}
+
+  /* Panel Filter: dibuat stabil dan scrollable supaya tidak nabrak saat discroll */
+  body.map-active #leftPanel{
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+    max-height:calc(100vh - 132px) !important;
+    min-height:0 !important;
+  }
+  body.map-active #leftPanel .filter-list{
+    flex:1 1 auto !important;
+    overflow-y:auto !important;
+    overscroll-behavior:contain !important;
+    padding-right:4px !important;
+    min-height:120px !important;
+    max-height:none !important;
+  }
+  body.map-active #leftPanel .chip-grid,
+  body.map-active #leftPanel #resetBtn{
+    flex:0 0 auto !important;
+  }
+
+  /* Insight V3: layer kiri seperti filter, tidak kepotong, isi bisa discroll */
+  body.map-active #ssmInsightLayer{
+    position:absolute !important;
+    top:72px !important;
+    left:14px !important;
+    bottom:14px !important;
+    width:min(390px, calc(100vw - 28px)) !important;
+    z-index:1850 !important;
+    background:linear-gradient(180deg, rgba(255,253,242,.98), rgba(247,251,232,.98)) !important;
+    border:1px solid rgba(91,126,60,.28) !important;
+    border-radius:24px !important;
+    box-shadow:0 24px 68px rgba(36,51,29,.24) !important;
+    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+    color:#24331D !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transform:translateX(-14px) scale(.98) !important;
+    transition:opacity .22s ease, transform .22s ease !important;
+    backdrop-filter:blur(16px) saturate(1.12) !important;
+    -webkit-backdrop-filter:blur(16px) saturate(1.12) !important;
+  }
+  body.map-active #ssmInsightLayer.active{
+    opacity:1 !important;
+    pointer-events:auto !important;
+    transform:translateX(0) scale(1) !important;
+  }
+  .ssm-layer-head{
+    flex:0 0 auto !important;
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+    padding:16px 16px 12px !important;
+    border-bottom:1px solid rgba(91,126,60,.18) !important;
+    background:linear-gradient(135deg, rgba(232,245,189,.82), rgba(255,253,242,.92)) !important;
+  }
+  .ssm-layer-kicker{font-size:11px !important;font-weight:900 !important;letter-spacing:.12em !important;text-transform:uppercase !important;color:#C44545 !important;margin-bottom:4px !important;}
+  .ssm-layer-title{font-size:20px !important;font-weight:900 !important;color:#24331D !important;line-height:1.1 !important;}
+  .ssm-layer-desc{font-size:12px !important;color:#50633e !important;margin-top:5px !important;line-height:1.35 !important;}
+  .ssm-layer-close,.ssm-route-close{
+    border:none !important;
+    background:#C44545 !important;
+    color:#fff !important;
+    width:34px !important;
+    height:34px !important;
+    border-radius:999px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    cursor:pointer !important;
+    box-shadow:0 10px 24px rgba(196,69,69,.22) !important;
+    font-weight:900 !important;
+  }
+  .ssm-layer-body{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    overflow-y:auto !important;
+    overscroll-behavior:contain !important;
+    padding:14px 16px 18px !important;
+  }
+  .ssm-insight-grid{display:grid !important;grid-template-columns:1fr 1fr !important;gap:10px !important;margin-bottom:12px !important;}
+  .ssm-stat-card{
+    background:#fff !important;
+    border:1px solid rgba(91,126,60,.16) !important;
+    border-radius:18px !important;
+    padding:12px !important;
+    box-shadow:0 8px 20px rgba(36,51,29,.08) !important;
+  }
+  .ssm-stat-card b{display:block !important;font-size:22px !important;line-height:1 !important;color:#5B7E3C !important;margin-bottom:4px !important;}
+  .ssm-stat-card span{font-size:11px !important;font-weight:800 !important;color:#5f704d !important;line-height:1.25 !important;display:block !important;}
+  .ssm-section{background:#fff !important;border:1px solid rgba(91,126,60,.15) !important;border-radius:18px !important;padding:13px !important;margin-bottom:12px !important;box-shadow:0 8px 20px rgba(36,51,29,.07) !important;}
+  .ssm-section h4{font-size:14px !important;font-weight:900 !important;color:#24331D !important;margin:0 0 10px !important;display:flex !important;align-items:center !important;gap:7px !important;}
+  .ssm-row{display:flex !important;align-items:center !important;justify-content:space-between !important;gap:10px !important;padding:9px 0 !important;border-top:1px dashed rgba(91,126,60,.18) !important;}
+  .ssm-row:first-of-type{border-top:none !important;}
+  .ssm-row-main{min-width:0 !important;}
+  .ssm-row-title{font-size:13px !important;font-weight:900 !important;color:#24331D !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;max-width:235px !important;}
+  .ssm-row-sub{font-size:11px !important;color:#647452 !important;margin-top:2px !important;line-height:1.35 !important;}
+  .ssm-badge{font-size:11px !important;font-weight:900 !important;padding:6px 8px !important;border-radius:999px !important;background:#E8F5BD !important;color:#24331D !important;white-space:nowrap !important;}
+  .ssm-badge.danger{background:#ff1744 !important;color:#fff !important;}
+  .ssm-progress{height:9px !important;background:#EEF5D4 !important;border-radius:999px !important;overflow:hidden !important;margin-top:6px !important;}
+  .ssm-progress span{display:block !important;height:100% !important;border-radius:999px !important;background:linear-gradient(90deg,#5B7E3C,#A2CB8B) !important;}
+  .ssm-insight-actions{display:grid !important;grid-template-columns:1fr 1fr !important;gap:10px !important;margin-top:10px !important;}
+  .ssm-action{border:none !important;border-radius:15px !important;padding:11px 10px !important;font-weight:900 !important;cursor:pointer !important;background:#5B7E3C !important;color:#fff !important;box-shadow:0 10px 22px rgba(91,126,60,.18) !important;}
+  .ssm-action.secondary{background:#E8F5BD !important;color:#24331D !important;border:1px solid rgba(91,126,60,.18) !important;box-shadow:none !important;}
+
+  /* Emergency dibuat kontras: pin, chip, filter icon, legend */
+  .marker-wrap.marker-emergency,
+  body.map-active .marker-wrap.marker-emergency{
+    background:linear-gradient(135deg,#ff1744 0%, #b00020 100%) !important;
+    color:#ffffff !important;
+    border:3px solid #ffffff !important;
+    box-shadow:0 0 0 4px rgba(255,23,68,.24),0 14px 28px rgba(176,0,32,.42) !important;
+  }
+  .marker-wrap.marker-emergency i,
+  .marker-wrap.marker-emergency svg{color:#fff !important;fill:#fff !important;text-shadow:0 2px 6px rgba(0,0,0,.55) !important;}
+  .filter-item[data-category="emergency"] .cat-icon,
+  .chip.emergency,
+  .legend-dot.emergency,
+  .dot.emergency{
+    background:linear-gradient(135deg,#ff1744,#b00020) !important;
+    color:#fff !important;
+    border:2px solid rgba(255,255,255,.85) !important;
+    box-shadow:0 8px 20px rgba(255,23,68,.30) !important;
+  }
+  .chip.emergency *, .filter-item[data-category="emergency"] .cat-icon *{color:#fff !important;}
+
+  /* Popup pilih lokasi sebagai tombol nyata */
+  .map-popup-btn.ssm-pilih-lokasi{
+    border:none !important;
+    cursor:pointer !important;
+    text-decoration:none !important;
+    width:100% !important;
+  }
+
+  /* Route planner punya close dan scroll */
+  body.map-active #routePlanner{
+    max-height:min(62vh, 520px) !important;
+    overflow-y:auto !important;
+    padding-top:44px !important;
+  }
+  #routePlanner .ssm-route-close{
+    position:absolute !important;
+    right:12px !important;
+    top:10px !important;
+    z-index:5 !important;
+  }
+  #routePlanner::before{
+    content:'Panel Rute' !important;
+    position:absolute !important;
+    left:16px !important;
+    top:16px !important;
+    color:#24331D !important;
+    font-weight:900 !important;
+    font-size:13px !important;
+  }
+
+  /* Guide kategori: jangan seperti popup berulang */
+  #mapChoiceGuide.ssm-guide-hidden{display:none !important;}
+
+  @media (max-width:900px){
+    body.map-active #ssmInsightLayer{top:82px !important;left:10px !important;right:10px !important;bottom:10px !important;width:auto !important;}
+    body.map-active #leftPanel{max-height:42vh !important;}
+    .ssm-insight-grid{grid-template-columns:1fr 1fr !important;}
+  }
+</style>
+<script id="chatgpt-ssm-v3-final-fix">
 (function(){
-  const safe = (fn) => { try { return fn(); } catch(e){ console.warn('SSM V4:', e); } };
+  const VERSION = 'SSM_REVISION_V3_FINAL';
+  const safe = (fn, fallback) => { try { return fn(); } catch(e){ console.warn(VERSION, e); return fallback; } };
 
-  function normalizeCoord(value){
-    if (value === null || value === undefined || value === '') return NaN;
-    let raw = String(value).trim().replace(/,/g,'.');
-    let num = typeof value === 'number' ? value : Number(raw);
-    if (!Number.isFinite(num)) num = parseFloat(raw);
-    if (!Number.isFinite(num)) return NaN;
-    if (Math.abs(num) > 180) {
-      const sign = num < 0 ? -1 : 1;
-      let digits = Math.abs(num).toFixed(0).replace(/\D/g,'');
-      if (sign < 0 && /^[789]/.test(digits)) num = -Number(digits.slice(0,1)+'.'+digits.slice(1,16));
-      else if (/^(109|110|111)/.test(digits)) num = Number(digits.slice(0,3)+'.'+digits.slice(3,16));
-      else while (Math.abs(num) > 180) num = num / 10;
+  let nearCampusCircle1000 = null;
+  let nearCampusCircle500 = null;
+  let insightLayerReady = false;
+
+  function esc(value){
+    return String(value === undefined || value === null ? '' : value)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  function textValue(value, fallback='-'){
+    const text = String(value === undefined || value === null ? '' : value).trim();
+    return text && text !== '-' ? text : fallback;
+  }
+
+  function hideChoiceGuide(permanent=true){
+    const guide = document.getElementById('mapChoiceGuide');
+    if(guide){ guide.classList.add('ssm-guide-hidden'); guide.style.display='none'; }
+    if(permanent){
+      sessionStorage.setItem('ssmChoiceGuideClosed','1');
+      sessionStorage.setItem('ssmUserStarted','yes');
     }
-    return num;
   }
 
-  function kmFromCampus(place){
-    if (!place || typeof distanceKm !== 'function' || typeof upnLatLng === 'undefined') return Infinity;
-    const lat = Number(place.lat), lng = Number(place.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Infinity;
-    return distanceKm(upnLatLng[0], upnLatLng[1], lat, lng);
-  }
-
-  function textOf(place){
-    return [
-      place.id, place.name, place.Nama, place.Nama_Tempat, place.Nama_Laundry,
-      place.Nama_Minimarket, place.Nama_Rumah_Makan, place.Nama_Emergency,
-      place.Keterangan, place.Layanan, place.Alamat, place.Alamat_lengkap,
-      place.Harga, place.price, place.Rating, place.Ulasan, place.Jam_operasional,
-      place.Jam_Operasional, place.Buka_24_jam
-    ].filter(Boolean).join(' ').toLowerCase();
-  }
-
-  function cheapByStudentStandard(place){
-    const t = textOf(place);
-    const harga = String(place.Harga || place.price || '').toLowerCase();
-    if (place.cheap === true) return true;
-    if (place.category === 'rumah_makan') {
-      const numbers = harga.match(/\d+[\d\.\,]*/g) || [];
-      const vals = numbers.map(v => Number(v.replace(/\./g,'').replace(',', '.'))).filter(Number.isFinite);
-      return vals.some(v => v <= 25000) || /murah|hemat|terjangkau|mulai/i.test(harga);
+  function syncChoiceGuide(){
+    const guide = document.getElementById('mapChoiceGuide');
+    if(!guide) return;
+    const hasState = safe(() => state && ((state.categories && state.categories.size>0) || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search), false);
+    if(sessionStorage.getItem('ssmChoiceGuideClosed') === '1' || hasState){
+      hideChoiceGuide(false);
     }
-    if (place.category === 'print_fotocopy') return /200|300|400|500|1000|murah|mulai|terjangkau/i.test(harga + ' ' + t);
-    if (place.category === 'kost') {
-      const numbers = harga.match(/\d+[\d\.\,]*/g) || [];
-      const vals = numbers.map(v => Number(v.replace(/\./g,'').replace(',', '.'))).filter(Number.isFinite);
-      return vals.some(v => v >= 300000 && v <= 1500000) || /murah|hemat|terjangkau/i.test(harga);
-    }
-    return /murah|hemat|terjangkau|gratis|mulai|rp\s?(1|2|3|4|5|6|7|8|9|10|15|20|25)\b/i.test(t);
   }
 
-  function isOpen24Patched(place){
-    if (place.open24 === true) return true;
-    const t = textOf(place);
-    return /24\s*jam|buka\s*24|24\/7|00[\.:,]00\s*[-–]\s*23[\.:,]59|yes|ya|true/i.test(t);
-  }
-
-  function normalizePlaces(){
-    safe(function(){
-      if (!Array.isArray(places)) return;
-      places.forEach(function(p){
-        if (!p) return;
-        p.lat = normalizeCoord(p.lat);
-        p.lng = normalizeCoord(p.lng);
-        if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
-          p.distanceMeters = Math.round(kmFromCampus(p) * 1000);
-          p.nearCampus = p.distanceMeters <= 1000;
-        } else {
-          p.nearCampus = false;
-        }
-        p.open24 = isOpen24Patched(p);
-        p.cheap = cheapByStudentStandard(p);
-      });
+  function closeFloatingPanels(except){
+    safe(() => {
+      if(except !== 'filter' && typeof leftPanel !== 'undefined' && leftPanel) leftPanel.classList.add('collapsed');
+      if(except !== 'top' && typeof topControls !== 'undefined' && topControls) topControls.classList.add('collapsed');
+      if(except !== 'route' && typeof routePlanner !== 'undefined' && routePlanner) routePlanner.classList.add('hidden-route');
+      if(except !== 'insight-v3') hideInsightLayer();
+      if(typeof insightDashboard !== 'undefined' && insightDashboard) insightDashboard.classList.add('hidden-dashboard');
+      if(typeof syncPanelPositions === 'function') syncPanelPositions();
     });
   }
 
-  function patchRadiusCircle(){
-    safe(function(){
-      if (typeof updateRadiusCircle !== 'function' || updateRadiusCircle.__ssmV4) return;
-      window.updateRadiusCircle = updateRadiusCircle = function(){
-        if (!map || typeof L === 'undefined') return;
-        const isNear = !!(typeof state !== 'undefined' && state.nearCampus);
-        const radius = isNear ? 1000 : 5000;
-        if (radiusCircle) map.removeLayer(radiusCircle);
-        radiusCircle = L.circle(upnLatLng, {
-          radius: radius,
-          color: isNear ? '#C44545' : '#5B7E3C',
-          weight: isNear ? 3 : 2,
-          fillColor: isNear ? '#C44545' : '#5B7E3C',
-          fillOpacity: isNear ? 0.13 : 0.08
-        }).addTo(map);
-        if (legendText) legendText.textContent = isNear ? 'Dekat Kampus aktif: radius 1 km dari Rektorat UPN' : 'Radius referensi: 5 km dari Rektorat UPN';
-      };
-      updateRadiusCircle.__ssmV4 = true;
-    });
-  }
-
-  function patchFilteredPlaces(){
-    safe(function(){
-      window.filteredPlaces = filteredPlaces = function(){
-        normalizePlaces();
-        return (Array.isArray(places) ? places : []).filter(function(place){
-          if (!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
-          const hay = textOf(place);
-          const searchNeedle = String(state.search || '').trim().toLowerCase();
-          const matchSearch = !searchNeedle || hay.includes(searchNeedle);
-          let matchCategory = false;
-          if (state.emergencyOnly) matchCategory = place.category === 'emergency';
-          else if (state.categories && state.categories.size > 0) matchCategory = state.categories.has(place.category);
-          else if (state.cheap || state.open24 || state.nearCampus || state.search) matchCategory = true;
-          else matchCategory = false;
-
-          const matchCheap = !state.cheap || cheapByStudentStandard(place);
-          const match24 = !state.open24 || isOpen24Patched(place);
-          // IMPORTANT: radius 1 km is applied only when the Dekat Kampus chip is ON.
-          // When Dekat Kampus is OFF, all valid Excel points are allowed to appear.
-          const matchNear = !state.nearCampus || kmFromCampus(place) <= 1;
-          return matchSearch && matchCategory && matchCheap && match24 && matchNear;
-        });
-      };
-    });
-  }
-
-  function patchChipRefresh(){
-    safe(function(){
-      document.querySelectorAll('[data-chip="dekat"]').forEach(function(btn){
-        if (btn.__ssmV4Near) return;
-        btn.__ssmV4Near = true;
-        btn.addEventListener('click', function(){
-          setTimeout(function(){
-            normalizePlaces();
-            patchRadiusCircle();
-            if (typeof updateRadiusCircle === 'function') updateRadiusCircle();
-            if (typeof renderMarkers === 'function') renderMarkers();
-            if (typeof updateInsightDashboard === 'function') updateInsightDashboard();
-          }, 30);
-        }, true);
-      });
-    });
-  }
-
-  function patchLoad(){
-    safe(function(){
-      if (typeof loadAllData !== 'function' || loadAllData.__ssmV4) return;
-      const originalLoadAllData = loadAllData;
-      window.loadAllData = loadAllData = async function(){
-        const result = await originalLoadAllData.apply(this, arguments);
-        normalizePlaces();
-        patchFilteredPlaces();
-        if (typeof renderFilterList === 'function') renderFilterList();
-        if (typeof populateDestinationOptions === 'function') populateDestinationOptions();
-        if (typeof renderMarkers === 'function') renderMarkers();
-        if (typeof updateInsightDashboard === 'function') updateInsightDashboard();
-        return result;
-      };
-      loadAllData.__ssmV4 = true;
-    });
-  }
-
-  function bootV4(){
-    patchRadiusCircle();
-    patchFilteredPlaces();
-    patchLoad();
-    patchChipRefresh();
-    normalizePlaces();
-    safe(function(){ if (typeof updateRadiusCircle === 'function') updateRadiusCircle(); });
-    setTimeout(function(){
-      normalizePlaces();
-      patchFilteredPlaces();
-      patchRadiusCircle();
-      patchChipRefresh();
-      safe(function(){ if (typeof renderFilterList === 'function') renderFilterList(); });
-      safe(function(){ if (typeof renderMarkers === 'function') renderMarkers(); });
-      safe(function(){ if (typeof updateInsightDashboard === 'function') updateInsightDashboard(); });
-    }, 1200);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV4);
-  else bootV4();
-  window.addEventListener('load', function(){ setTimeout(bootV4, 600); });
-})();
-</script>
-
-<script>
-/* ===== SSM V5 FINAL PATCH: EMERGENCY ALL DATA + STRONG 24 JAM FILTER ===== */
-(function(){
-  const TAG = 'SSM V5';
-  const safe = (fn, fallback) => { try { return fn(); } catch (err) { console.warn(TAG, err); return fallback; } };
-
-  function hKey(value){
-    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
-
-  function pick(row, keys, fallback = ''){
-    if (!row) return fallback;
-    const normalized = {};
-    Object.keys(row).forEach(function(k){ normalized[hKey(k)] = row[k]; });
-    for (const key of keys) {
-      if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') return row[key];
-      const val = normalized[hKey(key)];
-      if (val !== undefined && val !== null && String(val).trim() !== '') return val;
-    }
-    return fallback;
-  }
-
-  function clean(value, fallback = '-'){
-    if (value === undefined || value === null) return fallback;
-    const text = String(value).trim();
-    return text === '' ? fallback : text;
-  }
-
-  function normalizeMapsUrl(value){
-    const text = clean(value, '-');
-    if (text === '-') return text;
-    if (/^https?:/i.test(text)) return text.replace(/\s+/g, '').replace(/,/g, '.');
-    return text;
-  }
-
-  function toCoord(value){
-    if (value === undefined || value === null || value === '') return NaN;
-    let raw = String(value).trim().replace(/,/g, '.');
-    let num = (typeof value === 'number') ? value : Number(raw);
-    if (!Number.isFinite(num)) num = parseFloat(raw);
-    if (!Number.isFinite(num)) return NaN;
-
-    if (Math.abs(num) > 180) {
-      const sign = num < 0 ? -1 : 1;
-      let digits = Math.abs(num).toFixed(0).replace(/\D/g, '');
-      if (!digits) return NaN;
-      if (sign < 0 && /^[789]/.test(digits)) {
-        num = -Number(digits.slice(0, 1) + '.' + digits.slice(1, 16));
-      } else if (/^(109|110|111)/.test(digits)) {
-        num = Number(digits.slice(0, 3) + '.' + digits.slice(3, 16));
-      } else {
-        while (Math.abs(num) > 180) num = num / 10;
+  function parseMoneyValues(text){
+    const source = String(text || '').toLowerCase();
+    const results = [];
+    const pattern = /(?:rp\.?\s*)?(\d+(?:[.,]\d+)*)(?:\s*(juta|jt|ribu|rb|k))?/gi;
+    let match;
+    while((match = pattern.exec(source))){
+      let raw = match[1];
+      const unit = match[2] || '';
+      let value;
+      if(/juta|jt/.test(unit)){
+        value = parseFloat(raw.replace(/\./g,'').replace(',', '.'));
+        if(raw.includes('.') && !raw.includes(',')) value = parseFloat(raw.replace(',', '.'));
+        value *= 1000000;
+      }else if(/ribu|rb|k/.test(unit)){
+        value = parseFloat(raw.replace(/\./g,'').replace(',', '.'));
+        value *= 1000;
+      }else{
+        const grouped = /\d{1,3}([.,]\d{3})+/.test(raw);
+        value = grouped ? Number(raw.replace(/[.,]/g,'')) : parseFloat(raw.replace(',', '.'));
       }
+      if(Number.isFinite(value) && value > 0) results.push(value);
     }
-    return num;
+    return results;
   }
 
-  function is24Value(flag, jam, hari){
-    const parts = [flag, jam, hari].filter(v => v !== undefined && v !== null).map(String);
-    const text = parts.join(' ').toLowerCase().replace(/\s+/g, ' ').trim();
-    const flagText = String(flag || '').toLowerCase().trim();
-    if (/^(ya|yes|true|1|y)$/i.test(flagText)) return true;
-    if (/24\s*jam|buka\s*24|24\/7|setiap\s*hari.*24|00[\.:,]00\s*[-–—]\s*(23[\.:,]59|24[\.:,]00)/i.test(text)) return true;
-    if (/00[\.:,]00.*23[\.:,]59/i.test(text) || /00[\.:,]00.*24[\.:,]00/i.test(text)) return true;
-    return false;
-  }
-
-  function kmToCampus(place){
-    return safe(function(){
-      if (!place || typeof distanceKm !== 'function' || typeof upnLatLng === 'undefined') return Infinity;
-      const lat = Number(place.lat), lng = Number(place.lng);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Infinity;
-      return distanceKm(upnLatLng[0], upnLatLng[1], lat, lng);
-    }, Infinity);
-  }
-
-  function textOf(place){
+  function priceCorpus(place){
     return [
-      place && place.id, place && place.name, place && place.Nama, place && place.Nama_Tempat,
-      place && place.Nama_Fasilitas_Kesehatan, place && place.Nama_Emergency,
-      place && place.Layanan, place && place.Keterangan, place && place.Harga,
-      place && place.Hari_operasional, place && place.Jam_operasional, place && place.Jam_Operasional,
-      place && place.Buka_24_jam, place && place.Alamat_lengkap, place && place.No_Telepon,
-      place && place.Rating, place && place.Dokumentasi
-    ].filter(Boolean).join(' ').toLowerCase();
+      place?.Harga, place?.harga, place?.price, place?.Keterangan, place?.Kategori,
+      place?.Jenis_Layanan, place?.Jam_operasional, place?.Nama, place?.name
+    ].filter(Boolean).join(' ');
   }
 
-  function isOpen24Strong(place){
-    if (!place) return false;
-    if (place.open24 === true) return true;
-    return is24Value(place.Buka_24_jam, place.Jam_operasional || place.Jam_Operasional || place.open, place.Hari_operasional);
+  function isCheapForStudent(place){
+    const category = place?.category || '';
+    const text = priceCorpus(place).toLowerCase();
+    if(/gratis|free|bpjs|murah|terjangkau|hemat|promo|diskon/.test(text)) return true;
+    const values = parseMoneyValues(text);
+    const min = values.length ? Math.min(...values) : null;
+
+    if(min !== null){
+      if(category === 'rumah_makan') return min <= 20000;
+      if(category === 'laundry') return min <= 8000;
+      if(category === 'kost') return min <= 1000000;
+      if(category === 'print_fotocopy') return min <= 1500 || min <= 5000;
+      if(category === 'fasilitas_kesehatan') return min <= 25000;
+      if(category === 'minimarket') return /promo|diskon|hemat|murah|terjangkau/.test(text);
+      return false;
+    }
+
+    return /murah|terjangkau|hemat|gratis|bpjs|promo|diskon/.test(text);
   }
 
-  function cheapStudent(place){
-    if (!place) return false;
-    if (place.cheap === true) return true;
-    const t = textOf(place);
-    const harga = String(place.Harga || place.price || place.Keterangan || '').toLowerCase();
-    const nums = (harga.match(/\d+[\d\.,]*/g) || [])
-      .map(v => Number(v.replace(/\./g, '').replace(',', '.')))
-      .filter(Number.isFinite);
-    if (place.category === 'rumah_makan') return nums.some(v => v <= 25000) || /murah|hemat|terjangkau|mulai/.test(t);
-    if (place.category === 'print_fotocopy') return /200|300|400|500|1000|murah|terjangkau|mulai/.test(t);
-    if (place.category === 'kost') return nums.some(v => v >= 300000 && v <= 1500000) || /murah|hemat|terjangkau/.test(t);
-    if (place.category === 'laundry') return nums.some(v => v <= 15000) || /murah|hemat|terjangkau|kiloan/.test(t);
-    return /murah|hemat|terjangkau|gratis|mulai/.test(t);
+  function isOpen24ForStudent(place){
+    const text = [place?.Buka_24_jam, place?.Buka24Jam, place?.Jam_operasional, place?.Jam_Operasional, place?.Hari_operasional, place?.open].join(' ').toLowerCase();
+    return !!place?.open24 || /24\s*jam|buka\s*24|setiap\s*hari\s*24|00[.:]00\s*[-–]\s*23[.:]59|00[.:]00\s*[-–]\s*24[.:]00|ya/.test(text);
   }
 
-  function normalizeEveryPlace(){
-    safe(function(){
-      if (!Array.isArray(places)) return;
-      places.forEach(function(p){
-        if (!p) return;
-        p.id = clean(p.id || p.Id || p.ID || p.Dokumentasi, p.id || '-').replace(/\.(jpg|jpeg|png|webp)$/i, '');
-        p.name = clean(p.name || p.Nama || p.Nama_Tempat || p.Nama_Emergency || p.Nama_Fasilitas_Kesehatan, p.name || '-');
-        p.Nama = clean(p.Nama || p.name, p.name || '-');
-        p.Nama_Tempat = clean(p.Nama_Tempat || p.Nama || p.name, p.name || '-');
-        p.Jam_operasional = clean(p.Jam_operasional || p.Jam_Operasional || p.open, '-');
-        p.Hari_operasional = clean(p.Hari_operasional || p.Hari_Operasional, '-');
-        p.Buka_24_jam = clean(p.Buka_24_jam || p.Buka24Jam || p.Buka_24_Jam, is24Value('', p.Jam_operasional, p.Hari_operasional) ? 'Ya' : 'Tidak');
-        p.No_Telepon = clean(p.No_Telepon || p.NoTelepon || p.Nomor_Kontak || p.contact, '-');
-        p.Link_google_maps = normalizeMapsUrl(p.Link_google_maps || p.Link_Google_Maps || p.maps);
-        p.maps = p.Link_google_maps;
-        p.Latitude = p.lat = toCoord(p.lat !== undefined ? p.lat : p.Latitude);
-        p.Longitude = p.lng = toCoord(p.lng !== undefined ? p.lng : p.Longitude);
-        p.open24 = isOpen24Strong(p);
-        p.cheap = cheapStudent(p);
-        p.distanceMeters = Math.round(kmToCampus(p) * 1000);
-        p.nearCampus = Number.isFinite(p.distanceMeters) && p.distanceMeters <= 1000;
+  function annotatePlaces(){
+    safe(() => {
+      (places || []).forEach(place => {
+        const d = typeof distanceKm === 'function' ? distanceKm(upnLatLng[0], upnLatLng[1], place.lat, place.lng) * 1000 : 999999;
+        place.distanceMeters = Math.round(d);
+        place.nearCampus = d <= 1000;
+        place.cheap = isCheapForStudent(place);
+        place.open24 = isOpen24ForStudent(place);
+        if(place.category === 'emergency'){
+          place.open24 = true;
+          if(!place.Buka_24_jam || place.Buka_24_jam === '-') place.Buka_24_jam = 'Ya';
+        }
       });
-      places = places.filter(function(p){
-        return p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)) && Math.abs(Number(p.lat)) <= 90 && Math.abs(Number(p.lng)) <= 180;
-      });
-      window.places = places;
-      console.info(TAG + ' normalized counts:', places.reduce(function(acc,p){ acc[p.category]=(acc[p.category]||0)+1; return acc; }, {}));
-      console.info(TAG + ' 24 jam counts:', places.reduce(function(acc,p){ if(p.open24) acc[p.category]=(acc[p.category]||0)+1; return acc; }, {}));
     });
   }
 
-  function buildEmergency(row, index){
-    const fallback = 'E' + String(index + 1).padStart(3, '0');
-    const id = clean(pick(row, ['Id','ID','id','Kode','Dokumentasi'], fallback), fallback)
-      .replace(/^images[\\/]/i, '')
-      .replace(/[,.](jpg|jpeg|png|webp)$/i, '')
-      .toUpperCase();
-    const nama = clean(pick(row, ['Nama_Tempat','Nama Tempat','Nama_Emergency','Nama Emergency','Nama','Layanan'], 'Emergency ' + id), 'Emergency ' + id);
-    const layanan = clean(pick(row, ['Layanan','Keterangan','Harga'], 'Fasilitas Darurat/Emergency'), 'Fasilitas Darurat/Emergency');
-    const hari = clean(pick(row, ['Hari_operasional','Hari Operasional','Hari'], 'Senin-Minggu'), 'Senin-Minggu');
-    const jam = clean(pick(row, ['Jam_operasional','Jam_Operasional','Jam Operasional','Jam'], 'Buka 24 Jam'), 'Buka 24 Jam');
-    const buka = clean(pick(row, ['Buka_24_jam','Buka 24 jam','Buka_24_Jam','24 Jam'], is24Value('', jam, hari) ? 'Ya' : 'Tidak'), 'Tidak');
-    const alamat = clean(pick(row, ['Alamat_lengkap','Alamat Lengkap','Alamat','Lokasi'], '-'), '-');
-    const telepon = clean(pick(row, ['No,Telepon','No.Telepon','No_Telepon','No Telepon','Nomor_Kontak','Telepon'], '-'), '-');
-    const lat = toCoord(pick(row, ['Latitude','latitude','Lat']));
-    const lng = toCoord(pick(row, ['Longitude','longitude','Lng','Long']));
-    const rating = clean(pick(row, ['Rating','Ulasan','Review'], '-'), '-');
-    const maps = normalizeMapsUrl(pick(row, ['Link_google_maps','Link Google Maps','Link_Google Maps','Maps'], '-'));
-    const dokumentasi = clean(pick(row, ['Dokumentasi','images','Foto'], id), id);
-    const harga = clean(pick(row, ['Harga','Biaya'], '-'), '-');
-    return {
-      id, category:'emergency', name:nama, Nama:nama, Nama_Tempat:nama, Nama_Emergency:nama,
-      Layanan:layanan, Keterangan:layanan, Harga:harga,
-      Hari_operasional:hari, Jam_operasional:jam, Buka_24_jam:buka,
-      Alamat_lengkap:alamat, No_Telepon:telepon,
-      Latitude:lat, Longitude:lng, lat:lat, lng:lng,
-      Rating:rating, Link_google_maps:maps, maps:maps,
-      Dokumentasi:dokumentasi, image: (typeof getImagePath === 'function' ? getImagePath('emergency', dokumentasi, id) : ''),
-      price: harga === '-' ? layanan : harga, address:alamat, contact:telepon, open: jam,
-      open24:is24Value(buka, jam, hari), cheap:false, detailLabel:'Detail Emergency'
-    };
+  function updateNearCampusCircles(){
+    safe(() => {
+      if(typeof map === 'undefined' || !map || typeof L === 'undefined') return;
+      [nearCampusCircle1000, nearCampusCircle500].forEach(circle => { if(circle) map.removeLayer(circle); });
+      nearCampusCircle1000 = null;
+      nearCampusCircle500 = null;
+      if(!(typeof state !== 'undefined' && state && state.nearCampus)) return;
+
+      nearCampusCircle1000 = L.circle(upnLatLng, {
+        radius:1000, color:'#ff1744', weight:2, dashArray:'8 8', fillColor:'#ff1744', fillOpacity:.055
+      }).addTo(map).bindTooltip('Radius 1 km dari kampus', {permanent:false});
+      nearCampusCircle500 = L.circle(upnLatLng, {
+        radius:500, color:'#5B7E3C', weight:2, dashArray:'4 8', fillColor:'#A2CB8B', fillOpacity:.08
+      }).addTo(map).bindTooltip('Area < 1 km dari kampus', {permanent:false});
+    });
   }
 
-  function buildFaskes(row, index){
-    const fallback = 'FK' + String(index + 1).padStart(3, '0');
-    const id = clean(pick(row, ['Id','ID','id','Kode','Dokumentasi'], fallback), fallback)
-      .replace(/^images[\\/]/i, '')
-      .replace(/[,.](jpg|jpeg|png|webp)$/i, '')
-      .toUpperCase();
-    const nama = clean(pick(row, ['Nama_Tempat','Nama Tempat','Nama_Fasilitas_Kesehatan','Nama Fasilitas Kesehatan','Nama','Nama Fasilitas'], 'Fasilitas Kesehatan ' + id), 'Fasilitas Kesehatan ' + id);
-    const layanan = clean(pick(row, ['Layanan','Keterangan','Jenis_Layanan','Jenis Layanan','Kategori'], 'Fasilitas kesehatan'), 'Fasilitas kesehatan');
-    const hari = clean(pick(row, ['Hari_operasional','Hari Operasional','Hari'], '-'), '-');
-    const jam = clean(pick(row, ['Jam_operasional','Jam_Operasional','Jam Operasional','Jam'], '-'), '-');
-    const buka = clean(pick(row, ['Buka_24_jam','Buka 24 jam','Buka_24_Jam','24 Jam'], is24Value('', jam, hari) ? 'Ya' : 'Tidak'), 'Tidak');
-    const alamat = clean(pick(row, ['Alamat_lengkap','Alamat Lengkap','Alamat','Lokasi'], '-'), '-');
-    const telepon = clean(pick(row, ['No,Telepon','No.Telepon','No_Telepon','No Telepon','Nomor_Kontak','Telepon'], '-'), '-');
-    const lat = toCoord(pick(row, ['Latitude','latitude','Lat']));
-    const lng = toCoord(pick(row, ['Longitude','longitude','Lng','Long']));
-    const rating = clean(pick(row, ['Rating','Ulasan','Review'], '-'), '-');
-    const maps = normalizeMapsUrl(pick(row, ['Link_google_maps','Link Google Maps','Link_Google Maps','Maps'], '-'));
-    const dokumentasi = clean(pick(row, ['Dokumentasi','images','Foto'], id), id);
-    return {
-      id, category:'fasilitas_kesehatan', name:nama, Nama:nama, Nama_Tempat:nama, Nama_Fasilitas_Kesehatan:nama,
-      Layanan:layanan, Keterangan:layanan, Harga:'-',
-      Hari_operasional:hari, Jam_operasional:jam, Buka_24_jam:buka,
-      Alamat_lengkap:alamat, No_Telepon:telepon,
-      Latitude:lat, Longitude:lng, lat:lat, lng:lng,
-      Rating:rating, Link_google_maps:maps, maps:maps,
-      Dokumentasi:dokumentasi, image: (typeof getImagePath === 'function' ? getImagePath('fasilitas_kesehatan', dokumentasi, id) : ''),
-      price: layanan, address:alamat, contact:telepon, open: hari + ', ' + jam,
-      open24:is24Value(buka, jam, hari), cheap:false, detailLabel:'Detail Fasilitas Kesehatan'
-    };
+  function distanceText(meters){
+    const m = Number(meters) || 0;
+    if(m >= 1000) return (m/1000).toFixed(1).replace('.', ',') + ' km';
+    return Math.round(m) + ' m';
   }
 
-  function patchCoreFunctions(){
-    safe(function(){ window.normalizeHeaderKey = normalizeHeaderKey = hKey; });
-    safe(function(){ window.getCell = getCell = pick; });
-    safe(function(){ window.parseCoordinate = parseCoordinate = toCoord; });
-    safe(function(){ window.isOpen24 = isOpen24 = is24Value; });
-    safe(function(){ window.normalizeEmergency = normalizeEmergency = buildEmergency; });
-    safe(function(){ window.normalizeFasilitasKesehatan = normalizeFasilitasKesehatan = buildFaskes; });
+  function getName(place){
+    return safe(() => getDisplayName(place), place?.name || place?.Nama || '-');
+  }
 
-    safe(function(){
-      window.readExcel = readExcel = async function(filePath){
-        const joiner = filePath.indexOf('?') >= 0 ? '&' : '?';
-        const response = await fetch(filePath + joiner + 'v=ssm-v5-' + Date.now(), { cache:'no-store' });
-        if (!response.ok) throw new Error('File tidak ditemukan: ' + filePath);
-        const buffer = await response.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type:'array', cellDates:false });
-        return workbook.SheetNames.flatMap(function(sheetName){
-          const sheet = workbook.Sheets[sheetName];
-          return XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false }).map(function(row){ return Object.assign({_sheetName:sheetName}, row); });
-        }).filter(function(row){
-          return Object.keys(row).some(function(k){ return k !== '_sheetName' && String(row[k] || '').trim() !== ''; });
+  function getCategoryLabel(category){
+    return safe(() => categories[category]?.label || category || 'Lokasi', category || 'Lokasi');
+  }
+
+  function getPriceText(place){
+    return textValue(place?.Harga || place?.price || place?.Keterangan, 'Tidak ada info harga');
+  }
+
+  function getOpenText(place){
+    const day = textValue(place?.Hari_operasional, '');
+    const hour = textValue(place?.Jam_operasional || place?.Jam_Operasional || place?.open, '');
+    if(day && hour) return `${day}, ${hour}`;
+    return day || hour || 'Jam belum tersedia';
+  }
+
+  function overrideFilteredPlaces(){
+    safe(() => {
+      filteredPlaces = function(){
+        annotatePlaces();
+        const radius = 5000;
+        return (places || []).filter(place => {
+          if(!Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+
+          const searchText = [
+            place.id, place.name, place.Nama, place.Nama_Laundry, place.Nama_Minimarket,
+            place.Nama_Rumah_Makan, place.Nama_Emergency, place.Nama_Tempat,
+            place.Keterangan, place.Harga, place.Alamat_lengkap, place.No_Telepon, place.Rating
+          ].join(' ').toLowerCase();
+
+          const matchSearch = !state.search || searchText.includes(String(state.search).toLowerCase());
+          const hasCategory = state.categories && state.categories.size > 0;
+          const hasAnyFilter = hasCategory || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search;
+          if(!hasAnyFilter) return false;
+
+          const matchCategory = state.emergencyOnly
+            ? place.category === 'emergency'
+            : (hasCategory ? state.categories.has(place.category) : true);
+          const matchCheap = !state.cheap || !!place.cheap;
+          const match24 = !state.open24 || !!place.open24;
+          const matchNear = !state.nearCampus || Number(place.distanceMeters) <= 1000;
+          const matchRadius = Number(place.distanceMeters) <= radius;
+
+          return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
         });
       };
+      window.filteredPlaces = filteredPlaces;
+    });
+  }
+
+  function overridePopup(){
+    safe(() => {
+      buildMarkerPopup = function(place, status){
+        const name = getName(place);
+        const categoryLabel = getCategoryLabel(place.category);
+        const categoryIcon = safe(() => categories[place.category]?.icon, 'fa-solid fa-location-dot') || 'fa-solid fa-location-dot';
+        const mapsLink = textValue(place.Link_google_maps || place.maps, '');
+        const mapsButton = mapsLink
+          ? `<a class="map-popup-btn primary" href="${esc(mapsLink)}" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Google Maps</a>`
+          : '';
+
+        return `
+          <div class="map-popup-card">
+            <div class="map-popup-head"><div class="map-popup-badge"><i class="${esc(categoryIcon)}"></i> ${esc(categoryLabel)}</div></div>
+            <div class="map-popup-body">
+              <h3 class="map-popup-title">${esc(name)}</h3>
+              <div class="map-popup-sub">
+                <span class="map-popup-pill"><i class="fa-solid fa-tags"></i> ${esc(getPriceText(place))}</span>
+                <span class="map-popup-pill"><i class="fa-solid fa-clock"></i> ${esc(textValue(place.Jam_operasional || place.open, 'Jam belum tersedia'))}</span>
+                <span class="map-popup-pill"><i class="fa-solid fa-location-dot"></i> ${distanceText(place.distanceMeters || 0)}</span>
+              </div>
+              <div class="map-popup-info">
+                <div class="map-popup-row"><i class="fa-solid fa-circle-info"></i><div><span class="map-popup-label">Keterangan / Harga</span><span class="map-popup-value">${esc(getPriceText(place))}</span></div></div>
+                <div class="map-popup-row"><i class="fa-solid fa-calendar-days"></i><div><span class="map-popup-label">Operasional</span><span class="map-popup-value">${esc(getOpenText(place))}</span></div></div>
+              </div>
+              <div class="map-popup-actions">
+                ${mapsButton}
+                <button class="map-popup-btn secondary ssm-pilih-lokasi" type="button" data-place-id="${esc(place.id)}"><i class="fa-solid fa-route"></i> Pilih Lokasi untuk Rute</button>
+              </div>
+            </div>
+          </div>`;
+      };
+      window.buildMarkerPopup = buildMarkerPopup;
+    });
+  }
+
+  function patchRenderMarkers(){
+    safe(() => {
+      if(renderMarkers && !renderMarkers.__ssmV3Patched){
+        const originalRenderMarkers = renderMarkers;
+        renderMarkers = function(){
+          annotatePlaces();
+          originalRenderMarkers();
+          updateNearCampusCircles();
+          syncChoiceGuide();
+          updateInsightLayer();
+          setTimeout(() => {
+            document.querySelectorAll('.marker-wrap.marker-emergency').forEach(el => el.classList.add('ssm-emergency-contrast'));
+          }, 20);
+        };
+        renderMarkers.__ssmV3Patched = true;
+        window.renderMarkers = renderMarkers;
+      }
+    });
+  }
+
+  function ensureRouteCloseButton(){
+    safe(() => {
+      if(!routePlanner || document.getElementById('closeRoutePlannerV3')) return;
+      const btn = document.createElement('button');
+      btn.id = 'closeRoutePlannerV3';
+      btn.className = 'ssm-route-close';
+      btn.type = 'button';
+      btn.title = 'Tutup panel rute';
+      btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(typeof hideRoutePlanner === 'function') hideRoutePlanner();
+        if(typeof state !== 'undefined') state.networkOn = false;
+        if(typeof syncChips === 'function') syncChips();
+      });
+      routePlanner.insertBefore(btn, routePlanner.firstChild);
+    });
+  }
+
+  function getDestinationFromSelect(){
+    const id = destinationSelect ? destinationSelect.value : '';
+    return id && typeof getPlaceById === 'function' ? getPlaceById(id) : (typeof selectedPlace !== 'undefined' ? selectedPlace : null);
+  }
+
+  function setOriginFromMyLocationV3(callback){
+    if(!navigator.geolocation){
+      if(routeHint) routeHint.textContent = 'Browser tidak mendukung fitur Lokasi Saya. Gunakan Rektorat UPN atau Klik di Peta.';
+      return;
+    }
+    if(routeHint) routeHint.textContent = 'Mengambil Lokasi Saya. Klik Izinkan/Allow saat browser meminta izin lokasi.';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      const latlng = [pos.coords.latitude, pos.coords.longitude];
+      if(originSelect) originSelect.value = 'mylocation';
+      if(typeof setOriginMarker === 'function') setOriginMarker(latlng, 'Lokasi Saya');
+      if(typeof map !== 'undefined' && map) map.setView(latlng, 16, {animate:true});
+      if(routeHint) routeHint.textContent = 'Lokasi Saya sudah dipakai sebagai titik asal.';
+      if(typeof callback === 'function') callback(latlng);
+    }, function(){
+      if(routeHint) routeHint.textContent = 'Lokasi Saya gagal diambil. Aktifkan izin lokasi browser lalu coba lagi.';
+    }, {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+  }
+
+  function patchRouteLogic(){
+    safe(() => {
+      if(typeof setOriginFromMyLocation === 'function'){
+        setOriginFromMyLocation = function(){ setOriginFromMyLocationV3(); };
+        window.setOriginFromMyLocation = setOriginFromMyLocation;
+      }
+
+      if(routeNowBtn && !routeNowBtn.__ssmV3Patched){
+        routeNowBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const destination = getDestinationFromSelect();
+          if(!destination){
+            if(routeHint) routeHint.textContent = 'Pilih tujuan dulu. Klik marker atau tombol Pilih Lokasi di popup.';
+            return;
+          }
+          state.networkOn = true;
+          if(typeof syncChips === 'function') syncChips();
+          const runRoute = () => {
+            if(typeof setDestinationPlace === 'function') setDestinationPlace(destination, true);
+            if(typeof drawRouteTo === 'function') drawRouteTo(destination);
+            if(routeHint) routeHint.textContent = `Rute aktif: ${textValue(currentOriginLabel, 'Asal')} → ${getName(destination)}`;
+          };
+          if(originSelect && originSelect.value === 'mylocation'){
+            setOriginFromMyLocationV3(runRoute);
+          }else{
+            runRoute();
+          }
+        }, true);
+        routeNowBtn.__ssmV3Patched = true;
+      }
+
+      if(originSelect && !originSelect.__ssmV3Patched){
+        originSelect.addEventListener('change', function(){
+          if(this.value === 'mylocation') setOriginFromMyLocationV3();
+          if(this.value === 'pick' && routeHint) routeHint.textContent = 'Klik titik asal di peta, lalu pilih tujuan dan tekan Rute.';
+        });
+        originSelect.__ssmV3Patched = true;
+      }
+    });
+  }
+
+  function ensureInsightLayer(){
+    let layer = document.getElementById('ssmInsightLayer');
+    if(layer) return layer;
+    const shell = document.querySelector('#mapPage .map-shell') || document.body;
+    layer = document.createElement('div');
+    layer.id = 'ssmInsightLayer';
+    layer.setAttribute('aria-label','Panel Insight');
+    shell.appendChild(layer);
+    insightLayerReady = true;
+    return layer;
+  }
+
+  function buildInsightHTML(){
+    annotatePlaces();
+    const visible = safe(() => filteredPlaces(), []) || [];
+    const total = (places || []).length;
+    const visibleCount = visible.length;
+    const open24Count = visible.filter(p => p.open24).length;
+    const cheapCount = visible.filter(p => p.cheap).length;
+    const nearCount = visible.filter(p => Number(p.distanceMeters) <= 1000).length;
+    const emergencyCount = visible.filter(p => p.category === 'emergency').length;
+    const basis = visibleCount ? visible : (places || []);
+    const maxCount = Math.max(1, ...Object.keys(categories || {}).map(k => basis.filter(p => p.category === k).length));
+
+    const categoryRows = Object.keys(categories || {}).map(key => {
+      const count = basis.filter(p => p.category === key).length;
+      const percent = Math.round((count / maxCount) * 100);
+      return `<div class="ssm-row"><div class="ssm-row-main"><div class="ssm-row-title">${esc(getCategoryLabel(key))}</div><div class="ssm-progress"><span style="width:${percent}%"></span></div></div><span class="ssm-badge ${key==='emergency'?'danger':''}">${count}</span></div>`;
+    }).join('');
+
+    const nearestRows = basis.slice().sort((a,b) => (a.distanceMeters||999999) - (b.distanceMeters||999999)).slice(0,10).map((p,i) => `
+      <div class="ssm-row ssm-nearest-row" data-place-id="${esc(p.id)}" role="button" tabindex="0">
+        <div class="ssm-row-main"><div class="ssm-row-title">${i+1}. ${esc(getName(p))}</div><div class="ssm-row-sub">${esc(getCategoryLabel(p.category))} • ${esc(getPriceText(p))}</div></div>
+        <span class="ssm-badge">${distanceText(p.distanceMeters || 0)}</span>
+      </div>`).join('') || `<div class="ssm-row"><div class="ssm-row-main"><div class="ssm-row-title">Belum ada lokasi tampil</div><div class="ssm-row-sub">Pilih kategori/filter dulu.</div></div><span class="ssm-badge">-</span></div>`;
+
+    const activeFilters = [];
+    safe(() => {
+      if(state.categories && state.categories.size) activeFilters.push(`${state.categories.size} kategori`);
+      if(state.cheap) activeFilters.push('Murah');
+      if(state.open24) activeFilters.push('24 Jam');
+      if(state.nearCampus) activeFilters.push('<= 1 km dari kampus');
+      if(state.emergencyOnly) activeFilters.push('Emergency');
+      if(state.search) activeFilters.push('Pencarian');
     });
 
-    safe(function(){
-      window.getOpenStatus = getOpenStatus = function(place){
-        if (isOpen24Strong(place)) return { isOpen:true, text:'Masih Buka', icon:'🟢' };
-        const now = new Date();
-        const current = now.getHours() * 60 + now.getMinutes();
-        const jam = String((place && (place.Jam_operasional || place.Jam_Operasional || place.open)) || '').toLowerCase().replace(/,/g, '.');
-        const times = jam.match(/\d{1,2}[\.:]\d{2}/g);
-        if (!times || times.length < 2) return { isOpen:null, text:'Jam tidak terbaca', icon:'⚪' };
-        function minutes(t){ const m = String(t).match(/(\d{1,2})[\.:](\d{2})/); return m ? (parseInt(m[1],10) * 60 + parseInt(m[2],10)) : null; }
-        const open = minutes(times[0]);
-        const close = minutes(times[1]);
-        if (open === null || close === null) return { isOpen:null, text:'Jam tidak terbaca', icon:'⚪' };
-        const ok = open <= close ? (current >= open && current <= close) : (current >= open || current <= close);
-        return { isOpen:ok, text: ok ? 'Masih Buka' : 'Sudah Tutup', icon: ok ? '🟢' : '🔴' };
+    return `
+      <div class="ssm-layer-head">
+        <div><div class="ssm-layer-kicker">Panel Insight v3</div><div class="ssm-layer-title">Insight Lokasi</div><div class="ssm-layer-desc">${esc(activeFilters.length ? 'Filter aktif: ' + activeFilters.join(', ') : 'Pilih kategori/filter untuk melihat insight hasil peta.')}</div></div>
+        <button class="ssm-layer-close" id="ssmInsightClose" type="button" title="Tutup insight"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="ssm-layer-body">
+        <div class="ssm-insight-grid">
+          <div class="ssm-stat-card"><b>${visibleCount}</b><span>Lokasi tampil</span></div>
+          <div class="ssm-stat-card"><b>${total}</b><span>Total data Excel</span></div>
+          <div class="ssm-stat-card"><b>${cheapCount}</b><span>Murah versi mahasiswa</span></div>
+          <div class="ssm-stat-card"><b>${open24Count}</b><span>Buka 24 jam</span></div>
+          <div class="ssm-stat-card"><b>${nearCount}</b><span>Radius <= 1 km</span></div>
+          <div class="ssm-stat-card"><b>${emergencyCount}</b><span>Emergency tampil</span></div>
+        </div>
+        <div class="ssm-section"><h4><i class="fa-solid fa-chart-simple"></i> Ringkasan</h4><div class="ssm-row"><div class="ssm-row-main"><div class="ssm-row-title">Status filter</div><div class="ssm-row-sub">${visibleCount ? 'Insight memakai lokasi yang sedang tampil pada peta.' : 'Belum ada marker tampil. Pilih kategori/filter agar data terlihat.'}</div></div><span class="ssm-badge">${visibleCount ? 'Aktif' : 'Kosong'}</span></div></div>
+        <div class="ssm-section"><h4><i class="fa-solid fa-location-crosshairs"></i> Top Lokasi Terdekat</h4>${nearestRows}</div>
+        <div class="ssm-section"><h4><i class="fa-solid fa-layer-group"></i> Komposisi Kategori</h4>${categoryRows}</div>
+        <div class="ssm-section"><h4><i class="fa-solid fa-circle-info"></i> Catatan</h4><div class="ssm-row"><div class="ssm-row-main"><div class="ssm-row-title">Murah</div><div class="ssm-row-sub">Rumah makan <= Rp20.000, laundry <= Rp8.000/kg, kost <= Rp1.000.000/bulan, print/fotokopi harga kecil, atau teks Excel memuat murah/terjangkau/gratis/promo.</div></div></div><div class="ssm-row"><div class="ssm-row-main"><div class="ssm-row-title">Dekat Kampus</div><div class="ssm-row-sub">Filter Dekat Kampus hanya menampilkan lokasi dengan jarak maksimal 1 km dari Rektorat UPN.</div></div></div></div>
+        <div class="ssm-insight-actions"><button class="ssm-action" id="ssmInsightFit" type="button"><i class="fa-solid fa-expand"></i> Lihat Semua</button><button class="ssm-action secondary" id="ssmInsightRoute" type="button"><i class="fa-solid fa-route"></i> Buka Rute</button></div>
+      </div>`;
+  }
+
+  function updateInsightLayer(){
+    const layer = document.getElementById('ssmInsightLayer');
+    if(layer && layer.classList.contains('active')){
+      layer.innerHTML = buildInsightHTML();
+      bindInsightLayerActions();
+    }
+  }
+
+  function showInsightLayer(){
+    closeFloatingPanels('insight-v3');
+    if(typeof insightDashboard !== 'undefined' && insightDashboard) insightDashboard.classList.add('hidden-dashboard');
+    const layer = ensureInsightLayer();
+    layer.innerHTML = buildInsightHTML();
+    layer.classList.add('active');
+    bindInsightLayerActions();
+  }
+
+  function hideInsightLayer(){
+    const layer = document.getElementById('ssmInsightLayer');
+    if(layer) layer.classList.remove('active');
+    if(typeof toggleDashboard !== 'undefined' && toggleDashboard) toggleDashboard.classList.remove('active');
+  }
+
+  function bindInsightLayerActions(){
+    const layer = document.getElementById('ssmInsightLayer');
+    if(!layer) return;
+    const close = document.getElementById('ssmInsightClose');
+    if(close) close.onclick = hideInsightLayer;
+    const fit = document.getElementById('ssmInsightFit');
+    if(fit) fit.onclick = function(){
+      const list = safe(() => filteredPlaces(), []) || [];
+      if(typeof map !== 'undefined' && map && list.length && typeof L !== 'undefined'){
+        const bounds = L.latLngBounds(list.map(p => [p.lat, p.lng]));
+        map.fitBounds(bounds, {padding:[64,64]});
+      }
+    };
+    const route = document.getElementById('ssmInsightRoute');
+    if(route) route.onclick = function(){
+      hideInsightLayer();
+      closeFloatingPanels('route');
+      if(typeof showRoutePlanner === 'function') showRoutePlanner();
+      if(typeof state !== 'undefined') state.networkOn = true;
+      if(typeof syncChips === 'function') syncChips();
+    };
+    layer.querySelectorAll('.ssm-nearest-row').forEach(row => {
+      row.onclick = function(){
+        const place = typeof getPlaceById === 'function' ? getPlaceById(this.dataset.placeId) : null;
+        if(place){
+          hideInsightLayer();
+          if(typeof setDestinationPlace === 'function') setDestinationPlace(place, true);
+          if(typeof map !== 'undefined' && map) map.setView([place.lat, place.lng], 17, {animate:true});
+        }
       };
     });
+  }
 
-    safe(function(){
-      const originalCreate = (typeof createIcon === 'function') ? createIcon : null;
-      if (typeof categories !== 'undefined' && categories.emergency) {
+  function patchInsightButton(){
+    safe(() => {
+      if(typeof showInsightDashboard === 'function'){
+        showInsightDashboard = showInsightLayer;
+        hideInsightDashboard = hideInsightLayer;
+        toggleInsightDashboard = function(){
+          const layer = ensureInsightLayer();
+          if(layer.classList.contains('active')) hideInsightLayer(); else showInsightLayer();
+        };
+        window.showInsightDashboard = showInsightDashboard;
+        window.hideInsightDashboard = hideInsightDashboard;
+        window.toggleInsightDashboard = toggleInsightDashboard;
+      }
+      if(toggleDashboard && !toggleDashboard.__ssmV3Patched){
+        toggleDashboard.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const layer = ensureInsightLayer();
+          if(layer.classList.contains('active')) hideInsightLayer(); else showInsightLayer();
+          toggleDashboard.classList.toggle('active', layer.classList.contains('active'));
+        }, true);
+        toggleDashboard.__ssmV3Patched = true;
+      }
+    });
+  }
+
+  function patchPopupChooseLocation(){
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('.ssm-pilih-lokasi');
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      hideChoiceGuide(true);
+      const place = typeof getPlaceById === 'function' ? getPlaceById(btn.dataset.placeId) : null;
+      if(!place) return;
+      if(typeof populateDestinationOptions === 'function') populateDestinationOptions();
+      if(destinationSelect) destinationSelect.value = place.id;
+      if(typeof setDestinationPlace === 'function') setDestinationPlace(place, true);
+      if(typeof showRoutePlanner === 'function') showRoutePlanner();
+      if(typeof state !== 'undefined') state.networkOn = true;
+      if(typeof syncChips === 'function') syncChips();
+      if(routeHint) routeHint.textContent = `Tujuan dipilih: ${getName(place)}. Pilih asal lalu klik Rute.`;
+    }, true);
+  }
+
+  function patchTutorial(){
+    safe(() => {
+      const title = document.getElementById('tutorialTitle');
+      if(title) title.textContent = 'Panduan Lengkap Menggunakan WebGIS';
+      const subtitle = document.querySelector('.tutorial-subtitle');
+      if(subtitle) subtitle.textContent = 'Ikuti langkah berikut untuk mencari fasilitas, memakai filter, menentukan rute, membaca insight, dan menggunakan Lokasi Saya.';
+      const cards = Array.from(document.querySelectorAll('.tutorial-card'));
+      const data = [
+        ['Masuk ke WebGIS','Klik tombol Buka WebGIS. Peta awal dibuat bersih supaya pengguna memilih kategori fasilitas terlebih dahulu.'],
+        ['Pilih kategori','Klik tombol Filter, lalu pilih satu atau beberapa kategori. Marker akan muncul sesuai pilihan tanpa memunculkan ulang panduan.'],
+        ['Gunakan pencarian','Ketik nama tempat/fasilitas di kolom pencarian, lalu tekan Enter atau tombol cari.'],
+        ['Filter Murah','Aktifkan Murah untuk mencari tempat yang harganya sesuai kantong mahasiswa berdasarkan kolom harga/keterangan Excel.'],
+        ['Filter 24 Jam','Aktifkan 24 Jam untuk menampilkan fasilitas yang datanya memuat buka 24 jam atau operasional penuh.'],
+        ['Dekat Kampus','Aktifkan Dekat Kampus untuk menampilkan lokasi dalam radius maksimal 1 km dari Rektorat UPN. Lingkar radius akan muncul di peta.'],
+        ['Pilih lokasi tujuan','Klik marker, lalu tekan Pilih Lokasi untuk Rute. Lokasi itu otomatis masuk sebagai tujuan pada panel rute.'],
+        ['Tentukan asal rute','Pilih asal dari Rektorat UPN, Lokasi Saya, atau Klik di Peta. Untuk Lokasi Saya, izinkan akses lokasi browser.'],
+        ['Baca Insight','Klik Insight untuk membuka layer ringkasan. Panel bisa discroll dan menampilkan total lokasi, murah, 24 jam, dekat kampus, emergency, dan daftar terdekat.']
+      ];
+      cards.forEach((card, i) => {
+        if(!data[i]) return;
+        const h = card.querySelector('h4');
+        const p = card.querySelector('p');
+        if(h) h.textContent = data[i][0];
+        if(p) p.innerHTML = data[i][1];
+      });
+    });
+  }
+
+  function patchChipBehavior(){
+    document.addEventListener('click', function(e){
+      if(e.target.closest('.filter-item,[data-chip],.ssm-pilih-lokasi')){
+        hideChoiceGuide(true);
+      }
+    }, true);
+
+    document.querySelectorAll('[data-chip="murah"]').forEach(btn => {
+      if(btn.__ssmV3Cheap) return;
+      btn.addEventListener('click', function(){
+        setTimeout(() => {
+          annotatePlaces();
+          if(state.cheap && (!state.categories || state.categories.size === 0)){
+            state.categories = new Set(['kost','rumah_makan','laundry','print_fotocopy','fasilitas_kesehatan']);
+            if(typeof renderFilterList === 'function') renderFilterList();
+            if(typeof syncChips === 'function') syncChips();
+            if(typeof renderMarkers === 'function') renderMarkers();
+          }
+        }, 30);
+      }, true);
+      btn.__ssmV3Cheap = true;
+    });
+
+    document.querySelectorAll('[data-chip="dekat"]').forEach(btn => {
+      if(btn.__ssmV3Near) return;
+      btn.addEventListener('click', function(){
+        setTimeout(() => { updateNearCampusCircles(); if(typeof renderMarkers === 'function') renderMarkers(); }, 35);
+      }, true);
+      btn.__ssmV3Near = true;
+    });
+  }
+
+  function improveEmergencyCategory(){
+    safe(() => {
+      if(typeof categories !== 'undefined' && categories.emergency){
         categories.emergency.color = '#ff1744';
         categories.emergency.icon = 'fa-solid fa-triangle-exclamation';
       }
-      window.createIcon = createIcon = function(category){
-        if (category === 'emergency') {
-          return L.divIcon({
-            className:'custom-div-icon ssm-emergency-div-icon',
-            html:'<div class="marker-wrap marker-emergency ssm-emergency-pin"><i class="fa-solid fa-triangle-exclamation"></i></div>',
-            iconSize:[52,60], iconAnchor:[26,54], popupAnchor:[0,-46]
-          });
-        }
-        if (originalCreate) return originalCreate(category);
-        return L.divIcon({ className:'custom-div-icon', html:'<div class="marker-wrap"><i class="fa-solid fa-location-dot"></i></div>', iconSize:[46,54], iconAnchor:[23,48], popupAnchor:[0,-40] });
-      };
-    });
-
-    safe(function(){
-      window.filteredPlaces = filteredPlaces = function(){
-        normalizeEveryPlace();
-        const list = Array.isArray(places) ? places : [];
-        return list.filter(function(place){
-          if (!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
-          const hay = textOf(place);
-          const search = String((state && state.search) || '').trim().toLowerCase();
-          const matchSearch = !search || hay.includes(search);
-          let matchCategory = false;
-          if (state && state.emergencyOnly) matchCategory = place.category === 'emergency';
-          else if (state && state.categories && state.categories.size > 0) matchCategory = state.categories.has(place.category);
-          else if (state && (state.cheap || state.open24 || state.nearCampus || state.search)) matchCategory = true;
-          else matchCategory = false;
-          const matchCheap = !(state && state.cheap) || cheapStudent(place);
-          const match24 = !(state && state.open24) || isOpen24Strong(place);
-          const matchNear = !(state && state.nearCampus) || kmToCampus(place) <= 1;
-          return matchSearch && matchCategory && matchCheap && match24 && matchNear;
-        });
-      };
-    });
-
-    safe(function(){
-      window.renderMarkers = renderMarkers = function(){
-        normalizeEveryPlace();
-        if (typeof layers !== 'undefined') {
-          Object.values(layers).forEach(function(layer){ if (layer && typeof layer.clearLayers === 'function') layer.clearLayers(); });
-        }
-        const visible = (typeof filteredPlaces === 'function') ? filteredPlaces() : [];
-        visible.forEach(function(place){
-          if (!layers[place.category]) layers[place.category] = L.layerGroup().addTo(map);
-          const status = (typeof getOpenStatus === 'function') ? getOpenStatus(place) : {text:'-', icon:''};
-          const marker = L.marker([place.lat, place.lng], { icon:createIcon(place.category), zIndexOffset: place.category === 'emergency' ? 3000 : 0 })
-            .bindPopup(buildMarkerPopup(place, status), { maxWidth:360, minWidth:300, closeButton:true, autoPanPadding:[24,24], className:'student-popup' })
-            .on('click', function(e){
-              if (typeof setDestinationPlace === 'function') setDestinationPlace(place, true);
-              if (map) map.setView([place.lat, place.lng], Math.max(map.getZoom(), 16), { animate:false });
-              e.target.openPopup();
-            });
-          layers[place.category].addLayer(marker);
-        });
-        const countEl = document.getElementById('emergencyCount');
-        if (countEl) countEl.textContent = String((places || []).filter(p => p.category === 'emergency').length);
-        safe(function(){ if (typeof updateInsightDashboard === 'function') updateInsightDashboard(); });
-        safe(function(){ if (typeof restartDashboardMotion === 'function') setTimeout(restartDashboardMotion, 120); });
-        const guide = document.getElementById('mapChoiceGuide');
-        if (guide && state && (state.categories.size > 0 || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search)) guide.style.display = 'none';
-      };
-    });
-
-    safe(function(){
-      window.updateRadiusCircle = updateRadiusCircle = function(){
-        if (!map || typeof L === 'undefined') return;
-        const near = !!(state && state.nearCampus);
-        if (radiusCircle) map.removeLayer(radiusCircle);
-        radiusCircle = L.circle(upnLatLng, {
-          radius: near ? 1000 : 5000,
-          color: near ? '#ff1744' : '#5B7E3C',
-          weight: near ? 3 : 2,
-          fillColor: near ? '#ff1744' : '#5B7E3C',
-          fillOpacity: near ? 0.14 : 0.08
-        }).addTo(map);
-        if (legendText) legendText.textContent = near ? 'Dekat Kampus aktif: radius 1 km dari Rektorat UPN' : 'Radius referensi: 5 km dari Rektorat UPN';
-      };
+      document.querySelectorAll('.filter-item[data-category="emergency"] .cat-icon').forEach(el => {
+        el.style.background = 'linear-gradient(135deg,#ff1744,#b00020)';
+      });
     });
   }
 
-  async function forceReloadData(){
-    if (window.__ssmV5Loading) return;
-    if (typeof readFirstExistingExcel !== 'function' || typeof map === 'undefined' || !map) return;
-    window.__ssmV5Loading = true;
-    try {
-      const result = await Promise.all([
-        readFirstExistingExcel('kost'), readFirstExistingExcel('rumah_makan'), readFirstExistingExcel('laundry'), readFirstExistingExcel('minimarket'),
-        readFirstExistingExcel('atm'), readFirstExistingExcel('print_fotocopy'), readFirstExistingExcel('fasilitas_kesehatan'), readFirstExistingExcel('emergency')
-      ]);
-      const [kostRows, rmRows, laundryRows, miniRows, atmRows, printRows, faskesRows, emergencyRows] = result;
-      const valid = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
-      places = [
-        ...kostRows.map(normalizeKost),
-        ...rmRows.map(normalizeRumahMakan),
-        ...laundryRows.map(normalizeLaundry),
-        ...miniRows.map(normalizeMinimarket),
-        ...atmRows.map(normalizeATM),
-        ...printRows.map(normalizePrintFotocopy),
-        ...faskesRows.map(buildFaskes),
-        ...emergencyRows.map(buildEmergency)
-      ].filter(valid);
-      window.places = places;
-      normalizeEveryPlace();
-      safe(function(){ if (typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
-      safe(function(){ if (typeof renderFilterList === 'function') renderFilterList(); });
-      safe(function(){ if (typeof syncChips === 'function') syncChips(); });
-      safe(function(){ if (typeof updateRadiusCircle === 'function') updateRadiusCircle(); });
-      safe(function(){ if (typeof renderMarkers === 'function') renderMarkers(); });
-      safe(function(){ if (typeof updateInsightDashboard === 'function') updateInsightDashboard(); });
-      console.info(TAG + ' force reload done. Emergency:', places.filter(p => p.category === 'emergency').length, 'Faskes 24 jam:', places.filter(p => p.category === 'fasilitas_kesehatan' && p.open24).length, 'All 24 jam:', places.filter(p => p.open24).length);
-    } finally {
-      window.__ssmV5Loading = false;
-    }
+  function bootV3(){
+    overrideFilteredPlaces();
+    overridePopup();
+    patchRenderMarkers();
+    patchInsightButton();
+    patchPopupChooseLocation();
+    ensureRouteCloseButton();
+    patchRouteLogic();
+    patchTutorial();
+    patchChipBehavior();
+    improveEmergencyCategory();
+    annotatePlaces();
+    syncChoiceGuide();
+    setTimeout(() => {
+      annotatePlaces();
+      improveEmergencyCategory();
+      ensureRouteCloseButton();
+      if(typeof renderFilterList === 'function') renderFilterList();
+      if(typeof syncChips === 'function') syncChips();
+      if(typeof renderMarkers === 'function') renderMarkers();
+      syncChoiceGuide();
+    }, 900);
+    setTimeout(() => {
+      annotatePlaces();
+      improveEmergencyCategory();
+      updateNearCampusCircles();
+      syncChoiceGuide();
+    }, 1800);
   }
 
-  function injectStyle(){
-    if (document.getElementById('ssm-v5-style')) return;
-    const style = document.createElement('style');
-    style.id = 'ssm-v5-style';
-    style.textContent = `
-      .marker-wrap.marker-emergency,
-      .ssm-emergency-pin{
-        background: linear-gradient(145deg, #ff1744, #b00020) !important;
-        color: #ffffff !important;
-        border: 4px solid #fff6a5 !important;
-        box-shadow: 0 0 0 5px rgba(255,23,68,.45), 0 14px 30px rgba(0,0,0,.42) !important;
-        transform: scale(1.12) !important;
-      }
-      .marker-wrap.marker-emergency::after,
-      .ssm-emergency-pin::after{
-        border-top-color:#b00020 !important;
-        filter: drop-shadow(0 4px 3px rgba(0,0,0,.38));
-      }
-      .marker-wrap.marker-emergency i,
-      .ssm-emergency-pin i{
-        color:#fff6a5 !important;
-        font-size:22px !important;
-        text-shadow:0 2px 4px rgba(0,0,0,.45);
-      }
-      .cat-icon[style*="255, 23, 68"], .filter-item[data-category="emergency"] .cat-icon{
-        background:#ff1744 !important;
-        color:#fff6a5 !important;
-        box-shadow:0 0 0 3px rgba(255,23,68,.22);
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function bootV5(){
-    injectStyle();
-    patchCoreFunctions();
-    normalizeEveryPlace();
-    safe(function(){ if (typeof renderFilterList === 'function') renderFilterList(); });
-    safe(function(){ if (typeof updateRadiusCircle === 'function') updateRadiusCircle(); });
-    safe(function(){ if (typeof renderMarkers === 'function') renderMarkers(); });
-    forceReloadData();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV5);
-  else bootV5();
-  window.addEventListener('load', function(){ setTimeout(bootV5, 400); });
-  setTimeout(bootV5, 1200);
-  setTimeout(bootV5, 2600);
-  setTimeout(bootV5, 4500);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV3);
+  else bootV3();
+  window.addEventListener('load', () => setTimeout(bootV3, 350));
 })();
 </script>
 
