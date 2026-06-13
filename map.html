@@ -17423,5 +17423,559 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<!-- =========================================================
+     SSM V8 PATCH
+     Fokus revisi:
+     1) Harga hanya dari kolom harga/tarif/biaya/sewa Excel, bukan keterangan.
+     2) Filter Murah valid berbasis angka harga.
+     3) Insight dihapus dari UI.
+     4) Marker diperkecil agar tidak menumpuk.
+     ========================================================= -->
+<script>
+(function(){
+  'use strict';
+
+  const V8_UNKNOWN_PRICE = 'Harga belum tersedia di Excel';
+  const V8_PRICE_KEY_RE = /(harga|tarif|biaya|sewa|kisaran[_\s-]*harga|rentang[_\s-]*harga|price|cost|fee)/i;
+  const V8_EXCLUDE_KEY_RE = /(keterangan|layanan|jenis|kategori|nama|alamat|lokasi|jam|hari|buka|telepon|kontak|rating|ulasan|review|link|maps|latitude|longitude|lat|lng|foto|dokumentasi|image|gambar|sheet)/i;
+
+  function v8Safe(fn, fallback){
+    try { return fn(); } catch (err) { console.warn('[SSM V8]', err); return fallback; }
+  }
+
+  function v8Text(value){
+    if (value === undefined || value === null) return '';
+    const txt = String(value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return (/^(-|null|undefined|nan)$/i.test(txt)) ? '' : txt;
+  }
+
+  function v8Esc(value){
+    return v8Text(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+  }
+
+  function v8HeaderIsPrice(key){
+    const k = v8Text(key);
+    if (!k || k === '_sheetName') return false;
+    return V8_PRICE_KEY_RE.test(k) && !V8_EXCLUDE_KEY_RE.test(k);
+  }
+
+  function v8ParseNumbers(text){
+    const src = v8Text(text).toLowerCase();
+    if (!src) return [];
+    if (/\b(gratis|free)\b/.test(src)) return [0];
+
+    const values = [];
+    const rx = /(?:rp\s*)?(\d+(?:[\.,]\d+)*)(?:\s*)(juta|jt|ribu|rb|k)?/gi;
+    let match;
+    while ((match = rx.exec(src)) !== null){
+      const token = match[1];
+      const unit = (match[2] || '').toLowerCase();
+      let n;
+
+      if (unit === 'juta' || unit === 'jt') {
+        n = Number(token.replace(/\./g, '').replace(',', '.'));
+        if (token.includes('.') && !token.includes(',') && /\.\d{1,2}$/.test(token)) n = Number(token.replace(',', '.'));
+        n *= 1000000;
+      } else if (unit === 'ribu' || unit === 'rb' || unit === 'k') {
+        n = Number(token.replace(/\./g, '').replace(',', '.'));
+        if (token.includes('.') && !token.includes(',') && /\.\d{1,2}$/.test(token)) n = Number(token.replace(',', '.'));
+        n *= 1000;
+      } else {
+        // Tanpa unit: anggap titik/koma sebagai pemisah ribuan jika pola ribuan terbaca.
+        if (/^\d{1,3}([\.,]\d{3})+$/.test(token)) {
+          n = Number(token.replace(/[\.,]/g, ''));
+        } else if (/^\d+[\.,]\d{1,2}$/.test(token)) {
+          // Nilai desimal tanpa unit biasanya bukan harga mahasiswa. Simpan apa adanya.
+          n = Number(token.replace(',', '.'));
+        } else {
+          n = Number(token.replace(/[\.,]/g, ''));
+        }
+      }
+
+      if (!Number.isFinite(n)) continue;
+      // Buang angka jam/urutan sangat kecil kecuali gratis.
+      if (n > 0 && n < 100) continue;
+      values.push(Math.round(n));
+    }
+
+    return values.filter((v, i, arr) => arr.indexOf(v) === i);
+  }
+
+  function v8PriceCandidates(raw){
+    const data = raw && typeof raw === 'object' ? raw : {};
+    return Object.entries(data)
+      .filter(([key, value]) => v8HeaderIsPrice(key) && v8Text(value))
+      .map(([key, value]) => ({ key, text: v8Text(value), values: v8ParseNumbers(value) }))
+      .filter(item => item.text && item.values.length);
+  }
+
+  function v8GetStrictPriceInfo(place){
+    const raw = (place && (place._rawRow || place.__rawRow || place.raw || place._excelRow)) || {};
+    let candidates = v8PriceCandidates(raw);
+
+    // Fallback terbatas: hanya field harga eksplisit, bukan Keterangan/Layanan.
+    if (!candidates.length && place) {
+      const fallbackRaw = {
+        Harga: place._strictHarga || place.Biaya || place.Tarif || place.Sewa || '',
+        Price: place._priceValue || ''
+      };
+      // Pakai place.Harga hanya jika pernah ditandai sumbernya dari kolom harga.
+      if (place._priceSource && /harga|tarif|biaya|sewa|price|cost|fee/i.test(place._priceSource)) {
+        fallbackRaw.Harga = place.Harga;
+      }
+      candidates = v8PriceCandidates(fallbackRaw);
+    }
+
+    const values = candidates.flatMap(c => c.values).filter(Number.isFinite);
+    const min = values.length ? Math.min(...values) : null;
+    const display = candidates.length
+      ? candidates.map(c => c.text).filter((v, i, a) => a.indexOf(v) === i).join(' | ')
+      : V8_UNKNOWN_PRICE;
+    const source = candidates.length
+      ? candidates.map(c => c.key).filter((v, i, a) => a.indexOf(v) === i).join(', ')
+      : '';
+
+    return { hasPrice: candidates.length > 0, display, values, min, source };
+  }
+
+  function v8IsCheapByPrice(place){
+    const info = v8GetStrictPriceInfo(place);
+    if (!info.hasPrice || info.min === null) return false;
+    const cat = String(place && place.category || '').toLowerCase();
+    const min = info.min;
+
+    if (cat === 'rumah_makan') return min <= 25000;
+    if (cat === 'laundry') return min <= 10000;
+    if (cat === 'print_fotocopy') return min <= 1000;
+    if (cat === 'kost') return min >= 200000 && min <= 1200000;
+    if (cat === 'minimarket') return min > 0 && min <= 15000;
+    // ATM, emergency, dan fasilitas kesehatan tidak divalidasi sebagai kategori murah.
+    return false;
+  }
+
+  function v8CheapReason(place){
+    const info = v8GetStrictPriceInfo(place);
+    const cat = String(place && place.category || '').toLowerCase();
+    if (!info.hasPrice) return 'Belum divalidasi karena kolom harga/tarif/biaya/sewa tidak ditemukan atau tidak berisi angka.';
+    const minText = 'Rp' + Number(info.min || 0).toLocaleString('id-ID');
+    const rule = {
+      rumah_makan:'murah jika harga minimum ≤ Rp25.000',
+      laundry:'murah jika tarif minimum ≤ Rp10.000',
+      print_fotocopy:'murah jika biaya minimum ≤ Rp1.000',
+      kost:'murah jika sewa Rp200.000–Rp1.200.000',
+      minimarket:'murah jika harga item minimum ≤ Rp15.000'
+    }[cat] || 'kategori ini tidak masuk filter murah';
+    return `Harga terbaca dari kolom ${info.source}: ${minText}; standar ${rule}.`;
+  }
+
+  function v8CorrectPlace(place){
+    if (!place || typeof place !== 'object') return place;
+    const info = v8GetStrictPriceInfo(place);
+    place._strictPriceInfo = info;
+    place._strictHarga = info.display;
+    place.Harga = info.display;
+    place.price = info.display;
+    place.cheap = v8IsCheapByPrice(place);
+    place.cheapReason = v8CheapReason(place);
+
+    if (typeof distanceKm === 'function' && typeof upnLatLng !== 'undefined' && Number.isFinite(Number(place.lat)) && Number.isFinite(Number(place.lng))) {
+      place.distanceMeters = Math.round(distanceKm(upnLatLng[0], upnLatLng[1], Number(place.lat), Number(place.lng)) * 1000);
+      place.nearCampus = place.distanceMeters < 1000;
+    }
+    return place;
+  }
+
+  function v8CorrectAllPlaces(){
+    v8Safe(() => {
+      if (typeof places !== 'undefined' && Array.isArray(places)) places.forEach(v8CorrectPlace);
+    });
+  }
+
+  function v8WrapNormalizer(name){
+    v8Safe(() => {
+      if (typeof window[name] !== 'function' || window[name].__ssmV8Wrapped) return;
+      const original = window[name];
+      window[name] = function(row, index){
+        const place = original.call(this, row, index);
+        if (place && typeof place === 'object') {
+          place._rawRow = Object.assign({}, row || {});
+          place._priceSource = '';
+          v8CorrectPlace(place);
+        }
+        return place;
+      };
+      window[name].__ssmV8Wrapped = true;
+    });
+  }
+
+  function v8GetPlaceValue(place){
+    if (!place) return '';
+    if (typeof getPlaceValue === 'function') return getPlaceValue(place);
+    return String(place._uid || `${place.category || 'lokasi'}::${place.id || place.name || ''}`);
+  }
+
+  function v8GetDisplayName(place){
+    if (!place) return '-';
+    if (typeof getDisplayName === 'function') return getDisplayName(place);
+    return v8Text(place.name || place.Nama || place.Nama_Tempat || 'Lokasi');
+  }
+
+  function v8FormatDistance(meters){
+    const m = Number(meters);
+    if (!Number.isFinite(m)) return '-';
+    return m >= 1000 ? (m / 1000).toFixed(2).replace('.', ',') + ' km' : Math.round(m) + ' m';
+  }
+
+  function v8Status(place){
+    if (typeof getOpenStatus === 'function') return getOpenStatus(place);
+    return { text: place && place.open24 ? 'Buka 24 jam' : 'Cek jam operasional', icon: place && place.open24 ? '🟢' : '⚪' };
+  }
+
+  function v8FilteredPlaces(){
+    v8CorrectAllPlaces();
+    if (typeof places === 'undefined' || !Array.isArray(places)) return [];
+    const searchValue = (typeof state !== 'undefined' && state.search ? String(state.search) : '').toLowerCase().trim();
+    return places.filter(place => {
+      const cat = place.category;
+      let matchCategory = true;
+      if (typeof state !== 'undefined') {
+        if (state.emergencyOnly) matchCategory = cat === 'emergency';
+        else if (state.categories && state.categories.size > 0) matchCategory = state.categories.has(cat);
+      }
+      const matchCheap = !(typeof state !== 'undefined' && state.cheap) || place.cheap === true;
+      const matchOpen = !(typeof state !== 'undefined' && state.open24) || place.open24 === true;
+      const matchNear = !(typeof state !== 'undefined' && state.nearCampus) || place.nearCampus === true;
+      const text = [place.id, place._uid, place.name, place.Nama, place.Nama_Tempat, place.Kategori, place.Keterangan, place.Alamat_lengkap, place.Harga]
+        .map(v8Text).join(' ').toLowerCase();
+      const matchSearch = !searchValue || text.includes(searchValue);
+      return matchCategory && matchCheap && matchOpen && matchNear && matchSearch;
+    });
+  }
+
+  function v8IconHtml(place){
+    const cat = place && place.category;
+    const cfg = (typeof categories !== 'undefined' && categories[cat]) ? categories[cat] : {};
+    const icon = cat === 'emergency' ? 'fa-solid fa-triangle-exclamation' : (cfg.icon || 'fa-solid fa-location-dot');
+    const color = cat === 'emergency' ? '#ff1744' : (cfg.color || '#5B7E3C');
+    const classes = [
+      'marker-wrap', 'ssm-v8-marker',
+      cat === 'emergency' ? 'marker-emergency ssm-emergency-pin ssm-v8-emergency' : '',
+      place && place.cheap ? 'ssm-cheap-pin ssm-v8-cheap' : '',
+      place && place.nearCampus ? 'ssm-near-pin ssm-v8-near' : '',
+      cat ? `marker-${cat}` : ''
+    ].filter(Boolean).join(' ');
+    return `<div class="${classes}" style="background:${color};"><i class="${icon}"></i></div>`;
+  }
+
+  function v8CreateIcon(place){
+    const cat = place && place.category;
+    const size = cat === 'emergency' ? [30, 34] : [26, 30];
+    const anchor = cat === 'emergency' ? [15, 30] : [13, 27];
+    return L.divIcon({
+      className: 'custom-div-icon ssm-v8-div-icon',
+      html: v8IconHtml(place),
+      iconSize: size,
+      iconAnchor: anchor,
+      popupAnchor: [0, -26]
+    });
+  }
+
+  function v8BuildRows(place){
+    const rows = [
+      ['Kategori', (typeof categories !== 'undefined' && categories[place.category] ? categories[place.category].label : place.category)],
+      ['Harga/Tarif', place.Harga],
+      ['Validasi murah', place.cheap ? 'Murah untuk mahasiswa' : (place._strictPriceInfo && place._strictPriceInfo.hasPrice ? 'Harga standar' : 'Belum valid')],
+      ['Keterangan', place.Keterangan || place.Layanan || '-'],
+      ['Hari operasional', place.Hari_operasional || '-'],
+      ['Jam operasional', place.Jam_operasional || '-'],
+      ['Alamat', place.Alamat_lengkap || place.address || '-'],
+      ['Kontak', place.No_Telepon || place.contact || '-'],
+      ['Rating/Ulasan', place.Rating || place.rating || '-'],
+      ['Jarak dari kampus', v8FormatDistance(place.distanceMeters)]
+    ];
+    return rows.map(([label, value]) => `
+      <div class="ssm-complete-row">
+        <i class="fa-solid fa-circle-info"></i>
+        <div><b>${v8Esc(label)}</b><span>${v8Esc(value || '-')}</span></div>
+      </div>`).join('');
+  }
+
+  function v8PatchDetail(){
+    v8Safe(() => {
+      if (typeof updateDetail !== 'function' || updateDetail.__ssmV8) return;
+      updateDetail = function(place){
+        if (!place) return;
+        v8CorrectPlace(place);
+        const category = (typeof categories !== 'undefined' && categories[place.category]) ? categories[place.category] : { label: place.category || 'Lokasi' };
+        const status = v8Status(place);
+        if (typeof selectedPlace !== 'undefined') selectedPlace = place;
+        const detailTitleEl = document.getElementById('detailTitle');
+        const detailCategoryEl = document.getElementById('detailCategory');
+        const detailDistanceEl = document.getElementById('detailDistance');
+        const detailPriceEl = document.getElementById('detailPrice');
+        const detailMetaEl = document.getElementById('detailMeta');
+        const detailButtonEl = document.getElementById('detailButton');
+        if (detailTitleEl) detailTitleEl.textContent = v8GetDisplayName(place);
+        if (detailCategoryEl) detailCategoryEl.textContent = category.label || place.category || 'Lokasi';
+        if (detailDistanceEl) detailDistanceEl.textContent = `Jarak dari kampus: ${v8FormatDistance(place.distanceMeters)}`;
+        if (detailPriceEl) detailPriceEl.innerHTML = `<i class="fa-solid fa-tags"></i><span>${v8Esc(place.Harga || V8_UNKNOWN_PRICE)}</span>`;
+        if (typeof setDetailImage === 'function') v8Safe(() => setDetailImage(place));
+        if (detailButtonEl) detailButtonEl.textContent = place.Link_google_maps && place.Link_google_maps !== '-' ? 'Google Maps' : 'Detail Lokasi';
+        if (detailMetaEl) {
+          detailMetaEl.innerHTML = `
+            <div class="status-card ${String(status.text || '').toLowerCase().includes('buka') ? '' : 'closed'}">
+              <span class="status-dot"></span>
+              <div><b>${v8Esc(status.text || '-')}</b><span>${place.open24 ? 'Buka 24 jam terbaca dari Excel' : 'Status mengikuti jam operasional Excel'}</span></div>
+            </div>
+            <div class="ssm-tag-row">
+              <span class="ssm-tag ${place.cheap ? 'green' : ''}"><i class="fa-solid fa-tags"></i>${place.cheap ? 'Murah Mahasiswa' : 'Tidak masuk murah'}</span>
+              <span class="ssm-tag ${place.nearCampus ? 'green' : ''}"><i class="fa-solid fa-location-dot"></i>${place.nearCampus ? 'Dekat Kampus &lt; 1 km' : 'Di luar 1 km'}</span>
+              <span class="ssm-tag ${place._strictPriceInfo && place._strictPriceInfo.hasPrice ? 'green' : 'red'}"><i class="fa-solid fa-check"></i>${place._strictPriceInfo && place._strictPriceInfo.hasPrice ? 'Harga valid dari Excel' : 'Harga belum valid'}</span>
+            </div>
+            <div class="ssm-detail-section-title"><i class="fa-solid fa-table-list"></i> Data Lengkap dari Excel</div>
+            <div class="ssm-complete-grid">${v8BuildRows(place)}</div>
+            <div class="ssm-detail-section-title"><i class="fa-solid fa-lightbulb"></i> Catatan Filter Murah</div>
+            <div class="ssm-complete-grid">
+              <div class="ssm-complete-row"><i class="fa-solid fa-tags"></i><div><b>Dasar Validasi</b><span>${v8Esc(place.cheapReason)}</span></div></div>
+            </div>`;
+        }
+      };
+      updateDetail.__ssmV8 = true;
+    });
+  }
+
+  function v8BuildPopup(place, status){
+    v8CorrectPlace(place);
+    const cfg = (typeof categories !== 'undefined' && categories[place.category]) ? categories[place.category] : {};
+    const categoryLabel = cfg.label || place.category || 'Lokasi';
+    const icon = place.category === 'emergency' ? 'fa-solid fa-triangle-exclamation' : (cfg.icon || 'fa-solid fa-location-dot');
+    const mapsButton = place.Link_google_maps && place.Link_google_maps !== '-'
+      ? `<a class="map-popup-btn primary" href="${v8Esc(place.Link_google_maps)}" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Google Maps</a>`
+      : '';
+    return `
+      <div class="map-popup-card" data-place-id="${v8Esc(v8GetPlaceValue(place))}">
+        <div class="map-popup-head"><div class="map-popup-badge"><i class="${icon}"></i> ${v8Esc(categoryLabel)}</div></div>
+        <div class="map-popup-body">
+          <h3 class="map-popup-title">${v8Esc(v8GetDisplayName(place))}</h3>
+          <div class="map-popup-sub">
+            <span class="map-popup-pill"><i class="fa-solid fa-route"></i> ${v8Esc(v8FormatDistance(place.distanceMeters))}</span>
+            <span class="map-popup-pill ${place.open24 ? 'status-open' : ''}">${status && status.icon ? status.icon : '⚪'} ${v8Esc(status && status.text ? status.text : '-')}</span>
+            <span class="map-popup-pill"><i class="fa-solid fa-tags"></i> ${place.cheap ? 'Murah' : 'Standar'}</span>
+          </div>
+          <div class="map-popup-info">
+            <div class="map-popup-row"><i class="fa-solid fa-tags"></i><div><span class="map-popup-label">Harga/Tarif</span><span class="map-popup-value">${v8Esc(place.Harga || V8_UNKNOWN_PRICE)}</span></div></div>
+            <div class="map-popup-row"><i class="fa-solid fa-circle-info"></i><div><span class="map-popup-label">Keterangan</span><span class="map-popup-value">${v8Esc(place.Keterangan || place.Layanan || '-')}</span></div></div>
+            <div class="map-popup-row"><i class="fa-solid fa-clock"></i><div><span class="map-popup-label">Jam Operasional</span><span class="map-popup-value">${v8Esc(place.Hari_operasional || '-')} • ${v8Esc(place.Jam_operasional || '-')}</span></div></div>
+            <div class="map-popup-row"><i class="fa-solid fa-location-dot"></i><div><span class="map-popup-label">Alamat</span><span class="map-popup-value">${v8Esc(place.Alamat_lengkap || place.address || '-')}</span></div></div>
+          </div>
+          <div class="map-popup-actions">
+            ${mapsButton}
+            <button class="map-popup-btn secondary ssm-select-destination" type="button" data-place-id="${v8Esc(v8GetPlaceValue(place))}"><i class="fa-solid fa-location-crosshairs"></i> Pilih Lokasi</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function v8PatchMapFunctions(){
+    v8Safe(() => { if (typeof filteredPlaces === 'function') filteredPlaces = v8FilteredPlaces; });
+
+    v8Safe(() => {
+      if (typeof createSmartIcon === 'function') createSmartIcon = v8CreateIcon;
+      if (typeof createIcon === 'function') {
+        createIcon = function(category){ return v8CreateIcon({ category, cheap:false, nearCampus:false }); };
+      }
+    });
+
+    v8Safe(() => {
+      if (typeof buildMarkerPopup === 'function') buildMarkerPopup = v8BuildPopup;
+    });
+
+    v8Safe(() => {
+      if (typeof populateDestinationOptions !== 'function' || populateDestinationOptions.__ssmV8) return;
+      populateDestinationOptions = function(){
+        const destinationSelectEl = document.getElementById('destinationSelect');
+        if (!destinationSelectEl || typeof places === 'undefined') return;
+        v8CorrectAllPlaces();
+        const currentValue = destinationSelectEl.value;
+        const list = places.slice().sort((a,b) => v8GetDisplayName(a).localeCompare(v8GetDisplayName(b)));
+        destinationSelectEl.innerHTML = '<option value="">Tujuan: pilih lokasi</option>' + list.map(place => {
+          const cat = (typeof categories !== 'undefined' && categories[place.category]) ? categories[place.category].label : place.category;
+          const flags = [place.cheap ? 'Murah' : '', place.nearCampus ? '&lt;1 km' : '', place.open24 ? '24 Jam' : ''].filter(Boolean).join(' • ');
+          return `<option class="${place.cheap ? 'ssm-cheap-option' : ''}" value="${v8Esc(v8GetPlaceValue(place))}">${v8Esc(v8GetDisplayName(place))} - ${v8Esc(cat)} (${v8Esc(v8FormatDistance(place.distanceMeters))}${flags ? ' • ' + flags : ''})</option>`;
+        }).join('');
+        if (currentValue) destinationSelectEl.value = currentValue;
+      };
+      populateDestinationOptions.__ssmV8 = true;
+    });
+
+    v8Safe(() => {
+      if (typeof getPlaceById === 'function') {
+        getPlaceById = function(id){
+          if (typeof places === 'undefined') return undefined;
+          return places.find(p => String(p.id) === String(id) || String(p._uid) === String(id) || v8GetPlaceValue(p) === String(id));
+        };
+      }
+    });
+
+    v8PatchDetail();
+
+    v8Safe(() => {
+      if (typeof renderMarkers !== 'function' || renderMarkers.__ssmV8) return;
+      renderMarkers = function(){
+        v8CorrectAllPlaces();
+        if (typeof layers !== 'undefined') Object.values(layers).forEach(layer => layer && typeof layer.clearLayers === 'function' && layer.clearLayers());
+        const visible = v8FilteredPlaces();
+        window.__ssmMarkerById = new Map();
+        visible.forEach(place => {
+          if (typeof L === 'undefined' || typeof map === 'undefined' || !map) return;
+          const cat = place.category;
+          if (!layers[cat]) layers[cat] = L.layerGroup().addTo(map);
+          const status = v8Status(place);
+          const marker = L.marker([place.lat, place.lng], {
+            icon: v8CreateIcon(place),
+            zIndexOffset: cat === 'emergency' ? 3000 : (place.nearCampus ? 500 : 0)
+          }).bindPopup(v8BuildPopup(place, status), {
+            maxWidth: 360,
+            minWidth: 285,
+            closeButton: true,
+            autoPanPadding: [20,20],
+            className: 'student-popup'
+          }).on('click', e => {
+            if (typeof setDestinationPlace === 'function') setDestinationPlace(place, true);
+            if (map && typeof map.setView === 'function') map.setView([place.lat, place.lng], Math.max(map.getZoom(), 16), { animate:false });
+            e.target.openPopup();
+          });
+          layers[cat].addLayer(marker);
+          window.__ssmMarkerById.set(v8GetPlaceValue(place), marker);
+        });
+        const emergencyCount = document.getElementById('emergencyCount');
+        if (emergencyCount && typeof places !== 'undefined') emergencyCount.textContent = String(places.filter(p => p.category === 'emergency').length);
+        if (typeof hideChoiceGuideWhenStarted === 'function') v8Safe(() => hideChoiceGuideWhenStarted());
+      };
+      renderMarkers.__ssmV8 = true;
+    });
+  }
+
+  function v8PatchLoading(){
+    ['normalizeLaundry','normalizeMinimarket','normalizeRumahMakan','normalizeFasilitasKesehatan','normalizeEmergency','normalizeKost','normalizeATM','normalizePrintFotocopy'].forEach(v8WrapNormalizer);
+    v8Safe(() => {
+      if (typeof loadAllData !== 'function' || loadAllData.__ssmV8) return;
+      const original = loadAllData;
+      loadAllData = async function(){
+        const result = await original.apply(this, arguments);
+        v8CorrectAllPlaces();
+        if (typeof populateDestinationOptions === 'function') populateDestinationOptions();
+        if (typeof renderFilterList === 'function') renderFilterList();
+        if (typeof renderMarkers === 'function') renderMarkers();
+        return result;
+      };
+      loadAllData.__ssmV8 = true;
+    });
+  }
+
+  function v8HideInsightUI(){
+    const styleId = 'ssm-v8-final-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        /* Insight dihapus */
+        #toggleDashboard,
+        .dashboard-toggle-btn,
+        #insightDashboard,
+        .insight-dashboard,
+        .energy-index-mode,
+        #openRouteFromInsight,
+        #fitAllInsightBtn{display:none !important;visibility:hidden !important;pointer-events:none !important;}
+
+        /* Marker final lebih kecil agar tidak menumpuk */
+        .leaflet-marker-icon.ssm-v8-div-icon{width:30px !important;height:34px !important;}
+        .marker-wrap,
+        .marker-wrap.ssm-v8-marker{
+          width:24px !important;
+          height:24px !important;
+          min-width:24px !important;
+          min-height:24px !important;
+          border-width:2px !important;
+          border-radius:50% !important;
+          display:flex !important;
+          align-items:center !important;
+          justify-content:center !important;
+          box-shadow:0 6px 14px rgba(0,0,0,.24) !important;
+          transform:none !important;
+        }
+        .marker-wrap i,
+        .marker-wrap svg{font-size:12px !important;width:14px !important;height:14px !important;}
+        .marker-wrap.ssm-v8-emergency,
+        .marker-wrap.marker-emergency{
+          width:28px !important;
+          height:28px !important;
+          min-width:28px !important;
+          min-height:28px !important;
+          border:2px solid #fff200 !important;
+          background:radial-gradient(circle at 35% 20%, #fff200 0 10%, #ff1744 42%, #9b0018 100%) !important;
+          box-shadow:0 0 0 3px rgba(255,23,68,.36), 0 8px 18px rgba(0,0,0,.36) !important;
+        }
+        .marker-wrap.ssm-v8-emergency i{font-size:14px !important;color:#fff !important;text-shadow:0 1px 4px rgba(0,0,0,.55) !important;}
+        .marker-wrap.ssm-cheap-pin::before,
+        .marker-wrap.ssm-near-pin::before{
+          right:-4px !important;top:-4px !important;min-width:10px !important;width:10px !important;height:10px !important;padding:0 !important;
+          font-size:0 !important;border:1.5px solid #fff !important;background:#C44545 !important;box-shadow:0 2px 6px rgba(0,0,0,.25) !important;
+        }
+        .marker-wrap.ssm-near-pin::after{display:none !important;}
+
+        /* Tutorial: hapus referensi Insight */
+        .tutorial-card.ssm-v8-hide-card{display:none !important;}
+      `;
+      document.head.appendChild(style);
+    }
+
+    v8Safe(() => { if (typeof hideInsightDashboard === 'function') hideInsightDashboard = function(){}; });
+    v8Safe(() => { if (typeof showInsightDashboard === 'function') showInsightDashboard = function(){}; });
+    v8Safe(() => { if (typeof toggleInsightDashboard === 'function') toggleInsightDashboard = function(){}; });
+    v8Safe(() => { if (typeof updateInsightDashboard === 'function') updateInsightDashboard = function(){}; });
+
+    const dash = document.getElementById('insightDashboard');
+    if (dash) dash.remove();
+    const btn = document.getElementById('toggleDashboard');
+    if (btn) btn.remove();
+
+    document.querySelectorAll('.tutorial-subtitle').forEach(el => {
+      el.textContent = el.textContent.replace(/,?\s*membuka dashboard insight/gi, '').replace(/dashboard insight/gi, 'fitur peta');
+    });
+    document.querySelectorAll('.tutorial-card').forEach(card => {
+      if (/insight/i.test(card.textContent || '')) card.classList.add('ssm-v8-hide-card');
+    });
+  }
+
+  function v8PatchGuideText(){
+    const guide = document.getElementById('mapChoiceGuide');
+    if (guide) {
+      guide.querySelectorAll('*').forEach(el => {
+        if (/Insight/i.test(el.textContent || '')) el.textContent = el.textContent.replace(/Insight/gi, 'Panduan');
+      });
+    }
+  }
+
+  function v8Install(){
+    v8HideInsightUI();
+    v8PatchGuideText();
+    v8PatchMapFunctions();
+    v8PatchLoading();
+    v8CorrectAllPlaces();
+    v8Safe(() => { if (typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+    v8Safe(() => { if (typeof renderMarkers === 'function' && typeof map !== 'undefined' && map) renderMarkers(); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', v8Install);
+  else v8Install();
+  window.addEventListener('load', () => setTimeout(v8Install, 250));
+  setTimeout(v8Install, 900);
+  setTimeout(v8Install, 2200);
+})();
+</script>
+
 </body>
 </html>
