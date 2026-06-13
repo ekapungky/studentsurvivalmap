@@ -19311,1027 +19311,408 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 
-<!-- SSM V14 RESPONSIVE NORMAL LAYOUT + MATCHED FILTER ICONS -->
-<style id="ssm-v14-responsive-normal-style">
-  /* =========================================================
-     V14: tampilan panel dibuat normal/compact, tidak bottom-sheet,
-     tidak saling tumpuk, dan icon filter disamakan dengan marker peta.
-     ========================================================= */
 
-  body.map-active .map-shell{
-    overflow:hidden !important;
-  }
-
-  body.map-active .route-planner,
-  body.map-active .route-planner:not(.hidden-route){
-    position:absolute !important;
-    left:18px !important;
-    right:auto !important;
-    top:132px !important;
-    bottom:auto !important;
-    transform:none !important;
-    width:390px !important;
-    max-width:calc(100vw - 36px) !important;
-    max-height:calc(100% - 152px) !important;
-    min-width:0 !important;
-    overflow-x:hidden !important;
-    overflow-y:auto !important;
-    box-sizing:border-box !important;
-    display:grid !important;
-    grid-template-columns:1fr !important;
-    gap:10px !important;
-    padding:44px 14px 14px !important;
-    border-radius:24px !important;
-    background:linear-gradient(145deg,#FFFDF2 0%,#F5FAD9 100%) !important;
-    border:1px solid rgba(91,126,60,.32) !important;
-    box-shadow:0 24px 62px rgba(36,51,29,.30), inset 0 1px 0 rgba(255,255,255,.85) !important;
-    z-index:1060 !important;
-  }
-
-  body.map-active .route-planner.hidden-route{
-    display:none !important;
-  }
-
-  body.map-active.route-panel-open .floating-actions,
-  body.map-active.route-panel-open .top-controls:not(.collapsed),
-  body.map-active.route-panel-open .left-panel:not(.collapsed),
-  body.map-active.route-panel-open .right-panel:not(.hidden){
-    opacity:0 !important;
-    pointer-events:none !important;
-    transform:translateX(-14px) scale(.985) !important;
-    transition:.18s ease !important;
-  }
-
-  body.map-active .route-field,
-  body.map-active .route-mini-btn{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    box-sizing:border-box !important;
-  }
-
-  body.map-active .route-field{
-    height:44px !important;
-    padding:0 12px !important;
-    border-radius:15px !important;
-    background:#FFFDF2 !important;
-    color:#24331D !important;
-    border:1px solid rgba(91,126,60,.30) !important;
-    font-size:13px !important;
-    font-weight:850 !important;
-    outline:none !important;
-  }
-
-  body.map-active #originSelect,
-  body.map-active #destinationSelect{
-    grid-column:auto !important;
-  }
-
-  body.map-active #routeNowBtn,
-  body.map-active #clearRouteBtn,
-  body.map-active #routeCloseBtn{
-    height:42px !important;
-    border-radius:15px !important;
-    font-size:13px !important;
-    font-weight:950 !important;
-    padding:0 12px !important;
-  }
-
-  body.map-active #routeNowBtn{
-    background:linear-gradient(135deg,#C44545 0%,#A83A3A 100%) !important;
-    color:#FFFDF2 !important;
-    box-shadow:0 10px 22px rgba(196,69,69,.25) !important;
-  }
-
-  body.map-active #clearRouteBtn{
-    background:linear-gradient(135deg,#5B7E3C 0%,#3F5F2D 100%) !important;
-    color:#FFFDF2 !important;
-    box-shadow:0 10px 22px rgba(91,126,60,.22) !important;
-  }
-
-  body.map-active #routeCloseBtn{
-    background:linear-gradient(135deg,#A2CB8B 0%,#E8F5BD 100%) !important;
-    color:#24331D !important;
-    border:1px solid rgba(91,126,60,.26) !important;
-  }
-
-  body.map-active #routeCloseXBtnV13,
-  body.map-active #routeCloseXBtnV14{
-    position:absolute !important;
-    top:10px !important;
-    right:10px !important;
-    width:32px !important;
-    height:32px !important;
-    border-radius:999px !important;
-    border:2px solid rgba(255,253,242,.88) !important;
-    background:linear-gradient(135deg,#C44545,#A83A3A) !important;
-    color:#fff !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    box-shadow:0 10px 18px rgba(0,0,0,.22) !important;
-    z-index:8 !important;
-    cursor:pointer !important;
-  }
-
-  body.map-active .route-hint{
-    width:100% !important;
-    grid-column:1/-1 !important;
-    box-sizing:border-box !important;
-    padding:9px 11px !important;
-    border-radius:14px !important;
-    background:rgba(255,255,255,.70) !important;
-    border:1px solid rgba(91,126,60,.22) !important;
-    color:#405A30 !important;
-    font-size:12px !important;
-    line-height:1.45 !important;
-  }
-
-  body.map-active .route-directions{
-    width:100% !important;
-    grid-column:1/-1 !important;
-    box-sizing:border-box !important;
-    max-height:210px !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    padding:10px !important;
-    border-radius:17px !important;
-    background:rgba(255,253,242,.92) !important;
-    border:1px solid rgba(91,126,60,.20) !important;
-  }
-
-  body.map-active .route-directions-title{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:space-between !important;
-    gap:8px !important;
-    font-size:13px !important;
-    line-height:1.35 !important;
-    color:#24331D !important;
-  }
-
-  body.map-active .route-directions-title small{
-    color:#5B7E3C !important;
-    font-weight:950 !important;
-    white-space:nowrap !important;
-  }
-
-  body.map-active .route-directions ol{
-    max-height:none !important;
-    overflow:visible !important;
-    padding:0 !important;
-    margin:8px 0 0 !important;
-  }
-
-  body.map-active .route-directions li{
-    display:grid !important;
-    grid-template-columns:auto 1fr auto !important;
-    gap:9px !important;
-    align-items:center !important;
-    padding:9px 10px !important;
-    margin-bottom:8px !important;
-    border-radius:14px !important;
-    background:#FFFDF2 !important;
-    border:1px solid rgba(91,126,60,.18) !important;
-    font-size:12px !important;
-    line-height:1.32 !important;
-    color:#24331D !important;
-  }
-
-  body.map-active .leaflet-routing-container{
-    display:none !important;
-  }
-
-  /* Icon filter mengikuti bentuk marker peta */
-  body.map-active .filter-item .cat-icon,
-  .filter-item .cat-icon{
-    width:38px !important;
-    height:38px !important;
-    min-width:38px !important;
-    border-radius:15px 15px 15px 5px !important;
-    transform:rotate(-45deg) !important;
-    border:2px solid rgba(255,253,242,.92) !important;
-    box-shadow:0 8px 18px rgba(36,51,29,.25), inset 0 0 0 1px rgba(255,255,255,.20) !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    flex-shrink:0 !important;
-  }
-
-  body.map-active .filter-item:hover .cat-icon,
-  .filter-item:hover .cat-icon{
-    transform:rotate(-45deg) scale(1.06) !important;
-  }
-
-  body.map-active .filter-item .cat-icon i,
-  body.map-active .filter-item .cat-icon svg,
-  .filter-item .cat-icon i,
-  .filter-item .cat-icon svg{
-    transform:rotate(45deg) !important;
-    color:currentColor !important;
-    width:20px !important;
-    height:20px !important;
-    font-size:18px !important;
-    line-height:1 !important;
-    display:block !important;
-  }
-
-  body.map-active .filter-item .cat-icon svg *,
-  .filter-item .cat-icon svg *{
-    stroke:currentColor !important;
-    fill:none !important;
-    vector-effect:non-scaling-stroke !important;
-  }
-
-  body.map-active .filter-item .cat-icon svg circle,
-  body.map-active .filter-item .cat-icon svg .dot,
-  .filter-item .cat-icon svg circle,
-  .filter-item .cat-icon svg .dot{
-    fill:currentColor !important;
-    stroke:none !important;
-  }
-
-  body.map-active .filter-item[data-category="kost"] .cat-icon{background:#5B7E3C !important;color:#FFFDF2 !important;}
-  body.map-active .filter-item[data-category="rumah_makan"] .cat-icon{background:#E8F5BD !important;color:#24331D !important;}
-  body.map-active .filter-item[data-category="laundry"] .cat-icon{background:#A2CB8B !important;color:#24331D !important;}
-  body.map-active .filter-item[data-category="minimarket"] .cat-icon{background:#A2CB8B !important;color:#24331D !important;}
-  body.map-active .filter-item[data-category="atm"] .cat-icon{background:#E8F5BD !important;color:#24331D !important;}
-  body.map-active .filter-item[data-category="print_fotocopy"] .cat-icon{background:#5B7E3C !important;color:#FFFDF2 !important;}
-  body.map-active .filter-item[data-category="fasilitas_kesehatan"] .cat-icon{background:#5B7E3C !important;color:#FFFDF2 !important;}
-  body.map-active .filter-item[data-category="emergency"] .cat-icon{background:#C44545 !important;color:#FFFDF2 !important;border-color:#E8F5BD !important;box-shadow:0 0 0 3px rgba(196,69,69,.23),0 8px 18px rgba(36,51,29,.25) !important;}
-
-  @media(max-width:900px){
-    body.map-active .map-page,
-    body.map-active .content{
-      height:calc(100vh - 86px) !important;
-      min-height:0 !important;
-      overflow:hidden !important;
-    }
-    body.map-active .map-shell{
-      height:100% !important;
-      min-height:0 !important;
-      padding:8px !important;
-      overflow:hidden !important;
-    }
-    body.map-active #map{
-      height:100% !important;
-      min-height:0 !important;
-      border-radius:18px !important;
-    }
-    body.map-active .floating-actions{
-      position:absolute !important;
-      top:12px !important;
-      left:12px !important;
-      right:12px !important;
-      width:auto !important;
-      display:flex !important;
-      flex-wrap:wrap !important;
-      gap:8px !important;
-      z-index:1045 !important;
-    }
-    body.map-active .top-controls{
-      position:absolute !important;
-      top:68px !important;
-      left:12px !important;
-      right:12px !important;
-      width:auto !important;
-      display:flex !important;
-      flex-wrap:wrap !important;
-      gap:8px !important;
-    }
-    body.map-active .left-panel{
-      position:absolute !important;
-      top:68px !important;
-      left:12px !important;
-      width:min(330px, calc(100vw - 24px)) !important;
-      max-height:calc(100% - 92px) !important;
-      overflow-y:auto !important;
-      overflow-x:hidden !important;
-      margin:0 !important;
-    }
-    body.map-active .left-panel.shifted{
-      top:126px !important;
-      max-height:calc(100% - 150px) !important;
-    }
-    body.map-active .left-panel.collapsed{
-      position:absolute !important;
-      transform:translateX(-16px) !important;
-      opacity:0 !important;
-      pointer-events:none !important;
-    }
-    body.map-active .route-planner,
-    body.map-active .route-planner:not(.hidden-route){
-      left:12px !important;
-      right:auto !important;
-      top:112px !important;
-      bottom:auto !important;
-      width:min(340px, calc(100vw - 24px)) !important;
-      max-width:calc(100vw - 24px) !important;
-      max-height:calc(100% - 128px) !important;
-      grid-template-columns:1fr !important;
-      border-radius:22px !important;
-    }
-    body.map-active .route-directions{max-height:185px !important;}
-    body.map-active.route-panel-open .legend-text{opacity:0 !important;pointer-events:none !important;}
-  }
-
-  @media(max-width:480px){
-    body.map-active .route-planner,
-    body.map-active .route-planner:not(.hidden-route){
-      top:104px !important;
-      width:calc(100vw - 20px) !important;
-      left:10px !important;
-      max-height:calc(100% - 118px) !important;
-      padding:42px 12px 12px !important;
-    }
-    body.map-active .route-directions{max-height:160px !important;}
-    body.map-active .left-panel{width:calc(100vw - 20px) !important;left:10px !important;}
-  }
-</style>
-<script id="ssm-v14-responsive-normal-js">
+<script id="ssm-v16-no-overlap-final-patch">
+/* =========================================================
+   SSM V16 FINAL PATCH
+   Tujuan: tidak ada panel yang saling numpuk.
+   Sistem dibuat single-panel: Filter / Cari-Atas / Info Lokasi / Network Analyst
+   hanya boleh tampil satu mode dalam satu waktu.
+   ========================================================= */
 (function(){
-  const safe = fn => { try { return fn(); } catch(e){ console.warn('SSM V14', e); } };
-  const qs = sel => document.querySelector(sel);
-  const qsa = sel => Array.from(document.querySelectorAll(sel));
+  'use strict';
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const safe = (fn, fallback) => { try { const v = fn(); return v === undefined ? fallback : v; } catch(e){ return fallback; } };
 
-  function routeIsOpen(){
-    const planner = qs('#routePlanner');
-    return !!(planner && !planner.classList.contains('hidden-route'));
+  function installV16Style(){
+    let style = qs('#ssm-v16-no-overlap-style');
+    if(!style){
+      style = document.createElement('style');
+      style.id = 'ssm-v16-no-overlap-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      /* ===== V16: Panel tidak boleh bertumpuk ===== */
+      #toggleDashboard,
+      #insightDashboard,
+      .insight-dashboard{display:none !important;}
+
+      .top-controls.collapsed,
+      .left-panel.collapsed,
+      .right-panel.hidden,
+      .route-planner.hidden-route,
+      #openInfoPanel.hidden{display:none !important;}
+
+      .floating-actions{z-index:1200 !important;}
+      .top-controls,
+      .left-panel,
+      .right-panel,
+      .route-planner{box-sizing:border-box !important;}
+
+      /* Panel Cari/Atas: hanya muncul kalau tombol Atas diklik; tidak menimpa info/filter karena JS menutup panel lain. */
+      .top-controls,
+      body.map-active .top-controls{
+        position:absolute !important;
+        top:72px !important;
+        left:12px !important;
+        right:auto !important;
+        bottom:auto !important;
+        width:min(720px, calc(100vw - 44px)) !important;
+        max-width:min(720px, calc(100vw - 44px)) !important;
+        min-height:54px !important;
+        display:grid !important;
+        grid-template-columns:54px minmax(220px, 1fr) 54px 150px 150px !important;
+        gap:10px !important;
+        align-items:center !important;
+        padding:10px !important;
+        border-radius:22px !important;
+        z-index:1120 !important;
+        overflow:visible !important;
+        background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+        border:1px solid rgba(91,126,60,.28) !important;
+        box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
+      }
+
+      /* Panel Filter: normal di kiri, tidak besar/bottom sheet. */
+      .left-panel,
+      body.map-active .left-panel{
+        position:absolute !important;
+        top:72px !important;
+        left:12px !important;
+        right:auto !important;
+        bottom:auto !important;
+        width:330px !important;
+        max-width:calc(100vw - 36px) !important;
+        max-height:calc(100vh - 188px) !important;
+        padding:14px !important;
+        border-radius:22px !important;
+        z-index:1110 !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        transform:none !important;
+        opacity:1 !important;
+        background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+        color:#24331D !important;
+        border:1px solid rgba(91,126,60,.28) !important;
+        box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
+      }
+      .left-panel.shifted{top:72px !important;max-height:calc(100vh - 188px) !important;}
+      .left-panel .panel-title{position:sticky !important;top:0 !important;background:linear-gradient(180deg,#FFFDF2 0%,rgba(255,253,242,.94) 100%) !important;color:#5B7E3C !important;}
+      .filter-item{min-height:54px !important;border-radius:16px !important;margin-bottom:8px !important;background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.22) !important;}
+      .filter-item.active{background:linear-gradient(135deg,#E8F5BD,#FFFDF2) !important;border-color:rgba(91,126,60,.42) !important;}
+      .filter-left{gap:10px !important;}
+      .cat-icon{width:36px !important;height:36px !important;border-radius:14px !important;color:#fff !important;display:flex !important;align-items:center !important;justify-content:center !important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.32),0 8px 18px rgba(36,51,29,.16) !important;}
+      .cat-icon i{color:inherit !important;font-size:15px !important;}
+      .filter-item[data-category="kost"] .cat-icon{background:#5B7E3C !important;color:#fff !important;}
+      .filter-item[data-category="rumah_makan"] .cat-icon{background:#E8F5BD !important;color:#24331D !important;border:1px solid rgba(91,126,60,.25) !important;}
+      .filter-item[data-category="laundry"] .cat-icon{background:#A2CB8B !important;color:#fff !important;}
+      .filter-item[data-category="minimarket"] .cat-icon{background:#2FA66A !important;color:#fff !important;}
+      .filter-item[data-category="atm"] .cat-icon{background:#D8C349 !important;color:#24331D !important;}
+      .filter-item[data-category="print_fotocopy"] .cat-icon{background:#3F5F2D !important;color:#fff !important;}
+      .filter-item[data-category="fasilitas_kesehatan"] .cat-icon{background:#1F8A70 !important;color:#fff !important;}
+      .filter-item[data-category="emergency"] .cat-icon{background:#C44545 !important;color:#fff !important;}
+      .cat-label,.cat-count,.check{color:#24331D !important;opacity:1 !important;}
+      .check{font-size:22px !important;color:#5B7E3C !important;}
+      .chip{border-radius:14px !important;min-height:42px !important;background:#FFFDF2 !important;color:#24331D !important;border:1px solid rgba(91,126,60,.22) !important;}
+      .chip.active{background:linear-gradient(135deg,#A2CB8B,#E8F5BD) !important;color:#24331D !important;}
+      .chip.network.active{background:linear-gradient(135deg,#5B7E3C,#A2CB8B) !important;color:#fff !important;}
+      .chip.emergency.active{background:linear-gradient(135deg,#C44545,#E8F5BD) !important;color:#24331D !important;}
+
+      /* Info Lokasi: kanan, tidak saling tumpuk karena filter/search/rute ditutup otomatis. */
+      .right-panel,
+      body.map-active .right-panel{
+        position:absolute !important;
+        top:72px !important;
+        right:16px !important;
+        left:auto !important;
+        bottom:auto !important;
+        width:360px !important;
+        max-width:calc(100vw - 36px) !important;
+        max-height:calc(100vh - 188px) !important;
+        padding:16px !important;
+        border-radius:22px !important;
+        z-index:1110 !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        transform:none !important;
+        background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+        color:#24331D !important;
+        border:1px solid rgba(91,126,60,.28) !important;
+        box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
+      }
+      .right-panel:hover{transform:none !important;}
+      .right-panel .right-header{position:sticky !important;top:-16px !important;z-index:4 !important;padding:8px 0 10px !important;background:linear-gradient(180deg,#FFFDF2 0%,rgba(255,253,242,.92) 100%) !important;}
+      #openInfoPanel{right:16px !important;bottom:18px !important;z-index:1090 !important;}
+
+      /* Network Analyst: normal compact di kiri, bukan modal tengah dan bukan bottom sheet. */
+      .route-planner,
+      .route-planner:not(.hidden-route),
+      body.map-active .route-planner,
+      body.map-active .route-planner:not(.hidden-route){
+        position:absolute !important;
+        top:72px !important;
+        left:12px !important;
+        right:auto !important;
+        bottom:auto !important;
+        transform:none !important;
+        width:380px !important;
+        max-width:calc(100vw - 36px) !important;
+        max-height:calc(100vh - 188px) !important;
+        display:grid !important;
+        grid-template-columns:1fr !important;
+        gap:10px !important;
+        padding:48px 14px 14px !important;
+        border-radius:22px !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        z-index:1130 !important;
+        background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+        color:#24331D !important;
+        border:1px solid rgba(91,126,60,.28) !important;
+        box-shadow:0 18px 44px rgba(36,51,29,.24) !important;
+      }
+      .route-field{width:100% !important;min-width:0 !important;height:46px !important;border-radius:16px !important;background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.24) !important;color:#24331D !important;}
+      .route-mini-btn{width:100% !important;height:44px !important;border-radius:16px !important;}
+      #routeNowBtn{background:linear-gradient(135deg,#C44545,#A83A3A) !important;color:#fff !important;}
+      #clearRouteBtn{background:linear-gradient(135deg,#5B7E3C,#3F5F2D) !important;color:#fff !important;}
+      #routeCloseXBtnV16,#routeCloseXBtnV13{position:absolute !important;right:12px !important;top:10px !important;width:34px !important;height:34px !important;border-radius:999px !important;background:linear-gradient(135deg,#C44545,#A83A3A) !important;color:#fff !important;border:2px solid rgba(255,255,255,.75) !important;display:flex !important;align-items:center !important;justify-content:center !important;box-shadow:0 10px 20px rgba(0,0,0,.22) !important;z-index:5 !important;cursor:pointer !important;}
+      #routeCloseXBtnV16 i,#routeCloseXBtnV13 i{color:#fff !important;}
+      .route-hint{background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.20) !important;border-radius:14px !important;padding:9px 10px !important;color:#24331D !important;font-size:12px !important;}
+      .route-directions{max-height:220px !important;overflow-y:auto !important;overflow-x:hidden !important;background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.20) !important;border-radius:16px !important;padding:10px !important;}
+      .route-directions li{background:#F7FBE8 !important;color:#24331D !important;border:1px solid rgba(91,126,60,.14) !important;}
+      .route-step-number{background:#C44545 !important;color:#fff !important;}
+      .route-step-distance{color:#5B7E3C !important;}
+      .leaflet-routing-container{display:none !important;}
+
+      @media(max-width:900px){
+        .floating-actions{top:10px !important;left:10px !important;gap:8px !important;}
+        .top-controls,.left-panel,.right-panel,.route-planner,
+        body.map-active .top-controls,body.map-active .left-panel,body.map-active .right-panel,body.map-active .route-planner{
+          top:70px !important;
+          left:10px !important;
+          right:auto !important;
+          width:min(360px, calc(100vw - 20px)) !important;
+          max-width:calc(100vw - 20px) !important;
+          max-height:calc(100vh - 180px) !important;
+        }
+        .right-panel,body.map-active .right-panel{left:auto !important;right:10px !important;}
+        .top-controls,body.map-active .top-controls{grid-template-columns:42px 1fr 42px !important;width:calc(100vw - 20px) !important;}
+        .top-controls .top-select{grid-column:span 3 !important;width:100% !important;}
+        .left-panel,.right-panel,.route-planner{border-radius:20px !important;}
+      }
+    `;
   }
 
-  function syncRouteBodyClass(){
-    document.body.classList.toggle('route-panel-open', routeIsOpen());
+  function els(){
+    return {
+      top: qs('#topControls'),
+      left: qs('#leftPanel'),
+      info: qs('#infoPanel'),
+      openInfo: qs('#openInfoPanel'),
+      route: qs('#routePlanner'),
+      dash: qs('#insightDashboard')
+    };
   }
 
-  function hideCompetingPanels(){
-    const top = qs('#topControls');
-    const left = qs('#leftPanel');
-    const info = qs('#infoPanel');
-    const insight = qs('#insightDashboard');
+  function stopDashboard(){
+    const {dash} = els();
+    if(dash) dash.classList.add('hidden-dashboard');
+    const btn = qs('#toggleDashboard');
+    if(btn) btn.classList.remove('active');
+  }
+
+  function restoreFacilityMarkers(){
+    safe(() => {
+      if(window.__ssmV13Route){ window.__ssmV13Route.active = false; window.__ssmV13Route.destination = null; if(window.__ssmV13Route.focusLayer) window.__ssmV13Route.focusLayer.clearLayers(); }
+    });
+    safe(() => {
+      if(window.__ssmV10Route){ window.__ssmV10Route.active = false; window.__ssmV10Route.destination = null; if(window.__ssmV10Route.focusLayer) window.__ssmV10Route.focusLayer.clearLayers(); }
+    });
+    safe(() => { if(typeof renderMarkers === 'function') renderMarkers(); });
+  }
+
+  function hideRoutePanelOnly(restore=true){
+    const {route} = els();
+    if(route) route.classList.add('hidden-route');
+    safe(() => { if(typeof routeControl !== 'undefined' && routeControl && typeof map !== 'undefined' && map){ map.removeControl(routeControl); routeControl = null; } });
+    safe(() => { if(typeof clearRouteDirections === 'function') clearRouteDirections(); });
+    safe(() => { if(typeof state !== 'undefined' && state) state.networkOn = false; });
+    safe(() => { if(typeof syncChips === 'function') syncChips(); });
+    if(restore) setTimeout(restoreFacilityMarkers, 30);
+  }
+
+  function showOnly(mode){
+    const {top,left,info,openInfo,route} = els();
+    document.body.classList.remove('ssm-panel-top','ssm-panel-filter','ssm-panel-info','ssm-panel-route');
+    if(mode) document.body.classList.add('ssm-panel-' + mode);
+    stopDashboard();
+
+    if(mode !== 'top' && top) top.classList.add('collapsed');
+    if(mode !== 'filter' && left) left.classList.add('collapsed');
+    if(mode !== 'info'){
+      if(info) info.classList.add('hidden');
+      if(openInfo) openInfo.classList.add('hidden');
+    }
+    if(mode !== 'route' && route && !route.classList.contains('hidden-route')){
+      hideRoutePanelOnly(true);
+    }
+
+    if(mode === 'top' && top) top.classList.remove('collapsed');
+    if(mode === 'filter' && left) left.classList.remove('collapsed');
+    if(mode === 'info'){
+      if(info) info.classList.remove('hidden');
+      if(openInfo) openInfo.classList.add('hidden');
+    }
+    if(mode === 'route' && route){
+      route.classList.remove('hidden-route');
+      ensureRouteCloseButtonV16();
+    }
+
+    safe(() => { if(typeof syncPanelPositions === 'function') syncPanelPositions(); });
+    safe(() => { if(typeof map !== 'undefined' && map) setTimeout(() => map.invalidateSize(), 80); });
+  }
+
+  function ensureRouteCloseButtonV16(){
+    const route = qs('#routePlanner');
+    if(!route) return;
+    qsa('#routeCloseXBtnV16').slice(1).forEach(el => el.remove());
+    let close = qs('#routeCloseXBtnV16');
+    if(!close){
+      close = document.createElement('button');
+      close.id = 'routeCloseXBtnV16';
+      close.type = 'button';
+      close.title = 'Tutup Network Analyst';
+      close.setAttribute('aria-label','Tutup Network Analyst');
+      close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      route.appendChild(close);
+    }
+    close.onclick = function(e){ e.preventDefault(); e.stopPropagation(); hideRoutePanelOnly(true); };
+    const oldClose = qs('#routeCloseXBtnV13');
+    if(oldClose) oldClose.onclick = close.onclick;
+    const clear = qs('#clearRouteBtn');
+    if(clear){
+      clear.innerHTML = '<i class="fa-solid fa-trash-can"></i> Hapus';
+      clear.title = 'Hapus rute';
+      clear.onclick = function(e){ e.preventDefault(); safe(() => { if(typeof clearRoute === 'function') clearRoute(); }); showOnly('route'); };
+    }
+  }
+
+  function patchFunctionsV16(){
+    safe(() => { window.handleResponsivePanels = handleResponsivePanels = function(){ showOnly(null); }; });
+
+    safe(() => {
+      if(!window.__ssmV16_updateDetailPatched && typeof updateDetail === 'function'){
+        window.__ssmV16_updateDetailPatched = true;
+        const old = updateDetail;
+        window.updateDetail = updateDetail = function(place){
+          // Jika user sedang membuat rute, jangan munculkan info lokasi di atas panel rute.
+          const networkActive = safe(() => !!state.networkOn, false) || safe(() => !!(window.__ssmV13Route && window.__ssmV13Route.active), false);
+          const oldNetwork = safe(() => state.networkOn, false);
+          if(networkActive){
+            safe(() => { state.networkOn = false; });
+            old.apply(this, arguments);
+            safe(() => { state.networkOn = oldNetwork; });
+            showOnly('route');
+            return;
+          }
+          old.apply(this, arguments);
+          showOnly('info');
+        };
+      }
+    });
+
+    safe(() => {
+      if(!window.__ssmV16_showRoutePatched && typeof showRoutePlanner === 'function'){
+        window.__ssmV16_showRoutePatched = true;
+        const oldShow = showRoutePlanner;
+        window.showRoutePlanner = showRoutePlanner = function(){
+          oldShow.apply(this, arguments);
+          showOnly('route');
+        };
+      }
+    });
+
+    safe(() => {
+      if(!window.__ssmV16_hideRoutePatched && typeof hideRoutePlanner === 'function'){
+        window.__ssmV16_hideRoutePatched = true;
+        window.hideRoutePlanner = hideRoutePlanner = function(){
+          hideRoutePanelOnly(true);
+        };
+      }
+    });
+  }
+
+  function bindEventsV16(){
+    if(window.__ssmV16EventsBound) return;
+    window.__ssmV16EventsBound = true;
+
+    document.addEventListener('click', function(e){
+      if(e.target.closest('#toggleLeftPanel')){
+        setTimeout(() => {
+          const left = qs('#leftPanel');
+          if(left && !left.classList.contains('collapsed')) showOnly('filter');
+          else showOnly(null);
+        }, 40);
+      }
+      if(e.target.closest('#toggleTopPanel')){
+        setTimeout(() => {
+          const top = qs('#topControls');
+          if(top && !top.classList.contains('collapsed')) showOnly('top');
+          else showOnly(null);
+        }, 40);
+      }
+      if(e.target.closest('#routeButton,#routeNowBtn,[data-chip="network"],#openRouteFromInsight')){
+        setTimeout(() => showOnly('route'), 80);
+        setTimeout(() => showOnly('route'), 240);
+      }
+      if(e.target.closest('#closeInfoPanel')){
+        setTimeout(() => showOnly(null), 40);
+      }
+      if(e.target.closest('#openInfoPanel')){
+        setTimeout(() => showOnly('info'), 40);
+      }
+      if(e.target.closest('#resetBtn')){
+        setTimeout(() => showOnly(null), 120);
+      }
+      if(e.target.closest('.filter-item,[data-chip]:not([data-chip="network"])')){
+        setTimeout(() => {
+          const left = qs('#leftPanel');
+          if(left && !left.classList.contains('collapsed')) showOnly('filter');
+        }, 80);
+      }
+    }, true);
+  }
+
+  function normalizeInitialState(){
+    const {top,left,info,openInfo,route} = els();
     if(top) top.classList.add('collapsed');
     if(left) left.classList.add('collapsed');
     if(info) info.classList.add('hidden');
-    if(insight) insight.classList.add('hidden-dashboard');
-    syncRouteBodyClass();
-    safe(() => setTimeout(() => map && map.invalidateSize && map.invalidateSize(), 80));
+    if(openInfo) openInfo.classList.add('hidden');
+    if(route) route.classList.add('hidden-route');
+    stopDashboard();
   }
 
-  function ensureV14RouteClose(){
-    const planner = qs('#routePlanner');
-    if(!planner) return;
-    let btn = qs('#routeCloseXBtnV14');
-    if(!btn){
-      btn = document.createElement('button');
-      btn.id = 'routeCloseXBtnV14';
-      btn.type = 'button';
-      btn.title = 'Tutup Network Analyst';
-      btn.setAttribute('aria-label','Tutup Network Analyst');
-      btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-      planner.appendChild(btn);
-    }
-    btn.onclick = function(e){
-      e.preventDefault();
-      if(typeof hideRoutePlanner === 'function') hideRoutePlanner();
-      else planner.classList.add('hidden-route');
-      syncRouteBodyClass();
-    };
-  }
-
-  function patchRouteOpenClose(){
-    ensureV14RouteClose();
-    safe(() => {
-      if(window.__ssmV14RoutePatched) return;
-      window.__ssmV14RoutePatched = true;
-      const oldShow = typeof showRoutePlanner === 'function' ? showRoutePlanner : null;
-      window.showRoutePlanner = showRoutePlanner = function(){
-        const res = oldShow ? oldShow.apply(this, arguments) : undefined;
-        const planner = qs('#routePlanner');
-        if(planner) planner.classList.remove('hidden-route');
-        ensureV14RouteClose();
-        hideCompetingPanels();
-        return res;
-      };
-      const oldHide = typeof hideRoutePlanner === 'function' ? hideRoutePlanner : null;
-      window.hideRoutePlanner = hideRoutePlanner = function(){
-        const res = oldHide ? oldHide.apply(this, arguments) : undefined;
-        const planner = qs('#routePlanner');
-        if(planner) planner.classList.add('hidden-route');
-        syncRouteBodyClass();
-        safe(() => setTimeout(() => map && map.invalidateSize && map.invalidateSize(), 80));
-        return res;
-      };
-      const oldClear = typeof clearRoute === 'function' ? clearRoute : null;
-      window.clearRoute = clearRoute = function(){
-        const res = oldClear ? oldClear.apply(this, arguments) : undefined;
-        syncRouteBodyClass();
-        return res;
-      };
-    });
-  }
-
-  function syncFilterIconsWithMap(){
-    safe(() => {
-      qsa('.filter-item').forEach(item => {
-        const key = item.getAttribute('data-category');
-        const icon = item.querySelector('.cat-icon');
-        if(!key || !icon) return;
-        if(typeof categorySvgIcon === 'function') icon.innerHTML = categorySvgIcon(key);
-        const cfg = (typeof categories !== 'undefined' && categories[key]) ? categories[key] : null;
-        if(cfg && cfg.color) icon.style.background = cfg.color;
-      });
-    });
-  }
-
-  function patchRenderFilter(){
-    safe(() => {
-      if(window.__ssmV14FilterPatched) return;
-      window.__ssmV14FilterPatched = true;
-      const oldRender = typeof renderFilterList === 'function' ? renderFilterList : null;
-      if(oldRender){
-        window.renderFilterList = renderFilterList = function(){
-          const res = oldRender.apply(this, arguments);
-          syncFilterIconsWithMap();
-          return res;
-        };
-      }
-    });
-    syncFilterIconsWithMap();
-  }
-
-  function observeRoutePlanner(){
-    const planner = qs('#routePlanner');
-    if(!planner || planner.__ssmV14Observer) return;
-    planner.__ssmV14Observer = true;
-    const obs = new MutationObserver(() => {
-      syncRouteBodyClass();
-      if(routeIsOpen()) hideCompetingPanels();
-      ensureV14RouteClose();
-    });
-    obs.observe(planner, { attributes:true, attributeFilter:['class'] });
-  }
-
-  function boot(){
-    patchRouteOpenClose();
-    patchRenderFilter();
-    observeRoutePlanner();
-    ensureV14RouteClose();
-    syncRouteBodyClass();
-    safe(() => setTimeout(() => map && map.invalidateSize && map.invalidateSize(), 120));
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  window.addEventListener('load', () => [150,800,1800,3500,6500].forEach(ms => setTimeout(boot, ms)));
-  window.addEventListener('resize', () => safe(() => setTimeout(() => map && map.invalidateSize && map.invalidateSize(), 160)));
-  window.addEventListener('orientationchange', () => safe(() => setTimeout(() => map && map.invalidateSize && map.invalidateSize(), 360)));
-})();
-</script>
-
-
-
-<!-- =========================================================
-     SSM V15 NORMAL UI PATCH
-     Fokus: info lokasi muncul lagi, panel normal di kiri, ikon filter seragam.
-     ========================================================= -->
-<style id="ssm-v15-normal-ui-style">
-  :root{
-    --v15-dark:#24331D;
-    --v15-matcha:#5B7E3C;
-    --v15-matcha-soft:#A2CB8B;
-    --v15-cream:#E8F5BD;
-    --v15-paper:#FFFDF2;
-    --v15-strawberry:#C44545;
-  }
-
-  /* Panel filter dibuat normal: kiri, compact, tidak full/bottom sheet */
-  body.map-active #leftPanel.left-panel,
-  body.map-active .left-panel{
-    position:absolute !important;
-    top:92px !important;
-    left:18px !important;
-    right:auto !important;
-    bottom:auto !important;
-    width:320px !important;
-    max-width:calc(100vw - 36px) !important;
-    max-height:calc(100% - 118px) !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    border-radius:22px !important;
-    padding:14px !important;
-    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
-    border:1px solid rgba(91,126,60,.28) !important;
-    box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
-    z-index:850 !important;
-  }
-
-  body.map-active #leftPanel.left-panel.collapsed,
-  body.map-active .left-panel.collapsed{
-    transform:translateX(-115%) !important;
-    opacity:0 !important;
-    pointer-events:none !important;
-  }
-
-  body.map-active .filter-item{
-    min-height:54px !important;
-    padding:8px 10px !important;
-    margin:8px 0 !important;
-    border-radius:16px !important;
-    background:#FFFDF2 !important;
-    border:1px solid rgba(91,126,60,.22) !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:space-between !important;
-    gap:10px !important;
-  }
-
-  body.map-active .filter-item.active{
-    background:linear-gradient(135deg,rgba(162,203,139,.55),rgba(232,245,189,.92)) !important;
-    border-color:rgba(91,126,60,.42) !important;
-  }
-
-  body.map-active .filter-left{
-    display:flex !important;
-    align-items:center !important;
-    gap:10px !important;
-    min-width:0 !important;
-  }
-
-  /* Ikon kategori di filter: bentuk normal, warna dan glyph mengikuti marker peta */
-  body.map-active .filter-item .cat-icon,
-  body.map-active .filter-item .cat-icon.ssm-v15-filter-icon{
-    width:36px !important;
-    height:36px !important;
-    min-width:36px !important;
-    border-radius:14px !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    transform:none !important;
-    clip-path:none !important;
-    border:2px solid rgba(255,255,255,.82) !important;
-    box-shadow:0 8px 18px rgba(36,51,29,.18) !important;
-    margin:0 !important;
-    position:relative !important;
-  }
-
-  body.map-active .filter-item .cat-icon::before,
-  body.map-active .filter-item .cat-icon::after{
-    display:none !important;
-    content:none !important;
-  }
-
-  body.map-active .filter-item .cat-icon svg{
-    display:none !important;
-  }
-
-  body.map-active .filter-item .cat-icon i{
-    font-size:16px !important;
-    line-height:1 !important;
-    margin:0 !important;
-    color:#fff !important;
-    text-shadow:0 1px 3px rgba(0,0,0,.28) !important;
-  }
-
-  body.map-active .filter-item[data-category="rumah_makan"] .cat-icon i,
-  body.map-active .filter-item[data-category="atm"] .cat-icon i{
-    color:#24331D !important;
-    text-shadow:none !important;
-  }
-
-  body.map-active .filter-item b,
-  body.map-active .filter-item strong,
-  body.map-active .filter-item span{
-    font-size:14px !important;
-    color:#24331D !important;
-  }
-
-  /* Panel informasi lokasi dikembalikan di kanan, tidak hilang saat marker diklik */
-  body.map-active #infoPanel.right-panel,
-  body.map-active .right-panel#infoPanel{
-    position:absolute !important;
-    top:92px !important;
-    right:18px !important;
-    left:auto !important;
-    bottom:auto !important;
-    width:360px !important;
-    max-width:calc(100vw - 36px) !important;
-    max-height:calc(100% - 118px) !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    border-radius:22px !important;
-    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
-    border:1px solid rgba(91,126,60,.28) !important;
-    box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
-    z-index:870 !important;
-  }
-
-  body.map-active #infoPanel.hidden{
-    display:none !important;
-  }
-
-  body.map-active #openInfoPanel{
-    right:18px !important;
-    bottom:18px !important;
-    z-index:840 !important;
-  }
-
-  /* Network Analyst: panel normal compact di kiri; tidak tumpuk dengan filter/info */
-  body.map-active #routePlanner.route-planner,
-  body.map-active .route-planner,
-  body.map-active .route-planner:not(.hidden-route){
-    position:absolute !important;
-    left:18px !important;
-    right:auto !important;
-    top:92px !important;
-    bottom:auto !important;
-    transform:none !important;
-    width:360px !important;
-    max-width:calc(100vw - 36px) !important;
-    max-height:calc(100% - 118px) !important;
-    display:grid !important;
-    grid-template-columns:1fr !important;
-    gap:9px !important;
-    padding:46px 14px 14px !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    border-radius:22px !important;
-    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
-    border:1px solid rgba(91,126,60,.28) !important;
-    box-shadow:0 20px 54px rgba(36,51,29,.24) !important;
-    z-index:910 !important;
-  }
-
-  body.map-active #routePlanner.hidden-route,
-  body.map-active .route-planner.hidden-route{
-    display:none !important;
-  }
-
-  body.map-active.route-panel-open #leftPanel,
-  body.map-active.route-panel-open #infoPanel{
-    display:none !important;
-  }
-
-  body.map-active #routePlanner .route-field,
-  body.map-active #routePlanner select,
-  body.map-active #routePlanner button{
-    width:100% !important;
-    min-width:0 !important;
-    max-width:100% !important;
-    box-sizing:border-box !important;
-  }
-
-  body.map-active #routeNowBtn,
-  body.map-active #clearRouteBtn,
-  body.map-active #routeCloseBtn{
-    height:42px !important;
-    border-radius:14px !important;
-    white-space:nowrap !important;
-  }
-
-  body.map-active #routeNowBtn{
-    background:linear-gradient(135deg,#C44545,#A83A3A) !important;
-    color:#fff !important;
-  }
-
-  body.map-active #clearRouteBtn{
-    background:linear-gradient(135deg,#8B2F2F,#5F1717) !important;
-    color:#fff !important;
-  }
-
-  body.map-active #routeCloseBtn{
-    background:linear-gradient(135deg,#A2CB8B,#5B7E3C) !important;
-    color:#24331D !important;
-  }
-
-  body.map-active #routeCloseXBtnV13,
-  body.map-active #routeCloseXBtnV14{
-    display:none !important;
-  }
-
-  body.map-active #routeCloseXBtnV15{
-    position:absolute !important;
-    top:10px !important;
-    right:10px !important;
-    width:34px !important;
-    height:34px !important;
-    border-radius:999px !important;
-    border:2px solid rgba(255,255,255,.75) !important;
-    background:linear-gradient(135deg,#C44545,#A83A3A) !important;
-    color:#fff !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    box-shadow:0 10px 22px rgba(0,0,0,.25) !important;
-    cursor:pointer !important;
-    z-index:6 !important;
-  }
-
-  body.map-active #routeCloseXBtnV15 i{
-    color:#fff !important;
-    font-size:15px !important;
-  }
-
-  body.map-active .route-hint,
-  body.map-active .route-directions{
-    grid-column:1/-1 !important;
-    width:100% !important;
-    max-width:100% !important;
-  }
-
-  body.map-active .route-directions{
-    max-height:200px !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-  }
-
-  /* Jangan sampai panel/isi membuat scroll horizontal jelek */
-  body.map-active #routePlanner *,
-  body.map-active #leftPanel *,
-  body.map-active #infoPanel *{
-    max-width:100% !important;
-  }
-
-  @media(max-width:980px){
-    body.map-active #infoPanel.right-panel,
-    body.map-active .right-panel#infoPanel{
-      top:auto !important;
-      right:12px !important;
-      left:12px !important;
-      bottom:12px !important;
-      width:auto !important;
-      max-width:none !important;
-      max-height:48vh !important;
-    }
-
-    body.map-active #leftPanel.left-panel,
-    body.map-active .left-panel{
-      top:84px !important;
-      left:12px !important;
-      width:320px !important;
-      max-width:calc(100vw - 24px) !important;
-      max-height:calc(100% - 108px) !important;
-    }
-
-    body.map-active #routePlanner.route-planner,
-    body.map-active .route-planner,
-    body.map-active .route-planner:not(.hidden-route){
-      top:84px !important;
-      left:12px !important;
-      width:330px !important;
-      max-width:calc(100vw - 24px) !important;
-      max-height:calc(100% - 108px) !important;
+  function bootV16(){
+    installV16Style();
+    patchFunctionsV16();
+    bindEventsV16();
+    ensureRouteCloseButtonV16();
+    // Jangan paksa buka panel di mobile/desktop. Panel hanya terbuka ketika user memilih tombolnya.
+    if(!window.__ssmV16Initialized){
+      window.__ssmV16Initialized = true;
+      normalizeInitialState();
     }
   }
 
-  @media(max-width:560px){
-    body.map-active #leftPanel.left-panel,
-    body.map-active .left-panel,
-    body.map-active #routePlanner.route-planner,
-    body.map-active .route-planner,
-    body.map-active .route-planner:not(.hidden-route){
-      top:82px !important;
-      left:10px !important;
-      width:min(320px, calc(100vw - 20px)) !important;
-      max-height:calc(100% - 102px) !important;
-      border-radius:20px !important;
-    }
-
-    body.map-active .filter-item{
-      min-height:50px !important;
-      padding:7px 9px !important;
-    }
-  }
-</style>
-<script id="ssm-v15-normal-ui-js">
-(function(){
-  const safe = (fn, fallback) => { try { return fn(); } catch(e){ console.warn('SSM V15', e); return fallback; } };
-  const qs = sel => document.querySelector(sel);
-  const qsa = sel => Array.from(document.querySelectorAll(sel));
-
-  const fallbackCategories = {
-    kost:{label:'Kost', color:'#5B7E3C', icon:'fa-solid fa-house'},
-    rumah_makan:{label:'Rumah Makan', color:'#E8F5BD', icon:'fa-solid fa-utensils'},
-    laundry:{label:'Laundry', color:'#A2CB8B', icon:'fa-solid fa-shirt'},
-    minimarket:{label:'Minimarket', color:'#A2CB8B', icon:'fa-solid fa-store'},
-    atm:{label:'ATM', color:'#E8F5BD', icon:'fa-solid fa-money-bill-wave'},
-    print_fotocopy:{label:'Print/Fotokopi', color:'#5B7E3C', icon:'fa-solid fa-print'},
-    fasilitas_kesehatan:{label:'Fasilitas Kesehatan', color:'#5B7E3C', icon:'fa-solid fa-kit-medical'},
-    emergency:{label:'Emergency', color:'#C44545', icon:'fa-solid fa-triangle-exclamation'}
-  };
-
-  function getCfg(key){
-    return safe(() => (typeof categories !== 'undefined' && categories[key]) ? categories[key] : fallbackCategories[key], fallbackCategories[key]) || fallbackCategories[key] || {color:'#5B7E3C', icon:'fa-solid fa-location-dot'};
-  }
-
-  function setRouteOpenClass(){
-    const planner = qs('#routePlanner');
-    const open = !!(planner && !planner.classList.contains('hidden-route'));
-    document.body.classList.toggle('route-panel-open', open);
-  }
-
-  function showDefaultPanels(){
-    const top = qs('#topControls');
-    const left = qs('#leftPanel');
-    if(top) top.classList.remove('collapsed');
-    if(left) left.classList.remove('collapsed');
-    setRouteOpenClass();
-    safe(() => setTimeout(() => { if(typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); }, 120));
-  }
-
-  function syncFilterIconsNormal(){
-    qsa('.filter-item').forEach(item => {
-      const key = item.getAttribute('data-category');
-      const iconBox = item.querySelector('.cat-icon');
-      if(!key || !iconBox) return;
-      const cfg = getCfg(key);
-      const icon = key === 'emergency' ? 'fa-solid fa-triangle-exclamation' : (cfg.icon || fallbackCategories[key]?.icon || 'fa-solid fa-location-dot');
-      const color = key === 'emergency' ? '#C44545' : (cfg.color || '#5B7E3C');
-      iconBox.className = 'cat-icon ssm-v15-filter-icon';
-      iconBox.style.background = color;
-      iconBox.innerHTML = `<i class="${icon}"></i>`;
-      if(key === 'rumah_makan' || key === 'atm'){
-        const i = iconBox.querySelector('i');
-        if(i) i.style.color = '#24331D';
-      }
-    });
-  }
-
-  function patchFilterRenderer(){
-    safe(() => {
-      if(typeof renderFilterList === 'function' && !renderFilterList.__ssmV15Normal){
-        const old = renderFilterList;
-        window.renderFilterList = renderFilterList = function(){
-          const result = old.apply(this, arguments);
-          syncFilterIconsNormal();
-          return result;
-        };
-        renderFilterList.__ssmV15Normal = true;
-      }
-    });
-    syncFilterIconsNormal();
-  }
-
-  function ensureSingleRouteClose(){
-    const planner = qs('#routePlanner');
-    if(!planner) return;
-    qsa('#routeCloseXBtnV13,#routeCloseXBtnV14').forEach(btn => btn.setAttribute('aria-hidden','true'));
-    let btn = qs('#routeCloseXBtnV15');
-    if(!btn){
-      btn = document.createElement('button');
-      btn.id = 'routeCloseXBtnV15';
-      btn.type = 'button';
-      btn.title = 'Tutup Network Analyst';
-      btn.setAttribute('aria-label','Tutup Network Analyst');
-      btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-      planner.appendChild(btn);
-    }
-    btn.onclick = function(e){
-      e.preventDefault();
-      if(typeof hideRoutePlanner === 'function') hideRoutePlanner();
-      else planner.classList.add('hidden-route');
-      showDefaultPanels();
-    };
-
-    const closeBtn = qs('#routeCloseBtn');
-    if(closeBtn){
-      closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> <span>Tutup</span>';
-      closeBtn.onclick = function(e){
-        e.preventDefault();
-        if(typeof hideRoutePlanner === 'function') hideRoutePlanner();
-        else planner.classList.add('hidden-route');
-        showDefaultPanels();
-      };
-    }
-  }
-
-  function patchRouteOpenClose(){
-    safe(() => {
-      if(!window.__ssmV15RouteWrapper){
-        window.__ssmV15RouteWrapper = true;
-        const oldShow = typeof showRoutePlanner === 'function' ? showRoutePlanner : null;
-        window.showRoutePlanner = showRoutePlanner = function(){
-          const result = oldShow ? oldShow.apply(this, arguments) : undefined;
-          const planner = qs('#routePlanner');
-          if(planner) planner.classList.remove('hidden-route');
-          const left = qs('#leftPanel');
-          const info = qs('#infoPanel');
-          if(left) left.classList.add('collapsed');
-          if(info) info.classList.add('hidden');
-          ensureSingleRouteClose();
-          setRouteOpenClass();
-          return result;
-        };
-
-        const oldHide = typeof hideRoutePlanner === 'function' ? hideRoutePlanner : null;
-        window.hideRoutePlanner = hideRoutePlanner = function(){
-          const result = oldHide ? oldHide.apply(this, arguments) : undefined;
-          const planner = qs('#routePlanner');
-          if(planner) planner.classList.add('hidden-route');
-          showDefaultPanels();
-          return result;
-        };
-
-        const oldClear = typeof clearRoute === 'function' ? clearRoute : null;
-        window.clearRoute = clearRoute = function(){
-          const result = oldClear ? oldClear.apply(this, arguments) : undefined;
-          showDefaultPanels();
-          return result;
-        };
-      }
-    });
-    ensureSingleRouteClose();
-  }
-
-  function patchInfoPanel(){
-    safe(() => {
-      if(typeof updateDetail === 'function' && !updateDetail.__ssmV15Info){
-        const old = updateDetail;
-        window.updateDetail = updateDetail = function(place){
-          const result = old.apply(this, arguments);
-          const info = qs('#infoPanel');
-          const openBtn = qs('#openInfoPanel');
-          const route = qs('#routePlanner');
-          if(route && !route.classList.contains('hidden-route')) route.classList.add('hidden-route');
-          document.body.classList.remove('route-panel-open');
-          if(info){
-            info.classList.remove('hidden');
-            info.style.display = '';
-          }
-          if(openBtn) openBtn.classList.add('hidden');
-          showDefaultPanels();
-          safe(() => setTimeout(() => { if(typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); }, 120));
-          return result;
-        };
-        updateDetail.__ssmV15Info = true;
-      }
-    });
-
-    const closeInfo = qs('#closeInfoPanel');
-    if(closeInfo && !closeInfo.__ssmV15){
-      closeInfo.__ssmV15 = true;
-      closeInfo.addEventListener('click', () => {
-        const info = qs('#infoPanel');
-        const openBtn = qs('#openInfoPanel');
-        if(info) info.classList.add('hidden');
-        if(openBtn) openBtn.classList.remove('hidden');
-      });
-    }
-
-    const openInfo = qs('#openInfoPanel');
-    if(openInfo && !openInfo.__ssmV15){
-      openInfo.__ssmV15 = true;
-      openInfo.addEventListener('click', () => {
-        const info = qs('#infoPanel');
-        if(info) info.classList.remove('hidden');
-      });
-    }
-  }
-
-  function patchTutorialText(){
-    const subtitle = qs('.tutorial-subtitle');
-    if(subtitle) subtitle.textContent = 'Pilih kategori, klik marker untuk membuka informasi lokasi, lalu gunakan Network Analyst jika ingin membuat rute.';
-    const grid = qs('.tutorial-grid');
-    if(grid){
-      const steps = [
-        ['1','Pilih kategori','Klik Filter, lalu aktifkan kategori yang diperlukan saja agar marker tidak terlalu padat.'],
-        ['2','Lihat informasi lokasi','Klik marker pada peta. Panel Informasi Lokasi akan muncul di kanan dan menampilkan data penting dari Excel.'],
-        ['3','Gunakan Murah','Fitur Murah hanya bekerja setelah memilih Kost atau Rumah Makan. Hasil tidak lagi mencampur dua kategori sekaligus.'],
-        ['4','Pakai Dekat Kampus','Aktifkan Dekat Kampus untuk membatasi hasil dalam radius sekitar 1 km dari Rektorat UPN.'],
-        ['5','Pilih tujuan rute','Pada popup marker, klik Pilih Lokasi agar lokasi masuk ke pilihan Tujuan.'],
-        ['6','Buat rute','Buka Rute/Network Analyst, pilih asal, lalu tekan Rute. Panel rute tampil compact di sisi kiri.'],
-        ['7','Tutup rute','Klik X atau Tutup untuk menutup Network Analyst. Filter dan marker akan tampil lagi.'],
-        ['8','Reset','Klik Reset jika ingin menghapus filter, pencarian, radius, dan rute.']
-      ];
-      grid.innerHTML = steps.map(([n,h,b]) => `<div class="tutorial-card"><div class="tutorial-number">${n}</div><h4>${h}</h4><p>${b}</p></div>`).join('');
-    }
-  }
-
-  function observeRoute(){
-    const planner = qs('#routePlanner');
-    if(!planner || planner.__ssmV15Observer) return;
-    planner.__ssmV15Observer = true;
-    const obs = new MutationObserver(() => {
-      setRouteOpenClass();
-      ensureSingleRouteClose();
-    });
-    obs.observe(planner, {attributes:true, attributeFilter:['class']});
-  }
-
-  function boot(){
-    patchFilterRenderer();
-    patchRouteOpenClose();
-    patchInfoPanel();
-    patchTutorialText();
-    observeRoute();
-    ensureSingleRouteClose();
-    syncFilterIconsNormal();
-    setRouteOpenClass();
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  window.addEventListener('load', () => [250,900,1800,3600,7000,10000].forEach(ms => setTimeout(boot, ms)));
-  window.addEventListener('resize', () => safe(() => setTimeout(() => { if(typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); }, 180)));
+  bootV16();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV16);
+  else setTimeout(bootV16, 0);
+  window.addEventListener('load', function(){
+    [200, 800, 1600, 3200, 6000, 9200].forEach(ms => setTimeout(bootV16, ms));
+  });
+  window.addEventListener('resize', () => safe(() => { if(typeof map !== 'undefined' && map) setTimeout(() => map.invalidateSize(), 180); }));
 })();
 </script>
 
