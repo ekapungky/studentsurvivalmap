@@ -15272,7 +15272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setLink('a[href="#fitur"]', 'index.html#fitur');
     setLink('a[href="#manfaat"]', 'index.html#manfaat');
     setLink('a[href="#tim"]', 'gallery.html');
-    document.querySelectorAll('a[href="#kontak"],a[href="contact.html"]').forEach(a=>{ if((a.textContent||'').trim().toLowerCase()==='contact') a.remove(); });
+    setLink('a[href="#kontak"]', 'contact.html');
 
     var enter1 = document.getElementById('enterMapBtn');
     var enter2 = document.getElementById('enterMapBtnBottom');
@@ -15816,10 +15816,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const footer=document.querySelector('#kontak, footer.footer');
     if(footer){
-      const h=footer.querySelector('h3'); if(h && /Kontak Proyek|Kontak Kelompok/i.test(h.textContent)) h.textContent='Semoga WebGIS Ini Bermanfaat';
+      const h=footer.querySelector('h3'); if(h && /Kontak Proyek/i.test(h.textContent)) h.textContent='Kontak Kelompok';
       const ps=footer.querySelectorAll('p');
       if(ps[0]) ps[0].textContent='Student Survival Map merupakan proyek WebGIS terapan berbasis kebutuhan mahasiswa sekitar UPN Jogja yang dikembangkan oleh Kelompok 1.';
-      if(ps[1] && /Email kelompok|tambahkan email/i.test(ps[1].textContent)) ps[1].remove();
+      if(ps[1]) ps[1].innerHTML='Email kelompok: <b>tambahkan email kelompok</b>';
       if(ps[2]) ps[2].innerHTML='Lokasi studi: UPN “Veteran” Yogyakarta dan fasilitas sekitar kampus.';
     }
   }
@@ -18765,6 +18765,547 @@ document.addEventListener("DOMContentLoaded", () => {
   else setTimeout(bootV12, 0);
   window.addEventListener('load', function(){
     [250, 1000, 2500, 5000, 8000].forEach(ms => setTimeout(bootV12, ms));
+  });
+})();
+</script>
+
+
+
+<script id="ssm-v13-final-route-cheap-patch">
+/* =========================================================
+   SSM V13 FINAL PATCH
+   - Filter Murah tidak lagi otomatis menyalakan Kost + Rumah Makan bersamaan.
+     Murah hanya bekerja pada kategori yang dipilih user: Kost atau Rumah Makan.
+   - Marker asal rute tidak lagi biru; diganti warna matcha agar sesuai tema.
+   - Panel Network Analyst/Rute diberi tombol close jelas dan dibuat docked kecil
+     di kanan bawah supaya arahan rute tidak menutupi peta.
+   ========================================================= */
+(function(){
+  'use strict';
+  const ALLOWED_CHEAP = new Set(['kost','rumah_makan']);
+  const PRICE_KEYS = [
+    'Harga','harga','Tarif','tarif','Biaya','biaya','Sewa','sewa',
+    'Harga_Tarif','Harga/Tarif','harga_tarif','Harga Tarif',
+    'Rentang_Harga','Rentang Harga','Kisaran_Harga','Kisaran Harga',
+    'range_harga','price','Price','PRICE'
+  ];
+  const qs = (s, root=document) => root.querySelector(s);
+  const qsa = (s, root=document) => Array.from(root.querySelectorAll(s));
+  const safe = (fn, fallback) => { try { return fn(); } catch(e) { return fallback; } };
+  const clean = (v) => String(v ?? '').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+  const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  window.__ssmV13Route = window.__ssmV13Route || { active:false, destination:null, focusLayer:null, renderWrapped:false };
+
+  function fmtDist(m){
+    const n = Number(m) || 0;
+    if(n >= 1000) return (n/1000).toFixed(1).replace('.', ',') + ' km';
+    return Math.round(n) + ' m';
+  }
+  function fmtDur(sec){
+    const min = Math.max(1, Math.round((Number(sec)||0)/60));
+    if(min >= 60){ const h=Math.floor(min/60), r=min%60; return r ? `${h} jam ${r} menit` : `${h} jam`; }
+    return `${min} menit`;
+  }
+  function getName(place){
+    return safe(() => getDisplayName(place), place && (place.name || place.Nama || place.Nama_Tempat || place.id)) || 'Lokasi tujuan';
+  }
+  function getValue(place){
+    return safe(() => getPlaceValue(place), place && (place._uid || place.id || place.name || place.Nama)) || '';
+  }
+
+  function getPriceRawV13(row){
+    if(!row) return '';
+    for(const key of PRICE_KEYS){
+      if(Object.prototype.hasOwnProperty.call(row, key)){
+        const val = clean(row[key]);
+        if(val && val !== '-' && !/^tidak\s*(ada|tersedia)$/i.test(val)) return val;
+      }
+    }
+    for(const key of Object.keys(row)){
+      const normalized = clean(key).toLowerCase();
+      if(/^(harga|tarif|biaya|sewa|rentang harga|kisaran harga|harga tarif|price)$/.test(normalized)){
+        const val = clean(row[key]);
+        if(val && val !== '-' && !/^tidak\s*(ada|tersedia)$/i.test(val)) return val;
+      }
+    }
+    return clean(row.price || row.Harga || '');
+  }
+
+  function parsePriceNumbersV13(text, category){
+    const src = clean(text).toLowerCase();
+    if(!src) return [];
+    const found = [];
+    const re = /(rp\s*)?([0-9]+(?:[\.,][0-9]{1,3})*)(\s*(?:juta|jt|ribu|rb|k))?/gi;
+    let m;
+    while((m = re.exec(src))){
+      let raw = m[2] || '';
+      let suffix = clean(m[3] || '').toLowerCase();
+      let val;
+      if(/[\.,]/.test(raw)){
+        const parts = raw.split(/[\.,]/);
+        const last = parts[parts.length - 1];
+        val = last.length === 3 ? Number(parts.join('')) : Number(raw.replace(',', '.'));
+      }else{
+        val = Number(raw);
+      }
+      if(!Number.isFinite(val) || val <= 0) continue;
+      if(/juta|jt/.test(suffix)) val *= 1000000;
+      else if(/ribu|rb|k/.test(suffix)) val *= 1000;
+      else if(category === 'rumah_makan' && /rp/i.test(m[1] || '') && val > 0 && val < 1000) val *= 1000;
+      else if(category === 'kost' && val >= 100 && val < 10000) val *= 1000;
+      found.push(Math.round(val));
+    }
+    return found;
+  }
+
+  function isCheapV13(place){
+    if(!place || !ALLOWED_CHEAP.has(place.category)) return false;
+    const raw = getPriceRawV13(place);
+    if(!raw) return false;
+    const nums = parsePriceNumbersV13(raw, place.category);
+    if(!nums.length) return false;
+    if(place.category === 'rumah_makan') return nums.some(v => v > 0 && v <= 25000);
+    if(place.category === 'kost') return nums.some(v => v >= 200000 && v <= 1200000);
+    return false;
+  }
+
+  function normalizeCheapV13(){
+    safe(() => {
+      if(!Array.isArray(places)) return;
+      places.forEach(p => {
+        const raw = getPriceRawV13(p);
+        p._priceRawV13 = raw || '';
+        p._priceDisplay = raw || '-';
+        if(raw){ p.price = raw; p.Harga = raw; }
+        p.cheap = isCheapV13(p);
+        p.cheapReason = p.cheap
+          ? (p.category === 'kost' ? 'Kost masuk batas harga murah mahasiswa.' : 'Rumah makan masuk batas harga murah mahasiswa.')
+          : (ALLOWED_CHEAP.has(p.category) ? 'Belum masuk batas murah atau harga belum tersedia di Excel.' : 'Filter murah tidak berlaku untuk kategori ini.');
+      });
+    });
+  }
+
+  function selectedAllowedCategories(){
+    const selected = safe(() => Array.from(state.categories || []), []) || [];
+    return selected.filter(c => ALLOWED_CHEAP.has(c));
+  }
+
+  function patchCheapFilterV13(){
+    safe(() => { cheapByExcelPrice = isCheapV13; });
+    safe(() => { cheapStudent = isCheapV13; });
+    safe(() => { cheapByStudentStandard = isCheapV13; });
+    safe(() => {
+      filteredPlaces = function(){
+        normalizeCheapV13();
+        const list = Array.isArray(places) ? places : [];
+        const q = clean((state && state.search) || '').toLowerCase();
+        const cats = safe(() => state.categories || new Set(), new Set());
+        const allowedWhenCheap = selectedAllowedCategories();
+        return list.filter(place => {
+          if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+          const searchable = [
+            place.id, place._uid, place.name, place.Nama, place.Nama_Tempat, place.Nama_Laundry,
+            place.Nama_Minimarket, place.Nama_Rumah_Makan, place.Nama_Fasilitas_Kesehatan, place.Nama_Emergency,
+            place.Keterangan, place.Layanan, place.Harga, place.Tarif, place.Biaya, place.Sewa,
+            place.Hari_operasional, place.Jam_operasional, place.Buka_24_jam,
+            place.Alamat_lengkap, place.No_Telepon, place.Rating, place.Link_google_maps, place.Dokumentasi
+          ].filter(Boolean).join(' ').toLowerCase();
+          const matchSearch = !q || searchable.includes(q);
+          let matchCategory = false;
+          if(state && state.emergencyOnly){
+            matchCategory = place.category === 'emergency';
+          }else if(state && state.cheap){
+            // Kunci revisi: Murah hanya bekerja pada kategori Kost/Rumah Makan yang memang dipilih user.
+            // Jika user belum memilih kategori, jangan otomatis memunculkan dua kategori sekaligus.
+            matchCategory = allowedWhenCheap.length > 0 && allowedWhenCheap.includes(place.category);
+          }else if(cats && cats.size > 0){
+            matchCategory = cats.has(place.category);
+          }else if(state && (state.open24 || state.nearCampus || state.search)){
+            matchCategory = true;
+          }else{
+            matchCategory = false;
+          }
+          const matchCheap = !(state && state.cheap) || isCheapV13(place);
+          const match24 = !(state && state.open24) || !!place.open24;
+          const km = typeof kmFromCampus === 'function' ? kmFromCampus(place) : (Number(place.distanceMeters || 0) / 1000);
+          const matchNear = !(state && state.nearCampus) || km < 1;
+          const matchRadius = km <= ((state && state.nearCampus) ? 1 : 5);
+          return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+        });
+      };
+    });
+  }
+
+  function syncAfterCheapChange(){
+    safe(() => { if(typeof syncChips === 'function') syncChips(); });
+    safe(() => { if(typeof renderFilterList === 'function') renderFilterList(); });
+    safe(() => { if(typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+    safe(() => { if(typeof renderMarkers === 'function') renderMarkers(); });
+  }
+
+  function applyCheapPolicyFromSnapshot(snapshot){
+    safe(() => {
+      if(!state || !state.cheap) return;
+      state.emergencyOnly = false;
+      const before = Array.from(snapshot || []);
+      const keep = before.filter(c => ALLOWED_CHEAP.has(c));
+      const current = Array.from(state.categories || []);
+      const autoDouble = current.length === 2 && current.includes('kost') && current.includes('rumah_makan') && keep.length === 0;
+      if(keep.length){
+        state.categories = new Set(keep);
+      }else if(autoDouble){
+        state.categories = new Set();
+      }else{
+        state.categories = new Set(current.filter(c => ALLOWED_CHEAP.has(c)));
+      }
+      const hint = qs('#routeHint');
+      if(hint && state.categories.size === 0){
+        hint.textContent = 'Filter Murah aktif. Pilih kategori Kost atau Rumah Makan agar hasil murah muncul sesuai pilihan.';
+      }
+      syncAfterCheapChange();
+    });
+  }
+
+  function patchCheapClickBehavior(){
+    if(window.__ssmV13CheapClickBound) return;
+    window.__ssmV13CheapClickBound = true;
+    document.addEventListener('click', function(e){
+      const cheapTarget = e.target.closest('[data-chip="murah"], [data-guide="cheap"]');
+      if(!cheapTarget) return;
+      const snapshot = safe(() => new Set(state.categories || []), new Set());
+      setTimeout(() => applyCheapPolicyFromSnapshot(snapshot), 70);
+      setTimeout(() => applyCheapPolicyFromSnapshot(snapshot), 160);
+      setTimeout(() => applyCheapPolicyFromSnapshot(snapshot), 320);
+    }, true);
+  }
+
+  function ensureRouteFocusLayer(){
+    const st = window.__ssmV13Route;
+    if(typeof map === 'undefined' || !map || typeof L === 'undefined') return null;
+    if(!st.focusLayer) st.focusLayer = L.layerGroup().addTo(map);
+    return st.focusLayer;
+  }
+
+  function clearCategoryLayersV13(){
+    safe(() => Object.values(layers || {}).forEach(layer => {
+      if(layer && typeof layer.clearLayers === 'function') layer.clearLayers();
+    }));
+  }
+
+  function routeEndpointIconV13(type){
+    const start = type === 'start';
+    return L.divIcon({
+      className:'custom-div-icon ssm-route-endpoint-v13-icon',
+      html:`<div class="ssm-route-endpoint-v13 ${start ? 'start' : 'finish'}"><i class="fa-solid ${start ? 'fa-location-crosshairs' : 'fa-flag-checkered'}"></i><span>${start ? 'Asal' : 'Tujuan'}</span></div>`,
+      iconSize:start ? [48,42] : [58,42],
+      iconAnchor:start ? [24,38] : [29,38],
+      popupAnchor:[0,-36]
+    });
+  }
+
+  function focusRouteMarkersV13(place){
+    if(!place || typeof L === 'undefined' || typeof map === 'undefined' || !map) return;
+    const st = window.__ssmV13Route;
+    st.active = true;
+    st.destination = place;
+    safe(() => { if(window.__ssmV10Route) { window.__ssmV10Route.active = false; window.__ssmV10Route.destination = null; } });
+    clearCategoryLayersV13();
+    safe(() => map.closePopup && map.closePopup());
+    const layer = ensureRouteFocusLayer();
+    if(!layer) return;
+    layer.clearLayers();
+    const origin = (typeof currentOriginLatLng !== 'undefined' && currentOriginLatLng) ? currentOriginLatLng : (typeof upnLatLng !== 'undefined' ? upnLatLng : null);
+    const originLabel = (typeof currentOriginLabel !== 'undefined' && currentOriginLabel) ? currentOriginLabel : 'Titik Asal';
+    if(origin){
+      L.marker([Number(origin[0]), Number(origin[1])], { icon:routeEndpointIconV13('start'), zIndexOffset:5000 })
+        .bindPopup(`<b>Asal rute:</b> ${esc(originLabel)}`)
+        .addTo(layer);
+    }
+    L.marker([Number(place.lat), Number(place.lng)], { icon:routeEndpointIconV13('finish'), zIndexOffset:5100 })
+      .bindPopup(`<b>Tujuan:</b> ${esc(getName(place))}`)
+      .addTo(layer);
+  }
+
+  function restoreMarkersV13(){
+    const st = window.__ssmV13Route;
+    st.active = false;
+    st.destination = null;
+    safe(() => { if(window.__ssmV10Route) { window.__ssmV10Route.active = false; window.__ssmV10Route.destination = null; } });
+    safe(() => st.focusLayer && st.focusLayer.clearLayers());
+    setTimeout(() => safe(() => { if(typeof renderMarkers === 'function') renderMarkers(); }), 40);
+  }
+
+  function removeRouteOnlyV13(){
+    safe(() => {
+      if(typeof routeControl !== 'undefined' && routeControl && typeof map !== 'undefined' && map){
+        map.removeControl(routeControl);
+        routeControl = null;
+      }
+    });
+    safe(() => { if(typeof clearRouteDirections === 'function') clearRouteDirections(); });
+    const planner = qs('#routePlanner');
+    if(planner) planner.classList.remove('ssm-v13-route-active');
+  }
+
+  function renderDirectionsV13(route){
+    const directions = qs('#routeDirections');
+    const summaryEl = qs('#routeSummary');
+    const stepsEl = qs('#routeSteps');
+    const planner = qs('#routePlanner');
+    if(planner) planner.classList.add('ssm-v13-route-active');
+    if(!directions || !stepsEl) return;
+    const summary = route && route.summary ? route.summary : {};
+    const distanceText = fmtDist(summary.totalDistance || route.totalDistance || 0);
+    const timeText = fmtDur(summary.totalTime || route.totalTime || 0);
+    if(summaryEl) summaryEl.textContent = `${distanceText} • ${timeText}`;
+    const instructions = Array.isArray(route && route.instructions) ? route.instructions : [];
+    if(!instructions.length){
+      stepsEl.innerHTML = `<li><span class="route-step-number">1</span><span>Rute berhasil dibuat. Ikuti garis merah-strawberry pada peta.</span><span class="route-step-distance">${distanceText}</span></li>`;
+    }else{
+      stepsEl.innerHTML = instructions.slice(0, 6).map((inst, idx) => {
+        const text = String(inst.text || 'Ikuti rute pada peta.').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+        return `<li><span class="route-step-number">${idx+1}</span><span>${esc(text)}</span><span class="route-step-distance">${fmtDist(inst.distance || 0)}</span></li>`;
+      }).join('');
+    }
+    directions.classList.remove('hidden-route-directions');
+  }
+
+  function patchRoutePanelV13(){
+    safe(() => {
+      window.clearRoute = clearRoute = function(){
+        removeRouteOnlyV13();
+        const hint = qs('#routeHint');
+        if(hint) hint.textContent = 'Rute dihapus. Marker fasilitas ditampilkan kembali.';
+        restoreMarkersV13();
+      };
+      window.hideRoutePlanner = hideRoutePlanner = function(){
+        const planner = qs('#routePlanner');
+        if(planner) planner.classList.add('hidden-route');
+        clearRoute();
+      };
+      window.showRoutePlanner = showRoutePlanner = function(){
+        const planner = qs('#routePlanner');
+        if(planner) planner.classList.remove('hidden-route');
+        ensureRouteCloseButtonV13();
+      };
+      window.drawRouteTo = drawRouteTo = function(place){
+        if(!place || typeof L === 'undefined' || typeof map === 'undefined' || !map) return;
+        removeRouteOnlyV13();
+        selectedPlace = place;
+        showRoutePlanner();
+        focusRouteMarkersV13(place);
+        const origin = (typeof currentOriginLatLng !== 'undefined' && currentOriginLatLng) ? currentOriginLatLng : (typeof upnLatLng !== 'undefined' ? upnLatLng : null);
+        const hint = qs('#routeHint');
+        if(!origin){ if(hint) hint.textContent = 'Asal rute belum tersedia. Pilih asal terlebih dahulu.'; return; }
+        if(hint) hint.textContent = `Menghitung rute: ${esc(typeof currentOriginLabel !== 'undefined' ? currentOriginLabel : 'Asal')} → ${esc(getName(place))}...`;
+        routeControl = L.Routing.control({
+          waypoints:[L.latLng(Number(origin[0]), Number(origin[1])), L.latLng(Number(place.lat), Number(place.lng))],
+          routeWhileDragging:false,
+          addWaypoints:false,
+          draggableWaypoints:false,
+          fitSelectedRoutes:true,
+          show:false,
+          createMarker:function(){ return null; },
+          lineOptions:{
+            extendToWaypoints:true,
+            missingRouteTolerance:0,
+            styles:[
+              { color:'#1F2E16', opacity:0.96, weight:11 },
+              { color:'#C44545', opacity:1, weight:7 },
+              { color:'#E8F5BD', opacity:.96, weight:3, dashArray:'10 10' }
+            ]
+          }
+        })
+          .on('routesfound', function(event){
+            const route = event.routes && event.routes[0];
+            renderDirectionsV13(route);
+            const summary = route && route.summary ? route.summary : {};
+            if(hint) hint.textContent = `Rute aktif: ${typeof currentOriginLabel !== 'undefined' ? currentOriginLabel : 'Asal'} → ${getName(place)} (${fmtDist(summary.totalDistance || 0)} • ${fmtDur(summary.totalTime || 0)}).`;
+            safe(() => {
+              const bounds = L.latLngBounds([L.latLng(Number(origin[0]), Number(origin[1])), L.latLng(Number(place.lat), Number(place.lng))]);
+              map.fitBounds(bounds, { paddingTopLeft:[40,90], paddingBottomRight:[470,210], maxZoom:16 });
+            });
+          })
+          .on('routingerror', function(){
+            safe(() => { if(typeof clearRouteDirections === 'function') clearRouteDirections(); });
+            if(hint) hint.textContent = 'Rute gagal dibuat. Coba pilih tujuan lain atau cek koneksi internet.';
+            restoreMarkersV13();
+          })
+          .addTo(map);
+      };
+    });
+  }
+
+  function ensureRouteCloseButtonV13(){
+    const planner = qs('#routePlanner');
+    if(!planner) return;
+    qsa('#routeCloseXBtnV13').slice(1).forEach(el => el.remove());
+    let closeX = qs('#routeCloseXBtnV13');
+    if(!closeX){
+      closeX = document.createElement('button');
+      closeX.id = 'routeCloseXBtnV13';
+      closeX.type = 'button';
+      closeX.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      closeX.title = 'Tutup Network Analyst';
+      closeX.setAttribute('aria-label','Tutup Network Analyst');
+      planner.appendChild(closeX);
+    }
+    closeX.onclick = function(e){ e.preventDefault(); hideRoutePlanner(); };
+    const closeBtn = qs('#routeCloseBtn');
+    if(closeBtn){
+      closeBtn.className = 'route-mini-btn ssm-route-close-v13';
+      closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> <span>Tutup</span>';
+      closeBtn.onclick = function(e){ e.preventDefault(); hideRoutePlanner(); };
+    }
+    const clearBtn = qs('#clearRouteBtn');
+    if(clearBtn){
+      clearBtn.className = 'route-mini-btn clear ssm-clear-route-v13';
+      clearBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i> <span>Hapus</span>';
+      clearBtn.onclick = function(e){ e.preventDefault(); clearRoute(); };
+    }
+    const routeBtn = qs('#routeNowBtn');
+    if(routeBtn) routeBtn.classList.add('ssm-route-now-v13');
+  }
+
+  function patchRenderMarkersV13(){
+    if(window.__ssmV13Route.renderWrapped) return;
+    safe(() => {
+      const oldRender = renderMarkers;
+      window.__ssmV13Route.renderWrapped = true;
+      window.renderMarkers = renderMarkers = function(){
+        patchCheapFilterV13();
+        normalizeCheapV13();
+        const st = window.__ssmV13Route;
+        if(st.active && st.destination){
+          focusRouteMarkersV13(st.destination);
+          return;
+        }
+        return oldRender.apply(this, arguments);
+      };
+    });
+  }
+
+  function updateGuideV13(){
+    const guide = qs('#mapChoiceGuide');
+    if(guide){
+      const p = guide.querySelector('p');
+      if(p) p.textContent = 'Pilih kategori fasilitas terlebih dahulu. Untuk Murah, pilih Kost atau Rumah Makan, lalu aktifkan chip Murah agar hasilnya tidak bercampur.';
+      const cheap = guide.querySelector('[data-guide="cheap"]');
+      if(cheap) cheap.innerHTML = '<i class="fa-solid fa-tags"></i> Pilih Kost/Rumah Makan Murah';
+    }
+    const title = qs('#tutorialTitle');
+    if(title) title.textContent = 'Panduan Menggunakan WebGIS';
+    const subtitle = qs('.tutorial-subtitle');
+    if(subtitle) subtitle.textContent = 'Ikuti langkah penggunaan berikut agar marker, filter murah, dan rute tidak saling menumpuk.';
+    const grid = qs('.tutorial-grid');
+    if(grid){
+      const steps = [
+        ['1','Mulai dari kategori','Klik Filter lalu pilih kategori fasilitas yang dibutuhkan. Pilih satu atau beberapa kategori sesuai kebutuhan agar marker tidak terlalu penuh.'],
+        ['2','Gunakan Murah dengan benar','Fitur Murah hanya berlaku untuk kategori Kost dan Rumah Makan. Pilih kategori Kost saja atau Rumah Makan saja, lalu aktifkan Murah agar hasilnya sesuai pilihan dan tidak muncul dua-duanya.'],
+        ['3','Gunakan pencarian','Ketik nama lokasi, alamat, layanan, atau kontak untuk menyaring hasil yang sedang aktif.'],
+        ['4','Gunakan Dekat Kampus','Aktifkan Dekat Kampus untuk menampilkan lokasi dalam radius kurang dari 1 km dari Rektorat UPN.'],
+        ['5','Lihat informasi lokasi','Klik marker untuk melihat kategori, harga/tarif, layanan, jam operasional, kontak, rating, alamat, jarak dari Rektorat, dan kredit foto.'],
+        ['6','Pilih tujuan','Klik tombol Pilih Lokasi pada popup agar lokasi tersebut masuk ke kolom Tujuan pada Network Analyst.'],
+        ['7','Buat rute','Buka Network Analyst/Rute, pilih asal dari Rektorat UPN, Lokasi Saya, atau Klik di Peta, lalu tekan tombol Rute.'],
+        ['8','Baca arahan rute','Arahan rute tampil di panel kecil kanan bawah sehingga peta tetap terlihat. Scroll daftar arahan jika instruksinya panjang.'],
+        ['9','Tutup Network Analyst','Klik tombol X atau Tutup untuk menutup panel rute. Marker fasilitas akan muncul kembali setelah panel ditutup.'],
+        ['10','Gunakan Lokasi Saya','Pilih Asal: Lokasi Saya dan izinkan akses lokasi browser agar titik posisi pengguna bisa dipakai sebagai asal rute.'],
+        ['11','Emergency','Aktifkan Emergency untuk menampilkan titik darurat dengan ikon kontras.'],
+        ['12','Reset','Klik Reset untuk menghapus filter, pencarian, radius, dan rute agar tampilan kembali awal.']
+      ];
+      grid.innerHTML = steps.map(([n,h,b]) => `<div class="tutorial-card"><div class="tutorial-number">${esc(n)}</div><h4>${esc(h)}</h4><p>${esc(b)}</p></div>`).join('');
+    }
+    const tip = qs('.tutorial-tip');
+    if(tip){
+      tip.innerHTML = `<h4>Tips Cepat</h4><ul><li>Aktifkan kategori dulu sebelum chip Murah.</li><li>Murah hanya menilai Kost dan Rumah Makan dari kolom harga/tarif/biaya/sewa di Excel.</li><li>Gunakan tombol X/Tutup pada Network Analyst agar peta kembali luas dan marker muncul lagi.</li><li>Marker asal rute berwarna matcha, sedangkan tujuan berwarna strawberry.</li></ul>`;
+    }
+  }
+
+  function installV13Style(){
+    let style = qs('#ssm-v13-style');
+    if(!style){
+      style = document.createElement('style');
+      style.id = 'ssm-v13-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      /* Fitur Murah: tidak memaksa Kost + Rumah Makan aktif bersamaan */
+      .chip[data-chip="murah"]::after{content:'Pilih Kost/RM dulu' !important;font-size:9px;font-weight:900;margin-left:6px;padding:2px 6px;border-radius:999px;background:rgba(196,69,69,.13);color:#7F1D1D;}
+
+      /* Marker asal/tujuan rute: matcha strawberry, bukan biru */
+      .origin-marker-wrap,
+      .ssm-route-endpoint.start{background:linear-gradient(135deg,#5B7E3C,#A2CB8B) !important;color:#fff !important;border:3px solid #E8F5BD !important;box-shadow:0 0 0 3px rgba(91,126,60,.28),0 10px 24px rgba(0,0,0,.42) !important;}
+      .ssm-route-endpoint.finish{background:linear-gradient(135deg,#C44545,#F59E9E) !important;color:#fff !important;border:3px solid #E8F5BD !important;box-shadow:0 0 0 3px rgba(196,69,69,.30),0 10px 24px rgba(0,0,0,.42) !important;}
+      .ssm-route-endpoint-v13{min-width:44px;height:38px;border-radius:16px 16px 18px 18px;display:flex;align-items:center;justify-content:center;gap:4px;flex-direction:column;border:3px solid #E8F5BD;color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.44),0 0 0 3px rgba(91,126,60,.20);}
+      .ssm-route-endpoint-v13.start{background:linear-gradient(135deg,#5B7E3C,#A2CB8B);}
+      .ssm-route-endpoint-v13.finish{background:linear-gradient(135deg,#C44545,#F59E9E);}
+      .ssm-route-endpoint-v13 i{font-size:13px;color:#fff;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.35);}
+      .ssm-route-endpoint-v13 span{font-size:8px;font-weight:950;line-height:1;text-transform:uppercase;letter-spacing:.3px;color:#fff;}
+
+      /* Panel Network Analyst dock kanan-bawah agar peta tetap terbaca */
+      .route-planner,
+      .route-planner:not(.hidden-route){
+        position:absolute !important;
+        left:auto !important;
+        right:20px !important;
+        top:auto !important;
+        bottom:24px !important;
+        transform:none !important;
+        width:min(440px, calc(100vw - 42px)) !important;
+        max-width:440px !important;
+        max-height:calc(100vh - 220px) !important;
+        display:grid !important;
+        grid-template-columns:1fr 1fr !important;
+        gap:9px !important;
+        padding:16px 16px 14px !important;
+        padding-top:46px !important;
+        overflow:visible !important;
+        border-radius:26px !important;
+        border:1px solid rgba(91,126,60,.25) !important;
+        background:linear-gradient(145deg,rgba(255,255,245,.98),rgba(232,245,189,.96)) !important;
+        box-shadow:0 24px 80px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.78) !important;
+        z-index:880 !important;
+      }
+      .route-planner.hidden-route{display:none !important;}
+      .route-field{height:46px !important;border-radius:16px !important;font-size:13px !important;background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.24) !important;color:#24331D !important;}
+      #routeNowBtn.ssm-route-now-v13,#routeNowBtn{height:44px !important;border-radius:16px !important;background:linear-gradient(135deg,#C44545,#9F3030) !important;color:#fff !important;box-shadow:0 10px 20px rgba(196,69,69,.26) !important;}
+      #clearRouteBtn.ssm-clear-route-v13,#clearRouteBtn{height:44px !important;border-radius:16px !important;background:linear-gradient(135deg,#5B7E3C,#365524) !important;color:#fff !important;box-shadow:0 10px 20px rgba(91,126,60,.23) !important;}
+      #routeCloseBtn.ssm-route-close-v13,#routeCloseBtn{height:44px !important;border-radius:16px !important;background:linear-gradient(135deg,#A2CB8B,#5B7E3C) !important;color:#24331D !important;border:1px solid rgba(255,255,255,.42) !important;font-weight:900 !important;}
+      #routeCloseXBtnV13{position:absolute !important;right:13px !important;top:11px !important;width:32px !important;height:32px !important;border-radius:999px !important;border:2px solid rgba(255,255,255,.72) !important;background:linear-gradient(135deg,#C44545,#9F3030) !important;color:#fff !important;display:flex !important;align-items:center !important;justify-content:center !important;box-shadow:0 10px 20px rgba(0,0,0,.22) !important;z-index:5 !important;cursor:pointer !important;}
+      #routeCloseXBtnV13 i{font-size:14px !important;color:#fff !important;}
+      .route-hint{grid-column:1/-1 !important;border-radius:14px !important;background:rgba(255,255,255,.72) !important;border:1px solid rgba(91,126,60,.18) !important;padding:8px 10px !important;font-size:12px !important;line-height:1.35 !important;color:#2F4F22 !important;}
+      .route-directions{grid-column:1/-1 !important;max-height:170px !important;overflow-y:auto !important;border-radius:16px !important;background:rgba(255,253,242,.90) !important;border:1px solid rgba(91,126,60,.18) !important;padding:10px !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.75) !important;}
+      .route-directions h4,.route-directions-title{font-size:13px !important;margin-bottom:8px !important;color:#24331D !important;}
+      .route-directions li{padding:8px 9px !important;border-radius:12px !important;font-size:12px !important;line-height:1.28 !important;background:#FFFDF2 !important;}
+      .route-step-number{background:#C44545 !important;color:#fff !important;min-width:24px !important;height:24px !important;font-size:11px !important;}
+      .route-step-distance{color:#5B7E3C !important;font-weight:950 !important;}
+      .leaflet-routing-container{display:none !important;}
+
+      @media(max-width:720px){
+        .route-planner,.route-planner:not(.hidden-route){left:12px !important;right:12px !important;bottom:12px !important;width:auto !important;max-width:none !important;grid-template-columns:1fr !important;max-height:calc(100vh - 170px) !important;}
+        .route-directions{max-height:145px !important;}
+      }
+    `;
+  }
+
+  function bootV13(){
+    installV13Style();
+    patchCheapFilterV13();
+    normalizeCheapV13();
+    patchCheapClickBehavior();
+    patchRoutePanelV13();
+    patchRenderMarkersV13();
+    ensureRouteCloseButtonV13();
+    updateGuideV13();
+    syncAfterCheapChange();
+  }
+
+  bootV13();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV13);
+  else setTimeout(bootV13, 0);
+  window.addEventListener('load', function(){
+    [250, 900, 1800, 3500, 6500, 9000].forEach(ms => setTimeout(bootV13, ms));
   });
 })();
 </script>
