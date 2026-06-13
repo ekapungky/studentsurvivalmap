@@ -11093,7 +11093,47 @@ section.hero::before{
 .route-planner.hidden-route{display:none !important}.route-planner select,.route-planner input{background:#fff !important;border:1px solid rgba(91,126,60,.22) !important;color:#263d1e !important;border-radius:14px !important}.route-planner button,.route-actions button{border-radius:16px !important}.route-planner .primary,.route-actions .primary{background:#C44545 !important;color:#fff !important}.route-planner .secondary,.route-actions .secondary{background:#5B7E3C !important;color:#fff !important}
 
 @media(max-width:900px){.team-photo-wrap{grid-template-columns:1fr !important}.insight-dashboard,.insight-dashboard.energy-index-mode{width:calc(100vw - 22px) !important;max-height:calc(100vh - 130px) !important}.hero-stats{grid-template-columns:1fr 1fr !important}}
-</style>
+
+
+/* =====================================================
+   PHOTO CREDIT NOTE
+   Kredit foto untuk dokumentasi lokasi yang dipakai pada WebGIS.
+   ===================================================== */
+.photo-credit-note{
+  margin-top:8px;
+  margin-bottom:12px;
+  padding:9px 11px;
+  border-radius:12px;
+  background:rgba(232,245,189,.72);
+  border:1px solid rgba(91,126,60,.22);
+  color:#3f5f2c;
+  font-size:11px;
+  line-height:1.45;
+  font-weight:700;
+}
+.photo-credit-note i{
+  margin-right:6px;
+  color:#C44545;
+}
+.footer-photo-credit{
+  margin-top:14px;
+  padding:13px 15px;
+  border-radius:16px;
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(91,126,60,.18);
+  color:#4f6f39;
+  font-size:13px;
+  line-height:1.65;
+}
+.footer-photo-credit b{
+  color:#3f672a;
+}
+.footer-photo-credit i{
+  color:#C44545;
+  margin-right:7px;
+}
+
+  </style>
 </head>
 <body>
   <div class="app">
@@ -11162,7 +11202,6 @@ section.hero::before{
           <a href="index.html">Home</a>
           <a href="map.html">Maps</a>
           <a href="about.html">About</a>
-          <a href="contact.html">Contact</a>
         </nav>
       </header>
 
@@ -11489,6 +11528,10 @@ section.hero::before{
               Gunakan informasi pada peta sebagai panduan awal untuk memilih lokasi, melihat kebutuhan harian,
               dan menentukan rute menuju fasilitas yang paling sesuai.
             </p>
+            <div class="footer-photo-credit">
+              <i class="fa-solid fa-camera-retro"></i>
+              <b>Kredit foto:</b> beberapa foto/dokumentasi lokasi pada WebGIS ini berasal dari Google Maps dan sebagian lainnya dari media sosial Instagram. Foto digunakan sebagai pendukung visual untuk membantu pengguna mengenali lokasi.
+            </div>
           </div>
         </div>
       </footer>
@@ -11565,7 +11608,7 @@ section.hero::before{
                 <div class="tutorial-card">
                   <div class="tutorial-number">5</div>
                   <h4>Lihat Detail Tempat</h4>
-                  <p>Klik marker di peta. Panel kanan akan menampilkan nama, alamat, jam operasional, rating, foto, dan link Google Maps.</p>
+                  <p>Klik marker di peta. Panel kanan akan menampilkan informasi lokasi, foto, kredit foto, dan link Google Maps.</p>
                 </div>
 
                 <div class="tutorial-card">
@@ -11888,6 +11931,9 @@ section.hero::before{
               src="https://images.unsplash.com/photo-1560185008-b033106af5c3?auto=format&fit=crop&w=900&q=80"
               alt="Lokasi"
             />
+            <div class="photo-credit-note" id="detailPhotoCredit">
+              <i class="fa-solid fa-camera-retro"></i> Kredit foto: Google Maps / Instagram.
+            </div>
 
             <div class="place-title">
               <span id="detailTitle">Kost Mawar</span>
@@ -16342,30 +16388,492 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 
-<script>
-/* ===== SSM V9: footer penutup konsisten ===== */
+
+<script id="ssm-v10-final-polish">
+/* =========================================================
+   SSM V10 FINAL POLISH
+   Revisi:
+   - Panel rute tidak menumpuk: tombol Tutup masuk ke grid, bukan overlay di atas Hapus.
+   - Saat rute aktif, marker fasilitas lain disembunyikan. Marker kembali saat rute ditutup/dihapus.
+   - Garis rute dibuat lebih kontras dengan outline gelap, jalur cyan, dan aksen kuning putus-putus.
+   - Link/menu Contact disembunyikan karena footer sudah diganti menjadi ucapan penutup.
+   - Warna marker kategori dibuat lebih kontras.
+   ========================================================= */
 (function(){
-  function setClosingFooter(){
-    var footer = document.querySelector('#kontak.footer, footer.footer');
-    if(!footer) return;
-    footer.innerHTML = `
-      <div class="footer-grid">
-        <div class="footer-card footer-closing reveal in-view">
-          <h3>Semoga WebGIS Ini Bermanfaat</h3>
-          <p>
-            Student Survival Map dibuat untuk membantu mahasiswa UPN “Veteran” Yogyakarta menemukan fasilitas penting
-            di sekitar kampus secara lebih cepat, rapi, dan mudah dipahami.
-          </p>
-          <p style="margin-top:10px;">
-            Gunakan informasi pada peta sebagai panduan awal untuk memilih lokasi, melihat kebutuhan harian,
-            dan menentukan rute menuju fasilitas yang paling sesuai.
-          </p>
-        </div>
-      </div>`;
+  'use strict';
+
+  const qs = (s, root=document) => root.querySelector(s);
+  const qsa = (s, root=document) => Array.from(root.querySelectorAll(s));
+  const safe = (fn, fallback) => { try { return fn(); } catch(e) { return fallback; } };
+  const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  window.__ssmV10Route = window.__ssmV10Route || {
+    active:false,
+    destination:null,
+    focusLayer:null,
+    restoring:false
+  };
+
+  function fmtDistLocal(m){
+    const n = Number(m) || 0;
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.', ',') + ' km';
+    return Math.round(n) + ' m';
   }
-  setClosingFooter();
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setClosingFooter); else setTimeout(setClosingFooter, 0);
-  window.addEventListener('load', function(){ setTimeout(setClosingFooter, 300); setTimeout(setClosingFooter, 1500); });
+
+  function fmtDurLocal(sec){
+    const minutes = Math.max(1, Math.round((Number(sec) || 0) / 60));
+    if (minutes >= 60) {
+      const h = Math.floor(minutes / 60);
+      const r = minutes % 60;
+      return r ? `${h} jam ${r} menit` : `${h} jam`;
+    }
+    return `${minutes} menit`;
+  }
+
+  function applyV10Colors(){
+    const colors = {
+      kost:'#7C3AED',
+      rumah_makan:'#F97316',
+      laundry:'#0284C7',
+      minimarket:'#16A34A',
+      atm:'#FACC15',
+      print_fotocopy:'#0891B2',
+      fasilitas_kesehatan:'#E11D48',
+      emergency:'#DC2626'
+    };
+    const icons = {
+      kost:'fa-solid fa-house-chimney',
+      rumah_makan:'fa-solid fa-utensils',
+      laundry:'fa-solid fa-shirt',
+      minimarket:'fa-solid fa-store',
+      atm:'fa-solid fa-money-bill-wave',
+      print_fotocopy:'fa-solid fa-print',
+      fasilitas_kesehatan:'fa-solid fa-kit-medical',
+      emergency:'fa-solid fa-triangle-exclamation'
+    };
+    safe(() => Object.keys(colors).forEach(k => {
+      if (typeof categories !== 'undefined' && categories[k]) {
+        categories[k].color = colors[k];
+        categories[k].icon = icons[k];
+      }
+    }));
+  }
+
+  function createIconV10(placeOrCategory, opts={}){
+    if (typeof L === 'undefined') return null;
+    const category = typeof placeOrCategory === 'string' ? placeOrCategory : (placeOrCategory && placeOrCategory.category) || 'lokasi';
+    const place = typeof placeOrCategory === 'object' ? placeOrCategory : null;
+    const cfg = safe(() => categories[category], {}) || {};
+    const color = opts.color || cfg.color || '#334155';
+    const icon = opts.icon || cfg.icon || 'fa-solid fa-location-dot';
+    const isEmergency = category === 'emergency';
+    const isAtm = category === 'atm';
+    const cls = [
+      'marker-wrap','ssm-v10-marker',`ssm-v10-${category}`,
+      isEmergency ? 'ssm-v10-emergency' : '',
+      isAtm ? 'ssm-v10-atm' : '',
+      place && place.cheap ? 'ssm-cheap-pin' : '',
+      place && place.nearCampus ? 'ssm-near-pin' : ''
+    ].filter(Boolean).join(' ');
+    const size = isEmergency ? [34,40] : [28,34];
+    const anchor = isEmergency ? [17,38] : [14,32];
+    return L.divIcon({
+      className:'custom-div-icon ssm-v10-div-icon',
+      html:`<div class="${cls}" style="background:${color};"><i class="${icon}"></i></div>`,
+      iconSize:size,
+      iconAnchor:anchor,
+      popupAnchor:[0,-30]
+    });
+  }
+
+  function ensureFocusLayer(){
+    if (typeof map === 'undefined' || !map || typeof L === 'undefined') return null;
+    const st = window.__ssmV10Route;
+    if (!st.focusLayer) st.focusLayer = L.layerGroup().addTo(map);
+    return st.focusLayer;
+  }
+
+  function clearLayerGroups(){
+    safe(() => Object.values(layers || {}).forEach(layer => {
+      if (layer && typeof layer.clearLayers === 'function') layer.clearLayers();
+    }));
+  }
+
+  function routeEndpointIcon(type){
+    const isStart = type === 'start';
+    return L.divIcon({
+      className:'custom-div-icon ssm-route-endpoint-icon',
+      html:`<div class="ssm-route-endpoint ${isStart ? 'start' : 'finish'}"><i class="fa-solid ${isStart ? 'fa-location-crosshairs' : 'fa-flag-checkered'}"></i></div>`,
+      iconSize:[34,34],
+      iconAnchor:[17,17],
+      popupAnchor:[0,-18]
+    });
+  }
+
+  function getPlaceName(place){
+    return safe(() => getDisplayName(place), place && (place.name || place.Nama || place.id)) || '-';
+  }
+
+  function focusOnlyRouteMarkers(place){
+    const st = window.__ssmV10Route;
+    if (!place || typeof map === 'undefined' || !map || typeof L === 'undefined') return;
+    st.active = true;
+    st.destination = place;
+    clearLayerGroups();
+    if (map.closePopup) map.closePopup();
+    const layer = ensureFocusLayer();
+    if (!layer) return;
+    layer.clearLayers();
+
+    const origin = (typeof currentOriginLatLng !== 'undefined' && currentOriginLatLng) ? currentOriginLatLng : (typeof upnLatLng !== 'undefined' ? upnLatLng : null);
+    const originLabel = (typeof currentOriginLabel !== 'undefined' && currentOriginLabel) ? currentOriginLabel : 'Titik Asal';
+    if (origin) {
+      L.marker([origin[0], origin[1]], { icon: routeEndpointIcon('start'), zIndexOffset: 4200 })
+        .bindPopup(`<b>Asal:</b> ${esc(originLabel)}`)
+        .addTo(layer);
+    }
+
+    L.marker([Number(place.lat), Number(place.lng)], { icon: routeEndpointIcon('finish'), zIndexOffset: 4300 })
+      .bindPopup(`<b>Tujuan:</b> ${esc(getPlaceName(place))}`)
+      .addTo(layer);
+  }
+
+  function clearFocusMarkers(){
+    const st = window.__ssmV10Route;
+    if (st.focusLayer) safe(() => st.focusLayer.clearLayers());
+    st.destination = null;
+    st.active = false;
+  }
+
+  function restoreNormalMarkers(){
+    const st = window.__ssmV10Route;
+    clearFocusMarkers();
+    if (st.restoring) return;
+    st.restoring = true;
+    setTimeout(() => {
+      safe(() => { if (typeof renderMarkers === 'function') renderMarkers(); });
+      st.restoring = false;
+    }, 30);
+  }
+
+  function removeRouteControlOnly(){
+    safe(() => {
+      if (typeof routeControl !== 'undefined' && routeControl && typeof map !== 'undefined' && map) {
+        map.removeControl(routeControl);
+        routeControl = null;
+      }
+    });
+    safe(() => { if (typeof clearRouteDirections === 'function') clearRouteDirections(); });
+  }
+
+  function patchRenderMarkers(){
+    if (typeof L === 'undefined') return;
+    window.createIcon = createIcon = function(category){ return createIconV10(category); };
+    window.createSmartIcon = createSmartIcon = function(place){ return createIconV10(place); };
+
+    window.renderMarkers = renderMarkers = function(){
+      applyV10Colors();
+      safe(() => { if (typeof normalizeLoadedPlaces === 'function') normalizeLoadedPlaces(); });
+      const st = window.__ssmV10Route;
+      if (st.active && st.destination) {
+        focusOnlyRouteMarkers(st.destination);
+        return;
+      }
+
+      clearLayerGroups();
+      if (st.focusLayer) st.focusLayer.clearLayers();
+      const visible = safe(() => filteredPlaces(), []) || [];
+      visible.forEach(place => {
+        if (!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return;
+        if (!layers[place.category]) layers[place.category] = L.layerGroup().addTo(map);
+        const status = safe(() => getOpenStatus(place), {text:'-', icon:'⚪'}) || {text:'-', icon:'⚪'};
+        const marker = L.marker([Number(place.lat), Number(place.lng)], {
+          icon:createIconV10(place),
+          zIndexOffset: place.category === 'emergency' ? 3000 : 0
+        })
+          .bindPopup(safe(() => buildMarkerPopup(place, status), `<b>${esc(getPlaceName(place))}</b>`), {
+            maxWidth:360,
+            minWidth:300,
+            closeButton:true,
+            autoPanPadding:[24,24],
+            className:'student-popup'
+          })
+          .on('click', function(e){
+            safe(() => { if (typeof setDestinationPlace === 'function') setDestinationPlace(place, true); });
+            safe(() => { map.setView([Number(place.lat), Number(place.lng)], Math.max(map.getZoom(),16), {animate:false}); });
+            e.target.openPopup();
+          });
+        place.__ssmMarker = marker;
+        layers[place.category].addLayer(marker);
+      });
+      const countEl = qs('#emergencyCount');
+      if (countEl) countEl.textContent = String(safe(() => (places || []).filter(p => p.category === 'emergency').length, 0));
+      const guide = qs('#mapChoiceGuide');
+      if (guide && typeof state !== 'undefined' && (state.categories.size > 0 || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search)) {
+        guide.style.display = 'none';
+      }
+    };
+    renderMarkers.__ssmV9 = true;
+    renderMarkers.__ssmV10 = true;
+  }
+
+  function renderRouteDirectionsV10(route){
+    const directions = qs('#routeDirections');
+    const summaryEl = qs('#routeSummary');
+    const stepsEl = qs('#routeSteps');
+    if (!directions || !stepsEl) return;
+    const summary = route && route.summary ? route.summary : {};
+    const distanceText = fmtDistLocal(summary.totalDistance || route.totalDistance || 0);
+    const timeText = fmtDurLocal(summary.totalTime || route.totalTime || 0);
+    if (summaryEl) summaryEl.textContent = `${distanceText} • ${timeText}`;
+    const instructions = Array.isArray(route && route.instructions) ? route.instructions : [];
+    if (!instructions.length) {
+      stepsEl.innerHTML = `<li><span class="route-step-number">1</span><span>Rute berhasil dibuat. Ikuti garis rute yang ditampilkan pada peta.</span><span class="route-step-distance">${distanceText}</span></li>`;
+      directions.classList.remove('hidden-route-directions');
+      return;
+    }
+    stepsEl.innerHTML = instructions.slice(0, 8).map((inst, idx) => {
+      const text = String(inst.text || 'Ikuti rute pada peta.').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+      return `<li><span class="route-step-number">${idx+1}</span><span>${esc(text)}</span><span class="route-step-distance">${fmtDistLocal(inst.distance || 0)}</span></li>`;
+    }).join('');
+    directions.classList.remove('hidden-route-directions');
+  }
+
+  function patchRouteFunctions(){
+    window.clearRoute = clearRoute = function(){
+      removeRouteControlOnly();
+      const hint = qs('#routeHint');
+      if (hint) hint.textContent = 'Rute ditutup. Marker fasilitas ditampilkan kembali.';
+      restoreNormalMarkers();
+    };
+
+    window.hideRoutePlanner = hideRoutePlanner = function(){
+      const planner = qs('#routePlanner');
+      if (planner) planner.classList.add('hidden-route');
+      clearRoute();
+    };
+
+    window.showRoutePlanner = showRoutePlanner = function(){
+      const planner = qs('#routePlanner');
+      if (planner) planner.classList.remove('hidden-route');
+      fixRouteButtonsV10();
+    };
+
+    window.drawRouteTo = drawRouteTo = function(place){
+      if (!place || typeof map === 'undefined' || !map || typeof L === 'undefined') return;
+      removeRouteControlOnly();
+      selectedPlace = place;
+      focusOnlyRouteMarkers(place);
+      const hint = qs('#routeHint');
+      if (hint) hint.textContent = `Menghitung rute: ${esc(typeof currentOriginLabel !== 'undefined' ? currentOriginLabel : 'Asal')} → ${esc(getPlaceName(place))}...`;
+
+      const origin = (typeof currentOriginLatLng !== 'undefined' && currentOriginLatLng) ? currentOriginLatLng : (typeof upnLatLng !== 'undefined' ? upnLatLng : null);
+      if (!origin) return;
+      routeControl = L.Routing.control({
+        waypoints:[L.latLng(Number(origin[0]), Number(origin[1])), L.latLng(Number(place.lat), Number(place.lng))],
+        routeWhileDragging:false,
+        addWaypoints:false,
+        draggableWaypoints:false,
+        fitSelectedRoutes:true,
+        show:false,
+        createMarker:function(){ return null; },
+        lineOptions:{
+          extendToWaypoints:true,
+          missingRouteTolerance:0,
+          styles:[
+            { color:'#020617', opacity:0.95, weight:12 },
+            { color:'#06B6D4', opacity:1, weight:7 },
+            { color:'#FDE047', opacity:0.98, weight:3, dashArray:'12 12' }
+          ]
+        }
+      })
+        .on('routesfound', function(event){
+          const route = event.routes && event.routes[0];
+          renderRouteDirectionsV10(route);
+          const summary = route && route.summary ? route.summary : {};
+          if (hint) hint.textContent = `Rute aktif: ${typeof currentOriginLabel !== 'undefined' ? currentOriginLabel : 'Asal'} → ${getPlaceName(place)} (${fmtDistLocal(summary.totalDistance || 0)} • ${fmtDurLocal(summary.totalTime || 0)}). Marker lain disembunyikan sementara.`;
+        })
+        .on('routingerror', function(){
+          safe(() => { if (typeof clearRouteDirections === 'function') clearRouteDirections(); });
+          if (hint) hint.textContent = 'Rute gagal dibuat. Coba pilih tujuan lain atau cek koneksi internet.';
+          restoreNormalMarkers();
+        })
+        .addTo(map);
+    };
+  }
+
+  function fixRouteButtonsV10(){
+    const planner = qs('#routePlanner');
+    if (!planner) return;
+    qsa('#routeCloseBtn').slice(1).forEach(btn => btn.remove());
+    let closeBtn = qs('#routeCloseBtn');
+    if (!closeBtn) {
+      closeBtn = document.createElement('button');
+      closeBtn.id = 'routeCloseBtn';
+      closeBtn.type = 'button';
+      const hint = qs('#routeHint');
+      if (hint) planner.insertBefore(closeBtn, hint);
+      else planner.appendChild(closeBtn);
+    }
+    closeBtn.className = 'route-mini-btn ssm-route-close-v10';
+    closeBtn.title = 'Tutup rute dan tampilkan marker lagi';
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> <span>Tutup</span>';
+    closeBtn.onclick = function(e){
+      e.preventDefault();
+      hideRoutePlanner();
+    };
+
+    const clearBtn = qs('#clearRouteBtn');
+    if (clearBtn) {
+      clearBtn.className = 'route-mini-btn clear ssm-clear-route-v10';
+      clearBtn.title = 'Hapus rute aktif';
+      clearBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i> <span>Hapus</span>';
+      clearBtn.onclick = function(e){
+        e.preventDefault();
+        clearRoute();
+      };
+    }
+    const routeBtn = qs('#routeNowBtn');
+    if (routeBtn) routeBtn.classList.add('ssm-route-now-v10');
+  }
+
+  function removeContactUI(){
+    qsa('a[href="contact.html"]').forEach(a => a.remove());
+    qsa('.contact-section, #contact, #kontak .footer-card:not(.footer-closing)').forEach(el => el.remove());
+  }
+
+  function installV10Style(){
+    let style = qs('#ssm-v10-style');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'ssm-v10-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      /* Contact dihapus dari navigasi dan section lama */
+      a[href="contact.html"], .contact-section, #contact { display:none !important; }
+
+      /* Marker kategori lebih kecil, tegas, dan kontras */
+      .marker-wrap.ssm-v10-marker,
+      .ssm-v10-marker{
+        width:28px !important;
+        height:28px !important;
+        border-radius:10px !important;
+        border:2px solid #ffffff !important;
+        box-shadow:0 7px 15px rgba(0,0,0,.52), 0 0 0 1px rgba(2,6,23,.28) !important;
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        transform:none !important;
+        opacity:.98 !important;
+      }
+      .marker-wrap.ssm-v10-marker::after,
+      .ssm-v10-marker::after{
+        width:8px !important;
+        height:8px !important;
+        bottom:-5px !important;
+        border-width:2px !important;
+        filter:drop-shadow(0 2px 2px rgba(0,0,0,.45)) !important;
+      }
+      .marker-wrap.ssm-v10-marker i,
+      .ssm-v10-marker i{
+        font-size:12px !important;
+        color:#ffffff !important;
+        text-shadow:0 1px 3px rgba(0,0,0,.70) !important;
+        filter:none !important;
+      }
+      .ssm-v10-atm i{ color:#111827 !important; text-shadow:0 1px 0 rgba(255,255,255,.35) !important; }
+      .ssm-v10-emergency{
+        width:34px !important;
+        height:34px !important;
+        border-radius:12px !important;
+        background:#DC2626 !important;
+        border:3px solid #FDE047 !important;
+        box-shadow:0 0 0 3px rgba(220,38,38,.38),0 10px 22px rgba(0,0,0,.58) !important;
+      }
+      .ssm-v10-emergency i{font-size:16px !important;color:#ffffff !important;}
+      .marker-wrap.ssm-cheap-pin::before,
+      .marker-wrap.ssm-near-pin::before{display:none !important;}
+
+      /* Panel rute: tidak ada tombol yang saling tindih */
+      .route-planner,
+      .route-planner:not(.hidden-route){
+        width:min(920px, calc(100vw - 56px)) !important;
+        max-width:920px !important;
+        grid-template-columns:minmax(220px,1fr) minmax(250px,1.15fr) auto auto auto !important;
+        gap:10px !important;
+        padding:12px !important;
+        padding-right:12px !important;
+        overflow:visible !important;
+        align-items:center !important;
+        border-radius:24px !important;
+        border:1px solid rgba(253,224,71,.40) !important;
+        background:linear-gradient(145deg,rgba(255,255,245,.98),rgba(232,245,189,.96)) !important;
+        box-shadow:0 22px 70px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.8) !important;
+      }
+      .route-planner.hidden-route{display:none !important;}
+      .route-field{height:46px !important;border-radius:16px !important;font-size:13px !important;}
+      #routeNowBtn.ssm-route-now-v10{background:linear-gradient(135deg,#DC2626,#991B1B) !important;color:#fff !important;min-width:84px !important;}
+      #clearRouteBtn.ssm-clear-route-v10{background:linear-gradient(135deg,#7F1D1D,#450A0A) !important;color:#fff !important;min-width:92px !important;}
+      #routeCloseBtn.ssm-route-close-v10{
+        position:static !important;
+        width:auto !important;
+        height:46px !important;
+        min-width:92px !important;
+        border-radius:16px !important;
+        padding:0 15px !important;
+        background:linear-gradient(135deg,#334155,#0F172A) !important;
+        color:#fff !important;
+        border:1px solid rgba(255,255,255,.28) !important;
+        box-shadow:0 12px 24px rgba(15,23,42,.24) !important;
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:7px !important;
+        transform:none !important;
+      }
+      .route-hint{grid-column:1 / -1 !important;background:rgba(255,255,255,.65) !important;border:1px solid rgba(91,126,60,.18) !important;border-radius:999px !important;padding:8px 12px !important;color:#2f4f22 !important;}
+      .route-directions{grid-column:1 / -1 !important;background:rgba(255,255,255,.82) !important;border:1px solid rgba(91,126,60,.18) !important;}
+
+      /* Endpoint rute */
+      .ssm-route-endpoint{
+        width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+        border:3px solid #fff;box-shadow:0 0 0 3px rgba(6,182,212,.25),0 9px 20px rgba(0,0,0,.45);
+      }
+      .ssm-route-endpoint.start{background:#2563EB;color:#fff;}
+      .ssm-route-endpoint.finish{background:#F97316;color:#fff;}
+      .ssm-route-endpoint i{font-size:14px;color:inherit;}
+      .leaflet-routing-container{display:none !important;}
+
+      @media(max-width:960px){
+        .route-planner,.route-planner:not(.hidden-route){grid-template-columns:1fr 1fr !important;width:calc(100vw - 32px) !important;}
+        #routeNowBtn.ssm-route-now-v10,#clearRouteBtn.ssm-clear-route-v10,#routeCloseBtn.ssm-route-close-v10{min-width:0 !important;width:100% !important;}
+      }
+      @media(max-width:640px){
+        .route-planner,.route-planner:not(.hidden-route){grid-template-columns:1fr !important;top:96px !important;}
+      }
+    `;
+  }
+
+  function bootV10(){
+    installV10Style();
+    removeContactUI();
+    applyV10Colors();
+    patchRenderMarkers();
+    patchRouteFunctions();
+    fixRouteButtonsV10();
+    safe(() => { if (typeof renderFilterList === 'function') renderFilterList(); });
+    safe(() => { if (typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+    safe(() => { if (typeof renderMarkers === 'function') renderMarkers(); });
+  }
+
+  bootV10();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV10);
+  else setTimeout(bootV10, 0);
+  window.addEventListener('load', () => { setTimeout(bootV10, 350); setTimeout(bootV10, 1500); });
+  setTimeout(bootV10, 2800);
+  setTimeout(bootV10, 5200);
+  setTimeout(bootV10, 7600);
 })();
 </script>
 
