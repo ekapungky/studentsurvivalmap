@@ -17702,5 +17702,553 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<!-- =========================================================
+     SSM V15 NORMAL UI PATCH
+     Fokus: info lokasi muncul lagi, panel normal di kiri, ikon filter seragam.
+     ========================================================= -->
+<style id="ssm-v15-normal-ui-style">
+  :root{
+    --v15-dark:#24331D;
+    --v15-matcha:#5B7E3C;
+    --v15-matcha-soft:#A2CB8B;
+    --v15-cream:#E8F5BD;
+    --v15-paper:#FFFDF2;
+    --v15-strawberry:#C44545;
+  }
+
+  /* Panel filter dibuat normal: kiri, compact, tidak full/bottom sheet */
+  body.map-active #leftPanel.left-panel,
+  body.map-active .left-panel{
+    position:absolute !important;
+    top:92px !important;
+    left:18px !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:320px !important;
+    max-width:calc(100vw - 36px) !important;
+    max-height:calc(100% - 118px) !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    border-radius:22px !important;
+    padding:14px !important;
+    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+    border:1px solid rgba(91,126,60,.28) !important;
+    box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
+    z-index:850 !important;
+  }
+
+  body.map-active #leftPanel.left-panel.collapsed,
+  body.map-active .left-panel.collapsed{
+    transform:translateX(-115%) !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+  }
+
+  body.map-active .filter-item{
+    min-height:54px !important;
+    padding:8px 10px !important;
+    margin:8px 0 !important;
+    border-radius:16px !important;
+    background:#FFFDF2 !important;
+    border:1px solid rgba(91,126,60,.22) !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:10px !important;
+  }
+
+  body.map-active .filter-item.active{
+    background:linear-gradient(135deg,rgba(162,203,139,.55),rgba(232,245,189,.92)) !important;
+    border-color:rgba(91,126,60,.42) !important;
+  }
+
+  body.map-active .filter-left{
+    display:flex !important;
+    align-items:center !important;
+    gap:10px !important;
+    min-width:0 !important;
+  }
+
+  /* Ikon kategori di filter: bentuk normal, warna dan glyph mengikuti marker peta */
+  body.map-active .filter-item .cat-icon,
+  body.map-active .filter-item .cat-icon.ssm-v15-filter-icon{
+    width:36px !important;
+    height:36px !important;
+    min-width:36px !important;
+    border-radius:14px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    transform:none !important;
+    clip-path:none !important;
+    border:2px solid rgba(255,255,255,.82) !important;
+    box-shadow:0 8px 18px rgba(36,51,29,.18) !important;
+    margin:0 !important;
+    position:relative !important;
+  }
+
+  body.map-active .filter-item .cat-icon::before,
+  body.map-active .filter-item .cat-icon::after{
+    display:none !important;
+    content:none !important;
+  }
+
+  body.map-active .filter-item .cat-icon svg{
+    display:none !important;
+  }
+
+  body.map-active .filter-item .cat-icon i{
+    font-size:16px !important;
+    line-height:1 !important;
+    margin:0 !important;
+    color:#fff !important;
+    text-shadow:0 1px 3px rgba(0,0,0,.28) !important;
+  }
+
+  body.map-active .filter-item[data-category="rumah_makan"] .cat-icon i,
+  body.map-active .filter-item[data-category="atm"] .cat-icon i{
+    color:#24331D !important;
+    text-shadow:none !important;
+  }
+
+  body.map-active .filter-item b,
+  body.map-active .filter-item strong,
+  body.map-active .filter-item span{
+    font-size:14px !important;
+    color:#24331D !important;
+  }
+
+  /* Panel informasi lokasi dikembalikan di kanan, tidak hilang saat marker diklik */
+  body.map-active #infoPanel.right-panel,
+  body.map-active .right-panel#infoPanel{
+    position:absolute !important;
+    top:92px !important;
+    right:18px !important;
+    left:auto !important;
+    bottom:auto !important;
+    width:360px !important;
+    max-width:calc(100vw - 36px) !important;
+    max-height:calc(100% - 118px) !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    border-radius:22px !important;
+    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+    border:1px solid rgba(91,126,60,.28) !important;
+    box-shadow:0 18px 44px rgba(36,51,29,.20) !important;
+    z-index:870 !important;
+  }
+
+  body.map-active #infoPanel.hidden{
+    display:none !important;
+  }
+
+  body.map-active #openInfoPanel{
+    right:18px !important;
+    bottom:18px !important;
+    z-index:840 !important;
+  }
+
+  /* Network Analyst: panel normal compact di kiri; tidak tumpuk dengan filter/info */
+  body.map-active #routePlanner.route-planner,
+  body.map-active .route-planner,
+  body.map-active .route-planner:not(.hidden-route){
+    position:absolute !important;
+    left:18px !important;
+    right:auto !important;
+    top:92px !important;
+    bottom:auto !important;
+    transform:none !important;
+    width:360px !important;
+    max-width:calc(100vw - 36px) !important;
+    max-height:calc(100% - 118px) !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+    padding:46px 14px 14px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    border-radius:22px !important;
+    background:linear-gradient(180deg,#FFFDF2 0%,#F7FBE8 100%) !important;
+    border:1px solid rgba(91,126,60,.28) !important;
+    box-shadow:0 20px 54px rgba(36,51,29,.24) !important;
+    z-index:910 !important;
+  }
+
+  body.map-active #routePlanner.hidden-route,
+  body.map-active .route-planner.hidden-route{
+    display:none !important;
+  }
+
+  body.map-active.route-panel-open #leftPanel,
+  body.map-active.route-panel-open #infoPanel{
+    display:none !important;
+  }
+
+  body.map-active #routePlanner .route-field,
+  body.map-active #routePlanner select,
+  body.map-active #routePlanner button{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+
+  body.map-active #routeNowBtn,
+  body.map-active #clearRouteBtn,
+  body.map-active #routeCloseBtn{
+    height:42px !important;
+    border-radius:14px !important;
+    white-space:nowrap !important;
+  }
+
+  body.map-active #routeNowBtn{
+    background:linear-gradient(135deg,#C44545,#A83A3A) !important;
+    color:#fff !important;
+  }
+
+  body.map-active #clearRouteBtn{
+    background:linear-gradient(135deg,#8B2F2F,#5F1717) !important;
+    color:#fff !important;
+  }
+
+  body.map-active #routeCloseBtn{
+    background:linear-gradient(135deg,#A2CB8B,#5B7E3C) !important;
+    color:#24331D !important;
+  }
+
+  body.map-active #routeCloseXBtnV13,
+  body.map-active #routeCloseXBtnV14{
+    display:none !important;
+  }
+
+  body.map-active #routeCloseXBtnV15{
+    position:absolute !important;
+    top:10px !important;
+    right:10px !important;
+    width:34px !important;
+    height:34px !important;
+    border-radius:999px !important;
+    border:2px solid rgba(255,255,255,.75) !important;
+    background:linear-gradient(135deg,#C44545,#A83A3A) !important;
+    color:#fff !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    box-shadow:0 10px 22px rgba(0,0,0,.25) !important;
+    cursor:pointer !important;
+    z-index:6 !important;
+  }
+
+  body.map-active #routeCloseXBtnV15 i{
+    color:#fff !important;
+    font-size:15px !important;
+  }
+
+  body.map-active .route-hint,
+  body.map-active .route-directions{
+    grid-column:1/-1 !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  body.map-active .route-directions{
+    max-height:200px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+  }
+
+  /* Jangan sampai panel/isi membuat scroll horizontal jelek */
+  body.map-active #routePlanner *,
+  body.map-active #leftPanel *,
+  body.map-active #infoPanel *{
+    max-width:100% !important;
+  }
+
+  @media(max-width:980px){
+    body.map-active #infoPanel.right-panel,
+    body.map-active .right-panel#infoPanel{
+      top:auto !important;
+      right:12px !important;
+      left:12px !important;
+      bottom:12px !important;
+      width:auto !important;
+      max-width:none !important;
+      max-height:48vh !important;
+    }
+
+    body.map-active #leftPanel.left-panel,
+    body.map-active .left-panel{
+      top:84px !important;
+      left:12px !important;
+      width:320px !important;
+      max-width:calc(100vw - 24px) !important;
+      max-height:calc(100% - 108px) !important;
+    }
+
+    body.map-active #routePlanner.route-planner,
+    body.map-active .route-planner,
+    body.map-active .route-planner:not(.hidden-route){
+      top:84px !important;
+      left:12px !important;
+      width:330px !important;
+      max-width:calc(100vw - 24px) !important;
+      max-height:calc(100% - 108px) !important;
+    }
+  }
+
+  @media(max-width:560px){
+    body.map-active #leftPanel.left-panel,
+    body.map-active .left-panel,
+    body.map-active #routePlanner.route-planner,
+    body.map-active .route-planner,
+    body.map-active .route-planner:not(.hidden-route){
+      top:82px !important;
+      left:10px !important;
+      width:min(320px, calc(100vw - 20px)) !important;
+      max-height:calc(100% - 102px) !important;
+      border-radius:20px !important;
+    }
+
+    body.map-active .filter-item{
+      min-height:50px !important;
+      padding:7px 9px !important;
+    }
+  }
+</style>
+<script id="ssm-v15-normal-ui-js">
+(function(){
+  const safe = (fn, fallback) => { try { return fn(); } catch(e){ console.warn('SSM V15', e); return fallback; } };
+  const qs = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
+
+  const fallbackCategories = {
+    kost:{label:'Kost', color:'#5B7E3C', icon:'fa-solid fa-house'},
+    rumah_makan:{label:'Rumah Makan', color:'#E8F5BD', icon:'fa-solid fa-utensils'},
+    laundry:{label:'Laundry', color:'#A2CB8B', icon:'fa-solid fa-shirt'},
+    minimarket:{label:'Minimarket', color:'#A2CB8B', icon:'fa-solid fa-store'},
+    atm:{label:'ATM', color:'#E8F5BD', icon:'fa-solid fa-money-bill-wave'},
+    print_fotocopy:{label:'Print/Fotokopi', color:'#5B7E3C', icon:'fa-solid fa-print'},
+    fasilitas_kesehatan:{label:'Fasilitas Kesehatan', color:'#5B7E3C', icon:'fa-solid fa-kit-medical'},
+    emergency:{label:'Emergency', color:'#C44545', icon:'fa-solid fa-triangle-exclamation'}
+  };
+
+  function getCfg(key){
+    return safe(() => (typeof categories !== 'undefined' && categories[key]) ? categories[key] : fallbackCategories[key], fallbackCategories[key]) || fallbackCategories[key] || {color:'#5B7E3C', icon:'fa-solid fa-location-dot'};
+  }
+
+  function setRouteOpenClass(){
+    const planner = qs('#routePlanner');
+    const open = !!(planner && !planner.classList.contains('hidden-route'));
+    document.body.classList.toggle('route-panel-open', open);
+  }
+
+  function showDefaultPanels(){
+    const top = qs('#topControls');
+    const left = qs('#leftPanel');
+    if(top) top.classList.remove('collapsed');
+    if(left) left.classList.remove('collapsed');
+    setRouteOpenClass();
+    safe(() => setTimeout(() => { if(typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); }, 120));
+  }
+
+  function syncFilterIconsNormal(){
+    qsa('.filter-item').forEach(item => {
+      const key = item.getAttribute('data-category');
+      const iconBox = item.querySelector('.cat-icon');
+      if(!key || !iconBox) return;
+      const cfg = getCfg(key);
+      const icon = key === 'emergency' ? 'fa-solid fa-triangle-exclamation' : (cfg.icon || fallbackCategories[key]?.icon || 'fa-solid fa-location-dot');
+      const color = key === 'emergency' ? '#C44545' : (cfg.color || '#5B7E3C');
+      iconBox.className = 'cat-icon ssm-v15-filter-icon';
+      iconBox.style.background = color;
+      iconBox.innerHTML = `<i class="${icon}"></i>`;
+      if(key === 'rumah_makan' || key === 'atm'){
+        const i = iconBox.querySelector('i');
+        if(i) i.style.color = '#24331D';
+      }
+    });
+  }
+
+  function patchFilterRenderer(){
+    safe(() => {
+      if(typeof renderFilterList === 'function' && !renderFilterList.__ssmV15Normal){
+        const old = renderFilterList;
+        window.renderFilterList = renderFilterList = function(){
+          const result = old.apply(this, arguments);
+          syncFilterIconsNormal();
+          return result;
+        };
+        renderFilterList.__ssmV15Normal = true;
+      }
+    });
+    syncFilterIconsNormal();
+  }
+
+  function ensureSingleRouteClose(){
+    const planner = qs('#routePlanner');
+    if(!planner) return;
+    qsa('#routeCloseXBtnV13,#routeCloseXBtnV14').forEach(btn => btn.setAttribute('aria-hidden','true'));
+    let btn = qs('#routeCloseXBtnV15');
+    if(!btn){
+      btn = document.createElement('button');
+      btn.id = 'routeCloseXBtnV15';
+      btn.type = 'button';
+      btn.title = 'Tutup Network Analyst';
+      btn.setAttribute('aria-label','Tutup Network Analyst');
+      btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      planner.appendChild(btn);
+    }
+    btn.onclick = function(e){
+      e.preventDefault();
+      if(typeof hideRoutePlanner === 'function') hideRoutePlanner();
+      else planner.classList.add('hidden-route');
+      showDefaultPanels();
+    };
+
+    const closeBtn = qs('#routeCloseBtn');
+    if(closeBtn){
+      closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> <span>Tutup</span>';
+      closeBtn.onclick = function(e){
+        e.preventDefault();
+        if(typeof hideRoutePlanner === 'function') hideRoutePlanner();
+        else planner.classList.add('hidden-route');
+        showDefaultPanels();
+      };
+    }
+  }
+
+  function patchRouteOpenClose(){
+    safe(() => {
+      if(!window.__ssmV15RouteWrapper){
+        window.__ssmV15RouteWrapper = true;
+        const oldShow = typeof showRoutePlanner === 'function' ? showRoutePlanner : null;
+        window.showRoutePlanner = showRoutePlanner = function(){
+          const result = oldShow ? oldShow.apply(this, arguments) : undefined;
+          const planner = qs('#routePlanner');
+          if(planner) planner.classList.remove('hidden-route');
+          const left = qs('#leftPanel');
+          const info = qs('#infoPanel');
+          if(left) left.classList.add('collapsed');
+          if(info) info.classList.add('hidden');
+          ensureSingleRouteClose();
+          setRouteOpenClass();
+          return result;
+        };
+
+        const oldHide = typeof hideRoutePlanner === 'function' ? hideRoutePlanner : null;
+        window.hideRoutePlanner = hideRoutePlanner = function(){
+          const result = oldHide ? oldHide.apply(this, arguments) : undefined;
+          const planner = qs('#routePlanner');
+          if(planner) planner.classList.add('hidden-route');
+          showDefaultPanels();
+          return result;
+        };
+
+        const oldClear = typeof clearRoute === 'function' ? clearRoute : null;
+        window.clearRoute = clearRoute = function(){
+          const result = oldClear ? oldClear.apply(this, arguments) : undefined;
+          showDefaultPanels();
+          return result;
+        };
+      }
+    });
+    ensureSingleRouteClose();
+  }
+
+  function patchInfoPanel(){
+    safe(() => {
+      if(typeof updateDetail === 'function' && !updateDetail.__ssmV15Info){
+        const old = updateDetail;
+        window.updateDetail = updateDetail = function(place){
+          const result = old.apply(this, arguments);
+          const info = qs('#infoPanel');
+          const openBtn = qs('#openInfoPanel');
+          const route = qs('#routePlanner');
+          if(route && !route.classList.contains('hidden-route')) route.classList.add('hidden-route');
+          document.body.classList.remove('route-panel-open');
+          if(info){
+            info.classList.remove('hidden');
+            info.style.display = '';
+          }
+          if(openBtn) openBtn.classList.add('hidden');
+          showDefaultPanels();
+          safe(() => setTimeout(() => { if(typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); }, 120));
+          return result;
+        };
+        updateDetail.__ssmV15Info = true;
+      }
+    });
+
+    const closeInfo = qs('#closeInfoPanel');
+    if(closeInfo && !closeInfo.__ssmV15){
+      closeInfo.__ssmV15 = true;
+      closeInfo.addEventListener('click', () => {
+        const info = qs('#infoPanel');
+        const openBtn = qs('#openInfoPanel');
+        if(info) info.classList.add('hidden');
+        if(openBtn) openBtn.classList.remove('hidden');
+      });
+    }
+
+    const openInfo = qs('#openInfoPanel');
+    if(openInfo && !openInfo.__ssmV15){
+      openInfo.__ssmV15 = true;
+      openInfo.addEventListener('click', () => {
+        const info = qs('#infoPanel');
+        if(info) info.classList.remove('hidden');
+      });
+    }
+  }
+
+  function patchTutorialText(){
+    const subtitle = qs('.tutorial-subtitle');
+    if(subtitle) subtitle.textContent = 'Pilih kategori, klik marker untuk membuka informasi lokasi, lalu gunakan Network Analyst jika ingin membuat rute.';
+    const grid = qs('.tutorial-grid');
+    if(grid){
+      const steps = [
+        ['1','Pilih kategori','Klik Filter, lalu aktifkan kategori yang diperlukan saja agar marker tidak terlalu padat.'],
+        ['2','Lihat informasi lokasi','Klik marker pada peta. Panel Informasi Lokasi akan muncul di kanan dan menampilkan data penting dari Excel.'],
+        ['3','Gunakan Murah','Fitur Murah hanya bekerja setelah memilih Kost atau Rumah Makan. Hasil tidak lagi mencampur dua kategori sekaligus.'],
+        ['4','Pakai Dekat Kampus','Aktifkan Dekat Kampus untuk membatasi hasil dalam radius sekitar 1 km dari Rektorat UPN.'],
+        ['5','Pilih tujuan rute','Pada popup marker, klik Pilih Lokasi agar lokasi masuk ke pilihan Tujuan.'],
+        ['6','Buat rute','Buka Rute/Network Analyst, pilih asal, lalu tekan Rute. Panel rute tampil compact di sisi kiri.'],
+        ['7','Tutup rute','Klik X atau Tutup untuk menutup Network Analyst. Filter dan marker akan tampil lagi.'],
+        ['8','Reset','Klik Reset jika ingin menghapus filter, pencarian, radius, dan rute.']
+      ];
+      grid.innerHTML = steps.map(([n,h,b]) => `<div class="tutorial-card"><div class="tutorial-number">${n}</div><h4>${h}</h4><p>${b}</p></div>`).join('');
+    }
+  }
+
+  function observeRoute(){
+    const planner = qs('#routePlanner');
+    if(!planner || planner.__ssmV15Observer) return;
+    planner.__ssmV15Observer = true;
+    const obs = new MutationObserver(() => {
+      setRouteOpenClass();
+      ensureSingleRouteClose();
+    });
+    obs.observe(planner, {attributes:true, attributeFilter:['class']});
+  }
+
+  function boot(){
+    patchFilterRenderer();
+    patchRouteOpenClose();
+    patchInfoPanel();
+    patchTutorialText();
+    observeRoute();
+    ensureSingleRouteClose();
+    syncFilterIconsNormal();
+    setRouteOpenClass();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  window.addEventListener('load', () => [250,900,1800,3600,7000,10000].forEach(ms => setTimeout(boot, ms)));
+  window.addEventListener('resize', () => safe(() => setTimeout(() => { if(typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); }, 180)));
+})();
+</script>
+
 </body>
 </html>
