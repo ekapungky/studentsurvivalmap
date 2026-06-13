@@ -15253,7 +15253,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setLink('a[href="#fitur"]', 'index.html#fitur');
     setLink('a[href="#manfaat"]', 'index.html#manfaat');
     setLink('a[href="#tim"]', 'gallery.html');
-    setLink('a[href="#kontak"]', 'contact.html');
+    document.querySelectorAll('a[href="#kontak"],a[href="contact.html"]').forEach(a=>{ if((a.textContent||'').trim().toLowerCase()==='contact') a.remove(); });
 
     var enter1 = document.getElementById('enterMapBtn');
     var enter2 = document.getElementById('enterMapBtnBottom');
@@ -15360,10 +15360,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const footer=document.querySelector('#kontak, footer.footer');
     if(footer){
-      const h=footer.querySelector('h3'); if(h && /Kontak Proyek/i.test(h.textContent)) h.textContent='Kontak Kelompok';
+      const h=footer.querySelector('h3'); if(h && /Kontak Proyek|Kontak Kelompok/i.test(h.textContent)) h.textContent='Semoga WebGIS Ini Bermanfaat';
       const ps=footer.querySelectorAll('p');
       if(ps[0]) ps[0].textContent='Student Survival Map merupakan proyek WebGIS terapan berbasis kebutuhan mahasiswa sekitar UPN Jogja yang dikembangkan oleh Kelompok 1.';
-      if(ps[1]) ps[1].innerHTML='Email kelompok: <b>tambahkan email kelompok</b>';
+      if(ps[1] && /Email kelompok|tambahkan email/i.test(ps[1].textContent)) ps[1].remove();
       if(ps[2]) ps[2].innerHTML='Lokasi studi: UPN “Veteran” Yogyakarta dan fasilitas sekitar kampus.';
     }
   }
@@ -16874,6 +16874,290 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(bootV10, 2800);
   setTimeout(bootV10, 5200);
   setTimeout(bootV10, 7600);
+})();
+</script>
+
+
+<script>
+/* ===== SSM V12 FINAL USER REQUEST PATCH =====
+   - Hapus email dan menu Contact.
+   - Fitur Murah hanya berlaku untuk Kost dan Rumah Makan.
+   - Panduan pengguna diperbarui dan dibuat lebih informatif.
+*/
+(function(){
+  const ALLOWED_CHEAP = new Set(['kost','rumah_makan']);
+  const PRICE_KEYS = [
+    'Harga','harga','Tarif','tarif','Biaya','biaya','Sewa','sewa',
+    'Harga_Tarif','Harga/Tarif','harga_tarif','Harga Tarif',
+    'Rentang_Harga','Rentang Harga','rentang_harga','Kisaran_Harga','Kisaran Harga','kisaran_harga',
+    'Harga_Rata_Rata','Harga Rata Rata','Harga_Rata-rata','Harga rata-rata',
+    'Tarif_Harga','Tarif Harga','Biaya_Sewa','Biaya Sewa'
+  ];
+  const safe = (fn, fallback) => { try { const v = fn(); return v === undefined ? fallback : v; } catch(e){ return fallback; } };
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const clean = (v) => String(v ?? '').replace(/\s+/g,' ').trim();
+  const empty = (v) => !clean(v) || /^[-–—]+$|^(null|undefined|nan)$/i.test(clean(v));
+  const esc = (s) => clean(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  function getPriceRaw(place){
+    if(!place) return '';
+    for(const key of PRICE_KEYS){
+      if(Object.prototype.hasOwnProperty.call(place, key) && !empty(place[key])) return clean(place[key]);
+    }
+    return '';
+  }
+
+  function parsePriceNumbers(text, category){
+    const src = clean(text).toLowerCase();
+    if(!src) return [];
+    const results = [];
+    const re = /(rp\s*)?([0-9]+(?:[\.,][0-9]{1,3})*)(\s*(?:juta|jt|ribu|rb|k))?/gi;
+    let m;
+    while((m = re.exec(src))){
+      let raw = m[2] || '';
+      let suffix = clean(m[3] || '').toLowerCase();
+      let val;
+      if(/[\.,]/.test(raw)){
+        const groups = raw.split(/[\.,]/);
+        const last = groups[groups.length - 1];
+        if(last.length === 3){
+          val = Number(groups.join(''));
+        }else{
+          val = Number(raw.replace(',', '.'));
+        }
+      }else{
+        val = Number(raw);
+      }
+      if(!Number.isFinite(val) || val <= 0) continue;
+      if(/juta|jt/.test(suffix)) val *= 1000000;
+      else if(/ribu|rb|k/.test(suffix)) val *= 1000;
+      else if(category === 'rumah_makan' && /rp/.test(clean(m[1])) && val > 0 && val < 1000) val *= 1000;
+      else if(category === 'kost' && val >= 100 && val < 10000) val *= 1000;
+      results.push(Math.round(val));
+    }
+    return results;
+  }
+
+  function isCheapByValidPrice(place){
+    if(!place || !ALLOWED_CHEAP.has(place.category)) return false;
+    const raw = getPriceRaw(place);
+    if(!raw) return false;
+    const nums = parsePriceNumbers(raw, place.category);
+    if(!nums.length) return false;
+    if(place.category === 'rumah_makan') return nums.some(v => v > 0 && v <= 25000);
+    if(place.category === 'kost') return nums.some(v => v >= 200000 && v <= 1200000);
+    return false;
+  }
+
+  function normalizeCheapPlaces(){
+    safe(() => {
+      if(!Array.isArray(places)) return;
+      places.forEach(p => {
+        const raw = getPriceRaw(p);
+        p._priceRawV12 = raw || '';
+        p._priceDisplay = raw || '-';
+        if(raw){ p.price = raw; p.Harga = raw; }
+        p.cheap = isCheapByValidPrice(p);
+        p.cheapReason = p.cheap
+          ? (p.category === 'kost' ? 'Kost memenuhi batas harga murah mahasiswa.' : 'Rumah makan memenuhi batas harga murah mahasiswa.')
+          : (ALLOWED_CHEAP.has(p.category) ? 'Tidak memenuhi batas harga murah mahasiswa atau harga belum tersedia.' : 'Filter murah hanya berlaku untuk Kost dan Rumah Makan.');
+      });
+    });
+  }
+
+  function patchCheapLogic(){
+    safe(() => { cheapByExcelPrice = isCheapByValidPrice; });
+    safe(() => { cheapStudent = isCheapByValidPrice; });
+    safe(() => { cheapByStudentStandard = isCheapByValidPrice; });
+
+    safe(() => {
+      filteredPlaces = function(){
+        normalizeCheapPlaces();
+        const list = Array.isArray(places) ? places : [];
+        return list.filter(place => {
+          if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+          const q = clean((state && state.search) || '').toLowerCase();
+          const searchable = [
+            place.id, place._uid, place.name, place.Nama, place.Nama_Tempat, place.Nama_Laundry,
+            place.Nama_Minimarket, place.Nama_Rumah_Makan, place.Nama_Fasilitas_Kesehatan, place.Nama_Emergency,
+            place.Keterangan, place.Layanan, place.Harga, place.Tarif, place.Biaya, place.Sewa,
+            place.Hari_operasional, place.Jam_operasional, place.Buka_24_jam,
+            place.Alamat_lengkap, place.No_Telepon, place.Rating, place.Link_google_maps, place.Dokumentasi
+          ].filter(Boolean).join(' ').toLowerCase();
+          const matchSearch = !q || searchable.includes(q);
+          let matchCategory = false;
+          if(state && state.emergencyOnly) matchCategory = place.category === 'emergency';
+          else if(state && state.cheap) matchCategory = ALLOWED_CHEAP.has(place.category) && (!state.categories || state.categories.size === 0 || state.categories.has(place.category));
+          else if(state && state.categories && state.categories.size > 0) matchCategory = state.categories.has(place.category);
+          else if(state && (state.open24 || state.nearCampus || state.search)) matchCategory = true;
+          else matchCategory = false;
+          const matchCheap = !(state && state.cheap) || isCheapByValidPrice(place);
+          const match24 = !(state && state.open24) || !!place.open24;
+          const km = typeof kmFromCampus === 'function' ? kmFromCampus(place) : (Number(place.distanceMeters || 0) / 1000);
+          const matchNear = !(state && state.nearCampus) || km < 1;
+          const matchRadius = km <= ((state && state.nearCampus) ? 1 : 5);
+          return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+        });
+      };
+    });
+  }
+
+  function restrictCheapState(){
+    safe(() => {
+      if(state && state.cheap){
+        state.emergencyOnly = false;
+        state.categories = new Set(['kost','rumah_makan']);
+        if(typeof syncChips === 'function') syncChips();
+        if(typeof renderFilterList === 'function') renderFilterList();
+        if(typeof populateDestinationOptions === 'function') populateDestinationOptions();
+        if(typeof renderMarkers === 'function') renderMarkers();
+      }
+    });
+  }
+
+  function patchCheapButtons(){
+    qsa('[data-chip="murah"]').forEach(btn => {
+      if(btn.__ssmV12CheapBound) return;
+      btn.__ssmV12CheapBound = true;
+      btn.title = 'Murah hanya berlaku untuk Kost dan Rumah Makan berdasarkan kolom harga/tarif di Excel';
+      btn.addEventListener('click', () => setTimeout(restrictCheapState, 45), true);
+    });
+
+    document.addEventListener('click', function(e){
+      const guideCheap = e.target.closest('[data-guide="cheap"]');
+      if(guideCheap) setTimeout(restrictCheapState, 45);
+    }, true);
+  }
+
+  function removeEmailAndContact(){
+    qsa('a').forEach(a => {
+      const txt = clean(a.textContent).toLowerCase();
+      const href = clean(a.getAttribute('href')).toLowerCase();
+      if(txt === 'contact' || href === 'contact.html' || href.endsWith('/contact.html')) a.remove();
+    });
+    qsa('#kontak p, footer p, .footer p').forEach(p => {
+      if(/email\s*kelompok|tambahkan\s+email|^\s*email\b/i.test(p.textContent)) p.remove();
+    });
+    qsa('.contact-section, #contact, .footer-card:not(.footer-closing)').forEach(el => {
+      if(el.closest('#kontak') || el.id === 'contact' || el.classList.contains('contact-section')) el.remove();
+    });
+    const footer = qs('#kontak, footer.footer');
+    if(footer){
+      const h = footer.querySelector('h3');
+      if(h) h.textContent = 'Semoga WebGIS Ini Bermanfaat';
+      const card = footer.querySelector('.footer-closing') || footer.querySelector('.footer-card') || footer;
+      if(card && !card.querySelector('.footer-photo-credit')){
+        card.insertAdjacentHTML('beforeend', `<div class="footer-photo-credit"><i class="fa-solid fa-camera-retro"></i><b>Kredit foto:</b> beberapa foto/dokumentasi lokasi pada WebGIS ini berasal dari Google Maps dan sebagian lainnya dari media sosial Instagram. Foto digunakan sebagai pendukung visual untuk membantu pengguna mengenali lokasi.</div>`);
+      }
+    }
+  }
+
+  function updateGuideCard(){
+    const guide = qs('#mapChoiceGuide');
+    if(!guide) return;
+    const h = guide.querySelector('h3');
+    const p = guide.querySelector('p');
+    if(h) h.textContent = 'Mulai dari kebutuhan utama';
+    if(p) p.textContent = 'Pilih kategori fasilitas, cari kost/rumah makan murah, atau tampilkan titik emergency. Filter Murah hanya memakai data harga dari Excel.';
+    const cheapBtn = guide.querySelector('[data-guide="cheap"]');
+    if(cheapBtn) cheapBtn.innerHTML = '<i class="fa-solid fa-tags"></i> Kost/Makan Murah';
+  }
+
+  function updateTutorialV12(){
+    const title = qs('#tutorialTitle');
+    if(title) title.textContent = 'Panduan Menggunakan WebGIS';
+    const subtitle = qs('.tutorial-subtitle');
+    if(subtitle) subtitle.innerHTML = 'Ikuti langkah berikut untuk memilih kategori, memakai filter murah khusus kost dan rumah makan, melihat informasi lokasi, serta membuat rute menuju fasilitas pilihan.';
+
+    const steps = [
+      ['1','Buka halaman peta','Masuk ke halaman WebGIS dan tunggu sampai data Excel selesai terbaca. Marker akan muncul setelah kategori atau filter dipilih.'],
+      ['2','Pilih kategori fasilitas','Klik tombol Filter, lalu aktifkan kategori seperti Kost, Rumah Makan, Laundry, Minimarket, ATM, Print/Fotokopi, Fasilitas Kesehatan, atau Emergency.'],
+      ['3','Gunakan pencarian','Ketik nama lokasi, alamat, layanan, kontak, atau kategori pada kolom pencarian untuk mempersempit hasil.'],
+      ['4','Pakai Filter Murah','Aktifkan chip Murah untuk menampilkan hanya Kost dan Rumah Makan yang memenuhi batas harga mahasiswa dari kolom harga/tarif/biaya/sewa di Excel. Filter ini tidak berlaku untuk laundry, minimarket, ATM, print, kesehatan, atau emergency.'],
+      ['5','Pakai Dekat Kampus','Aktifkan Dekat Kampus untuk menampilkan lokasi dalam radius kurang dari 1 km dari Rektorat UPN.'],
+      ['6','Lihat informasi lokasi','Klik marker untuk membaca informasi penting: kategori, harga/tarif, keterangan/layanan, hari dan jam operasional, status 24 jam, kontak, rating, alamat lengkap, jarak dari Rektorat, serta kredit foto.'],
+      ['7','Pilih lokasi tujuan','Klik tombol Pilih Lokasi pada popup. Lokasi tersebut akan langsung masuk ke pilihan Tujuan pada panel rute.'],
+      ['8','Buat rute','Buka panel Rute, pilih asal dari Rektorat UPN, Lokasi Saya, atau Klik di Peta, lalu tekan tombol Rute. Saat rute aktif, marker lain disembunyikan agar jalur lebih jelas.'],
+      ['9','Gunakan Lokasi Saya','Pilih Asal: Lokasi Saya dan izinkan akses lokasi browser. Titik pengguna akan diberi marker dan dapat digunakan sebagai titik awal rute.'],
+      ['10','Tutup atau hapus rute','Klik Tutup untuk menutup panel rute dan menampilkan marker kembali. Klik Hapus untuk menghapus jalur rute yang sedang aktif.'],
+      ['11','Gunakan Emergency','Aktifkan kategori Emergency untuk menampilkan titik darurat dengan warna ikon yang lebih kontras.'],
+      ['12','Reset tampilan','Klik Reset untuk menghapus kategori, pencarian, filter murah/dekat kampus, emergency, dan rute, lalu kembali ke tampilan awal.']
+    ];
+    const grid = qs('.tutorial-grid');
+    if(grid){
+      grid.innerHTML = steps.map(([no,head,body]) => `
+        <div class="tutorial-card">
+          <div class="tutorial-number">${esc(no)}</div>
+          <h4>${esc(head)}</h4>
+          <p>${esc(body)}</p>
+        </div>`).join('');
+    }
+
+    const tip = qs('.tutorial-tip');
+    if(tip){
+      tip.innerHTML = `
+        <h4>Tips Cepat</h4>
+        <ul>
+          <li>Mulai dari kategori agar peta tidak terlalu penuh marker.</li>
+          <li>Gunakan <b>Murah</b> hanya untuk mencari <b>Kost</b> dan <b>Rumah Makan</b> berdasarkan angka harga di Excel.</li>
+          <li>Gunakan <b>Dekat Kampus</b> untuk radius kurang dari 1 km.</li>
+          <li>Gunakan tombol <b>Tutup</b> pada rute agar semua marker muncul kembali.</li>
+          <li>Foto lokasi diberi kredit karena sebagian berasal dari Google Maps dan Instagram.</li>
+        </ul>`;
+    }
+    const legend = qs('.legend-mini-list');
+    if(legend){
+      legend.innerHTML = `
+        <div class="legend-mini-item"><span class="legend-dot kost"><i class="fa-solid fa-house-chimney"></i></span> Kost</div>
+        <div class="legend-mini-item"><span class="legend-dot rumah_makan"><i class="fa-solid fa-utensils"></i></span> Rumah Makan</div>
+        <div class="legend-mini-item"><span class="legend-dot laundry"><i class="fa-solid fa-shirt"></i></span> Laundry</div>
+        <div class="legend-mini-item"><span class="legend-dot minimarket"><i class="fa-solid fa-store"></i></span> Minimarket</div>
+        <div class="legend-mini-item"><span class="legend-dot atm"><i class="fa-solid fa-money-bill-wave"></i></span> ATM</div>
+        <div class="legend-mini-item"><span class="legend-dot print_fotocopy"><i class="fa-solid fa-print"></i></span> Print/Fotokopi</div>
+        <div class="legend-mini-item"><span class="legend-dot fasilitas_kesehatan"><i class="fa-solid fa-kit-medical"></i></span> Kesehatan</div>
+        <div class="legend-mini-item"><span class="legend-dot emergency"><i class="fa-solid fa-triangle-exclamation"></i></span> Emergency</div>`;
+    }
+  }
+
+  function installV12Style(){
+    let style = qs('#ssm-v12-style');
+    if(!style){
+      style = document.createElement('style');
+      style.id = 'ssm-v12-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      a[href="contact.html"], a[href$="/contact.html"], .contact-section, #contact{display:none !important;}
+      #kontak p:empty, footer p:empty{display:none !important;}
+      .footer-grid{grid-template-columns:minmax(280px,720px) !important;}
+      .footer-card.footer-closing{max-width:760px !important;}
+      .tutorial-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+      .tutorial-card p{font-size:13px !important;line-height:1.55 !important;}
+      @media(max-width:900px){.tutorial-grid{grid-template-columns:1fr !important;}}
+      .chip[data-chip="murah"]::after{content:'Kost & Makan';font-size:9px;font-weight:900;margin-left:5px;padding:2px 5px;border-radius:999px;background:rgba(196,69,69,.12);color:#7f1d1d;}
+    `;
+  }
+
+  function bootV12(){
+    installV12Style();
+    removeEmailAndContact();
+    patchCheapLogic();
+    normalizeCheapPlaces();
+    patchCheapButtons();
+    updateGuideCard();
+    updateTutorialV12();
+    safe(() => { if(typeof renderFilterList === 'function') renderFilterList(); });
+    safe(() => { if(typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+    safe(() => { if(typeof renderMarkers === 'function') renderMarkers(); });
+  }
+
+  bootV12();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV12);
+  else setTimeout(bootV12, 0);
+  window.addEventListener('load', function(){
+    [250, 1000, 2500, 5000, 8000].forEach(ms => setTimeout(bootV12, ms));
+  });
 })();
 </script>
 
