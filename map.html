@@ -21188,5 +21188,68 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<!-- SSM v22: polish cheap chip visual -->
+<style id="ssm-v22-cheap-chip-polish">
+  /* Merapikan chip Murah agar badge tidak turun baris/terlihat berantakan */
+  .chip[data-chip="murah"]{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:6px !important;
+    flex-wrap:nowrap !important;
+    white-space:nowrap !important;
+    min-height:46px !important;
+    padding:10px 12px !important;
+    line-height:1 !important;
+  }
+  .chip[data-chip="murah"] i{
+    flex:0 0 auto !important;
+    margin:0 !important;
+  }
+  .chip[data-chip="murah"]::after{
+    content:'Kost/RM' !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 auto !important;
+    width:auto !important;
+    max-width:none !important;
+    margin-left:2px !important;
+    padding:4px 7px !important;
+    border-radius:999px !important;
+    background:rgba(196,69,69,.10) !important;
+    border:1px solid rgba(196,69,69,.18) !important;
+    color:#7F1D1D !important;
+    font-size:8.5px !important;
+    font-weight:900 !important;
+    line-height:1 !important;
+    letter-spacing:.1px !important;
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+  }
+  .chip[data-chip="murah"].active::after{
+    background:rgba(255,255,255,.46) !important;
+    border-color:rgba(91,126,60,.28) !important;
+    color:#24331D !important;
+  }
+  @media (max-width: 520px){
+    .chip[data-chip="murah"]{
+      gap:5px !important;
+      padding:9px 10px !important;
+      min-height:44px !important;
+    }
+    .chip[data-chip="murah"]::after{
+      content:'Kost/RM' !important;
+      font-size:8px !important;
+      padding:3px 6px !important;
+      margin-left:1px !important;
+    }
+  }
+</style>
+
 </body>
 </html>
