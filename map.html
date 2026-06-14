@@ -17789,7 +17789,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cat = safe(() => categories[place.category].label, place.category || '-');
     const rows = [
       ['fa-solid fa-layer-group','Kategori',cat],
-      ['fa-solid fa-tags','Harga/Tarif', place._priceDisplay && place._priceDisplay !== '-' ? place._priceDisplay : 'Harga belum tersedia di Excel'],
+      ['fa-solid fa-tags','Harga/Tarif', place._priceDisplay && place._priceDisplay !== '-' ? place._priceDisplay : 'Harga belum tersedia'],
       ['fa-solid fa-circle-info','Keterangan/Layanan', place.Keterangan || place.Layanan],
       ['fa-solid fa-calendar-days','Hari Operasional', place.Hari_operasional],
       ['fa-solid fa-clock','Jam Operasional', place.Jam_operasional],
@@ -17826,7 +17826,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const status = typeof getOpenStatus === 'function' ? getOpenStatus(place) : {text:place.open24 ? 'Buka 24 jam' : 'Cek jam operasional'};
         if (detailTitle) detailTitle.textContent = (typeof getDisplayName === 'function' ? getDisplayName(place) : place.name) || '-';
         if (detailDistance) detailDistance.textContent = `(${fmtDist(dist)} dari Rektorat)`;
-        const priceLabel = place._priceDisplay && place._priceDisplay !== '-' ? place._priceDisplay : 'Harga belum tersedia di Excel';
+        const priceLabel = place._priceDisplay && place._priceDisplay !== '-' ? place._priceDisplay : 'Harga belum tersedia';
         if (detailPrice) detailPrice.innerHTML = `
           <span class="service-icon"><i class="${cfg.icon || 'fa-solid fa-location-dot'}"></i></span>
           <span><span class="service-label">Harga/Tarif</span>${escHtml(priceLabel)}</span>`;
@@ -17835,7 +17835,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (detailMeta) detailMeta.innerHTML = `
           <div class="status-card ${String(status.text || '').toLowerCase().includes('buka') ? '' : 'closed'}">
             <span class="status-dot"></span>
-            <div><b>${escHtml(status.text || '-')}</b><span>Informasi dibaca dari data operasional Excel.</span></div>
+            <div><b>${escHtml(status.text || '-')}</b></div>
           </div>
           <div class="ssm-detail-section-title"><i class="fa-solid fa-table-list"></i> Informasi Lokasi</div>
           <div class="ssm-complete-grid">${detailRows(place)}</div>`;
@@ -19798,7 +19798,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function priceTextV17(place){
     const vals = explicitPriceValues(place);
     const text = vals.map(asText).find(Boolean);
-    return text || 'Harga belum tersedia di Excel';
+    return text || 'Harga belum tersedia';
   }
 
   function isCheapV17(place){
@@ -20329,7 +20329,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function priceTextV18(place){
-    return priceCandidateValues(place)[0] || 'Harga belum tersedia di Excel';
+    return priceCandidateValues(place)[0] || 'Harga belum tersedia';
   }
 
   function normalizeCheapV18(){
@@ -20345,7 +20345,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ? 'Tidak masuk kategori murah atau harga/kategori harga belum terbaca dari Excel.'
               : 'Filter murah hanya berlaku untuk Kost dan Rumah Makan.');
         const pt = priceTextV18(p);
-        if(pt && pt !== 'Harga belum tersedia di Excel'){
+        if(pt && pt !== 'Harga belum tersedia'){
           p._priceDisplay = pt;
           p.Harga = pt;
           p.price = pt;
@@ -21151,7 +21151,10 @@ document.addEventListener("DOMContentLoaded", () => {
           base = current;
         }
         textEl.dataset.v20Original = base;
-        textEl.textContent = lang === 'en' ? toEnglishInstruction(base) : toIndonesianInstruction(base);
+        const finalText = lang === 'en' ? toEnglishInstruction(base) : toIndonesianInstruction(base);
+        textEl.textContent = finalText;
+        // Neutralisasi observer lama agar tidak mengembalikan arahan ke bahasa campuran.
+        textEl.dataset.originalEn = finalText;
       });
     } finally {
       window.__ssmV20Applying = false;
