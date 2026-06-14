@@ -19716,5 +19716,439 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+<script id="ssm-v17-cheap-single-panel-fix">
+/* =========================================================
+   SSM V17 FINAL FIX
+   - Murah hanya bekerja untuk Kost/Rumah Makan sesuai kategori user.
+   - Tidak ada panel/popup yang saling numpuk.
+   - Klik marker hanya menampilkan satu panel: Informasi Lokasi.
+   ========================================================= */
+(function(){
+  'use strict';
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const safe = (fn, fallback) => { try { const v = fn(); return v === undefined ? fallback : v; } catch(e){ return fallback; } };
+  const ALLOWED_CHEAP_V17 = new Set(['kost','rumah_makan']);
+
+  function esc(v){
+    return String(v ?? '').replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
+  }
+
+  function asText(v){
+    if(v === undefined || v === null) return '';
+    return String(v).trim();
+  }
+
+  function getNameV17(place){
+    if(!place) return 'Lokasi';
+    return asText(place.displayName || place.name || place.Nama || place.Nama_Kost || place.Nama_Rumah_Makan || place.Nama_Laundry || place.Nama_Minimarket || place.Nama_Emergency || place['Nama Tempat'] || place['Nama Usaha'] || place.id || 'Lokasi');
+  }
+
+  function getDistanceKmV17(place){
+    return safe(() => distanceKm(upnLatLng[0], upnLatLng[1], Number(place.lat), Number(place.lng)), NaN);
+  }
+
+  function normalizeNumberFromText(raw, category){
+    const text = asText(raw).toLowerCase();
+    if(!text || text === '-') return null;
+    const hasJuta = /\b(juta|jt)\b/.test(text);
+    const hasRibu = /\b(ribu|rb|k)\b/.test(text);
+    const matches = text.match(/\d+(?:[.,]\d+)?(?:[.,]\d+)?/g) || [];
+    const nums = matches.map(token => {
+      const compact = token.replace(/\s/g,'');
+      let n;
+      if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(compact)) n = Number(compact.replace(/\./g,'').replace(',', '.'));
+      else if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(compact)) n = Number(compact.replace(/,/g,''));
+      else n = Number(compact.replace(',', '.'));
+      if(!Number.isFinite(n)) return null;
+      if(hasJuta && n < 10000) n *= 1000000;
+      else if(hasRibu && n < 10000) n *= 1000;
+      else if(category === 'rumah_makan' && n > 0 && n < 1000) n *= 1000;
+      else if(category === 'kost' && n > 0 && n < 10000) n *= 1000;
+      return n;
+    }).filter(n => Number.isFinite(n) && n > 0);
+    return nums.length ? Math.min(...nums) : null;
+  }
+
+  function explicitPriceValues(place){
+    if(!place) return [];
+    const deny = /(keterangan|layanan|alamat|rating|ulasan|telepon|kontak|jam|hari|link|foto|dokumentasi|lat|lng|long|longitude|latitude|nama|kategori|id|uid|rute)/i;
+    const allow = /(harga|tarif|biaya|sewa|price|cost|rent|kisaran|rentang)/i;
+    const values = [];
+    Object.keys(place).forEach(key => {
+      if(allow.test(key) && !deny.test(key)) values.push(place[key]);
+    });
+    // Kolom eksplisit yang sering muncul setelah normalisasi.
+    ['Harga','Tarif','Biaya','Sewa','Harga_Tarif','Harga_tarif','Kisaran_Harga','Rentang_Harga','price','harga','tarif','biaya','sewa'].forEach(k => {
+      if(place[k] !== undefined) values.push(place[k]);
+    });
+    return values.filter(v => asText(v) && asText(v) !== '-');
+  }
+
+  function priceNumberV17(place){
+    const vals = explicitPriceValues(place);
+    for(const v of vals){
+      const n = normalizeNumberFromText(v, place && place.category);
+      if(Number.isFinite(n)) return n;
+    }
+    return null;
+  }
+
+  function priceTextV17(place){
+    const vals = explicitPriceValues(place);
+    const text = vals.map(asText).find(Boolean);
+    return text || 'Harga belum tersedia di Excel';
+  }
+
+  function isCheapV17(place){
+    if(!place || !ALLOWED_CHEAP_V17.has(place.category)) return false;
+    const n = priceNumberV17(place);
+    if(!Number.isFinite(n)) return false;
+    if(place.category === 'kost') return n >= 200000 && n <= 1200000;
+    if(place.category === 'rumah_makan') return n <= 25000;
+    return false;
+  }
+
+  function normalizeCheapFlagsV17(){
+    safe(() => {
+      if(!Array.isArray(places)) return;
+      places.forEach(p => {
+        p.cheap = isCheapV17(p);
+        p.cheapReason = p.cheap
+          ? (p.category === 'kost' ? 'Kost masuk batas harga murah mahasiswa berdasarkan kolom harga/sewa.' : 'Rumah makan masuk batas harga murah mahasiswa berdasarkan kolom harga/tarif.')
+          : (ALLOWED_CHEAP_V17.has(p.category) ? 'Belum memenuhi batas murah atau harga belum tersedia di kolom harga/tarif/sewa.' : 'Filter murah tidak berlaku untuk kategori ini.');
+      });
+    });
+  }
+
+  function selectedCategoriesV17(){
+    return safe(() => Array.from(state.categories || []), []);
+  }
+
+  function hasCategorySelectedV17(cat){
+    return safe(() => state.categories && state.categories.has(cat), false);
+  }
+
+  function textHaystackV17(place){
+    return Object.values(place || {}).map(v => String(v ?? '')).join(' ').toLowerCase();
+  }
+
+  function matchCheapCategoryV17(place){
+    const selected = selectedCategoriesV17();
+    const allowedSelected = selected.filter(c => ALLOWED_CHEAP_V17.has(c));
+    if(!(state && state.cheap)){
+      if(state && state.emergencyOnly) return place.category === 'emergency';
+      if(selected.length > 0) return selected.includes(place.category);
+      if(state && (state.open24 || state.nearCampus || state.search)) return true;
+      return false;
+    }
+    // KUNCI: Murah tidak boleh otomatis menyalakan Kost + Rumah Makan.
+    // Murah hanya muncul kalau user memilih kategori Kost dan/atau Rumah Makan.
+    if(allowedSelected.length === 0) return false;
+    return allowedSelected.includes(place.category);
+  }
+
+  function filteredPlacesV17(){
+    normalizeCheapFlagsV17();
+    const list = safe(() => Array.isArray(places) ? places : [], []);
+    const search = asText(safe(() => state.search, '')).toLowerCase();
+    return list.filter(place => {
+      if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+      const matchSearch = !search || textHaystackV17(place).includes(search);
+      const matchCategory = matchCheapCategoryV17(place);
+      const matchCheap = !(state && state.cheap) || isCheapV17(place);
+      const match24 = !(state && state.open24) || !!place.open24 || /^(ya|yes|true|1)$/i.test(asText(place.Buka_24_Jam || place['Buka 24 Jam']));
+      const d = getDistanceKmV17(place);
+      const matchNear = !(state && state.nearCampus) || (Number.isFinite(d) && d <= 1);
+      const matchRadius = !Number.isFinite(d) || d <= 5.05;
+      return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+    });
+  }
+
+  function hideAllPanelsV17(){
+    qs('#topControls')?.classList.add('collapsed');
+    qs('#leftPanel')?.classList.add('collapsed');
+    qs('#infoPanel')?.classList.add('hidden');
+    qs('#openInfoPanel')?.classList.add('hidden');
+    qs('#routePlanner')?.classList.add('hidden-route');
+    qs('#insightDashboard')?.classList.add('hidden-dashboard');
+    safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+    document.body.classList.remove('ssm-v17-top','ssm-v17-filter','ssm-v17-info','ssm-v17-route');
+  }
+
+  function showPanelV17(mode){
+    hideAllPanelsV17();
+    document.body.classList.add('ssm-v17-' + mode);
+    if(mode === 'top') qs('#topControls')?.classList.remove('collapsed');
+    if(mode === 'filter') qs('#leftPanel')?.classList.remove('collapsed');
+    if(mode === 'info'){
+      qs('#infoPanel')?.classList.remove('hidden');
+      qs('#openInfoPanel')?.classList.add('hidden');
+    }
+    if(mode === 'route'){
+      qs('#routePlanner')?.classList.remove('hidden-route');
+      ensureRouteCloseV17();
+    }
+    safe(() => { if(typeof map !== 'undefined' && map) setTimeout(() => map.invalidateSize(), 90); });
+  }
+
+  function ensureRouteCloseV17(){
+    const route = qs('#routePlanner');
+    if(!route) return;
+    let btn = qs('#routeCloseXBtnV17');
+    if(!btn){
+      btn = document.createElement('button');
+      btn.id = 'routeCloseXBtnV17';
+      btn.type = 'button';
+      btn.title = 'Tutup Network Analyst';
+      btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      route.appendChild(btn);
+    }
+    btn.onclick = function(e){
+      e.preventDefault(); e.stopPropagation();
+      qs('#routePlanner')?.classList.add('hidden-route');
+      document.body.classList.remove('ssm-v17-route');
+      safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+      safe(() => { if(typeof renderMarkers === 'function') renderMarkers(); });
+    };
+  }
+
+  function updateDetailV17(place){
+    if(!place) return;
+    safe(() => { selectedPlace = place; });
+    // Pakai fungsi asli untuk mengisi konten panel kanan, lalu koreksi harga.
+    if(typeof window.__ssmV17OriginalUpdateDetail === 'function'){
+      window.__ssmV17OriginalUpdateDetail(place);
+    }
+    safe(() => {
+      const el = qs('#detailPrice');
+      if(el){
+        const cat = safe(() => categories[place.category], {}) || {};
+        el.innerHTML = `<span class="service-icon"><i class="${esc(cat.icon || 'fa-solid fa-tags')}"></i></span><span><span class="service-label">Harga/Tarif</span>${esc(priceTextV17(place))}</span>`;
+      }
+    });
+    showPanelV17('info');
+    safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+  }
+
+  function patchUpdateDetailV17(){
+    if(typeof updateDetail !== 'function') return;
+    if(!window.__ssmV17OriginalUpdateDetail){
+      window.__ssmV17OriginalUpdateDetail = updateDetail;
+    }
+    window.updateDetail = updateDetail = function(place){
+      if(typeof window.__ssmV17OriginalUpdateDetail === 'function'){
+        window.__ssmV17OriginalUpdateDetail(place);
+      }
+      showPanelV17('info');
+      safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+    };
+  }
+
+  function markerIconV17(place){
+    return safe(() => createIconV10(place), safe(() => createIcon(place.category), null));
+  }
+
+  function renderMarkersV17(){
+    normalizeCheapFlagsV17();
+    const routeActive = safe(() => (window.__ssmV13Route && window.__ssmV13Route.active && window.__ssmV13Route.destination) || (window.__ssmV10Route && window.__ssmV10Route.active && window.__ssmV10Route.destination), false);
+    if(routeActive){
+      const dest = safe(() => (window.__ssmV13Route && window.__ssmV13Route.destination) || (window.__ssmV10Route && window.__ssmV10Route.destination), null);
+      safe(() => { if(typeof focusOnlyRouteMarkers === 'function' && dest) focusOnlyRouteMarkers(dest); });
+      return;
+    }
+    safe(() => { if(typeof layers !== 'undefined') Object.values(layers).forEach(layer => layer && layer.clearLayers && layer.clearLayers()); });
+    const visible = filteredPlacesV17();
+    visible.forEach(place => {
+      if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return;
+      safe(() => { if(!layers[place.category]) layers[place.category] = L.layerGroup().addTo(map); });
+      const marker = L.marker([Number(place.lat), Number(place.lng)], {
+        icon: markerIconV17(place),
+        zIndexOffset: place.category === 'emergency' ? 3000 : 0,
+        keyboard: true,
+        title: getNameV17(place)
+      }).on('click', function(e){
+        if(e && e.originalEvent){
+          e.originalEvent.preventDefault();
+          e.originalEvent.stopPropagation();
+        }
+        safe(() => setDestinationPlace(place, true));
+        safe(() => map.setView([Number(place.lat), Number(place.lng)], Math.max(map.getZoom(), 16), {animate:false}));
+        updateDetailV17(place);
+      });
+      place.__ssmMarker = marker;
+      safe(() => layers[place.category].addLayer(marker));
+    });
+
+    const countEl = qs('#emergencyCount');
+    if(countEl) countEl.textContent = String(safe(() => (places || []).filter(p => p.category === 'emergency').length, 0));
+    const guide = qs('#mapChoiceGuide');
+    if(guide && state && (state.categories.size > 0 || state.cheap || state.open24 || state.nearCampus || state.emergencyOnly || state.search)) guide.style.display = 'none';
+    const hint = qs('#routeHint');
+    if(hint && visible.length === 0 && state && state.cheap){
+      hint.textContent = 'Tidak ada lokasi murah yang cocok. Pilih kategori Kost atau Rumah Makan, lalu aktifkan Murah.';
+    }
+  }
+
+  function patchFunctionsV17(){
+    normalizeCheapFlagsV17();
+    window.isCheapV17 = isCheapV17;
+    window.priceTextV17 = priceTextV17;
+    window.filteredPlaces = filteredPlaces = filteredPlacesV17;
+    window.renderMarkers = renderMarkers = renderMarkersV17;
+    safe(() => { cheapByExcelPrice = isCheapV17; });
+    safe(() => { cheapStudent = isCheapV17; });
+    safe(() => { cheapByStudentStandard = isCheapV17; });
+    patchUpdateDetailV17();
+  }
+
+  function bindEventsV17(){
+    if(window.__ssmV17EventsBound) return;
+    window.__ssmV17EventsBound = true;
+
+    // Murah: jangan pernah otomatis memilih dua kategori. Tidak berlaku untuk kategori selain Kost/Rumah Makan.
+    document.addEventListener('click', function(e){
+      const cheapBtn = e.target.closest('[data-chip="murah"]');
+      if(!cheapBtn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      safe(() => { state.cheap = !state.cheap; });
+      normalizeCheapFlagsV17();
+      safe(() => { if(typeof syncChips === 'function') syncChips(); });
+      safe(() => { if(typeof renderFilterList === 'function') renderFilterList(); });
+      renderMarkersV17();
+      showPanelV17('filter');
+      const allowedChosen = selectedCategoriesV17().some(c => ALLOWED_CHEAP_V17.has(c));
+      const legend = qs('#legendText');
+      if(legend && state && state.cheap && !allowedChosen){
+        legend.textContent = 'Murah aktif: pilih Kost atau Rumah Makan agar hasil murah muncul.';
+      }
+    }, true);
+
+    document.addEventListener('click', function(e){
+      if(e.target.closest('#toggleLeftPanel')){
+        setTimeout(() => {
+          const left = qs('#leftPanel');
+          if(left && !left.classList.contains('collapsed')) showPanelV17('filter');
+          else hideAllPanelsV17();
+        }, 30);
+      }
+      if(e.target.closest('#toggleTopPanel')){
+        setTimeout(() => {
+          const top = qs('#topControls');
+          if(top && !top.classList.contains('collapsed')) showPanelV17('top');
+          else hideAllPanelsV17();
+        }, 30);
+      }
+      if(e.target.closest('#closeInfoPanel')){
+        setTimeout(hideAllPanelsV17, 20);
+      }
+      if(e.target.closest('#routeButton,[data-chip="network"],#routeNowBtn,#openRouteFromInsight')){
+        setTimeout(() => showPanelV17('route'), 80);
+      }
+      if(e.target.closest('#resetBtn')){
+        setTimeout(() => { hideAllPanelsV17(); normalizeCheapFlagsV17(); renderMarkersV17(); }, 120);
+      }
+      if(e.target.closest('.filter-item') && !e.target.closest('[data-chip="murah"]')){
+        setTimeout(() => { normalizeCheapFlagsV17(); renderMarkersV17(); showPanelV17('filter'); }, 90);
+      }
+    }, true);
+
+    // Kalau masih ada popup dari patch lama, tutup paksa supaya tidak numpuk dengan panel info.
+    document.addEventListener('click', function(e){
+      if(e.target.closest('.leaflet-marker-icon')){
+        setTimeout(() => safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); }), 15);
+        setTimeout(() => safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); }), 120);
+      }
+    }, true);
+  }
+
+  function installStyleV17(){
+    let style = qs('#ssm-v17-style');
+    if(!style){
+      style = document.createElement('style');
+      style.id = 'ssm-v17-style';
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      /* Tidak ada popup tengah saat klik marker; informasi hanya di panel kanan. */
+      .leaflet-popup.student-popup{display:none !important;}
+
+      body.ssm-v17-info #leftPanel,
+      body.ssm-v17-info #topControls,
+      body.ssm-v17-info #routePlanner,
+      body.ssm-v17-filter #infoPanel,
+      body.ssm-v17-filter #topControls,
+      body.ssm-v17-filter #routePlanner,
+      body.ssm-v17-route #leftPanel,
+      body.ssm-v17-route #topControls,
+      body.ssm-v17-route #infoPanel,
+      body.ssm-v17-top #leftPanel,
+      body.ssm-v17-top #infoPanel,
+      body.ssm-v17-top #routePlanner{display:none !important;}
+
+      #leftPanel:not(.collapsed),
+      #infoPanel:not(.hidden),
+      #routePlanner:not(.hidden-route),
+      #topControls:not(.collapsed){z-index:1600 !important;}
+
+      #leftPanel:not(.collapsed){
+        left:18px !important; top:82px !important; width:330px !important; max-width:calc(100vw - 36px) !important;
+        max-height:calc(100vh - 198px) !important; overflow-y:auto !important; overflow-x:hidden !important;
+      }
+      #infoPanel:not(.hidden){
+        right:18px !important; left:auto !important; top:82px !important; width:360px !important; max-width:calc(100vw - 36px) !important;
+        max-height:calc(100vh - 198px) !important; overflow-y:auto !important; overflow-x:hidden !important;
+      }
+      #routePlanner:not(.hidden-route){
+        left:18px !important; right:auto !important; top:82px !important; bottom:auto !important; width:370px !important; max-width:calc(100vw - 36px) !important;
+        max-height:calc(100vh - 198px) !important; overflow-y:auto !important; overflow-x:hidden !important;
+        padding-top:48px !important;
+      }
+      #topControls:not(.collapsed){
+        left:18px !important; top:82px !important; right:auto !important; max-width:calc(100vw - 36px) !important;
+      }
+      #routeCloseXBtnV17{
+        position:absolute !important; top:12px !important; right:12px !important; width:32px !important; height:32px !important; border-radius:999px !important;
+        border:2px solid rgba(255,255,255,.75) !important; background:linear-gradient(135deg,#C44545,#9F3030) !important; color:#fff !important;
+        display:flex !important; align-items:center !important; justify-content:center !important; cursor:pointer !important; box-shadow:0 8px 18px rgba(0,0,0,.22) !important;
+      }
+      #routeCloseXBtnV17 i{color:#fff !important;}
+      .chip[data-chip="murah"]::after{content:'Kost/RM saja' !important;font-size:9px;font-weight:900;margin-left:6px;padding:2px 6px;border-radius:999px;background:rgba(196,69,69,.13);color:#7F1D1D;}
+      .filter-list .filter-item{min-height:54px !important;}
+      @media(max-width:900px){
+        #leftPanel:not(.collapsed),#infoPanel:not(.hidden),#routePlanner:not(.hidden-route),#topControls:not(.collapsed){
+          top:74px !important; left:10px !important; right:auto !important; width:min(350px, calc(100vw - 20px)) !important; max-width:calc(100vw - 20px) !important; max-height:calc(100vh - 170px) !important;
+        }
+        #infoPanel:not(.hidden){left:auto !important; right:10px !important;}
+      }
+      @media(max-width:680px){
+        #leftPanel:not(.collapsed),#infoPanel:not(.hidden),#routePlanner:not(.hidden-route),#topControls:not(.collapsed){
+          left:10px !important; right:10px !important; width:auto !important; max-width:none !important; max-height:52vh !important; top:auto !important; bottom:12px !important;
+        }
+      }
+    `;
+  }
+
+  function bootV17(){
+    installStyleV17();
+    patchFunctionsV17();
+    bindEventsV17();
+    ensureRouteCloseV17();
+    safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+    safe(() => renderMarkersV17());
+  }
+
+  bootV17();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV17);
+  else setTimeout(bootV17, 0);
+  window.addEventListener('load', function(){
+    [250, 900, 1800, 3600, 7000, 11000, 15000].forEach(ms => setTimeout(bootV17, ms));
+  });
+})();
+</script>
+
 </body>
 </html>
