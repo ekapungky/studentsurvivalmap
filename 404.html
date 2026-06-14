@@ -18108,5 +18108,318 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<script id="ssm-v19-kategori-harga-no-excel-patch">
+(function(){
+  'use strict';
+  if(window.__SSM_V19_PATCH_INSTALLED__) return;
+  window.__SSM_V19_PATCH_INSTALLED__ = true;
+
+  const CHEAP_CATEGORIES_V19 = new Set(['kost','rumah_makan']);
+  const cleanV19 = v => (v === undefined || v === null) ? '' : String(v).trim();
+  const normV19 = v => cleanV19(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const qsV19 = s => document.querySelector(s);
+  const qsaV19 = s => Array.from(document.querySelectorAll(s));
+  const safeV19 = (fn, fb) => { try { return fn(); } catch(e) { return fb; } };
+  const escV19 = v => cleanV19(v).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+
+  function scrubNoExcelText(text){
+    return cleanV19(text)
+      .replace(/\bfile\s+Excel\b/gi, 'file data')
+      .replace(/\bdata\s+Excel\b/gi, 'data')
+      .replace(/\bkolom\s+Excel\b/gi, 'kolom data')
+      .replace(/\bExcel\b/gi, 'data')
+      .replace(/Harga belum tersedia di data/gi, 'Harga belum tersedia')
+      .replace(/dari data data/gi, 'dari data')
+      .replace(/data data/gi, 'data')
+      .replace(/berhasil dibaca\s*data/gi, 'berhasil dibaca');
+  }
+
+  function scrubPageText(){
+    if(!document.body) return;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n => {
+      if(/Excel/i.test(n.nodeValue || '')) n.nodeValue = scrubNoExcelText(n.nodeValue);
+    });
+    qsaV19('[title],[aria-label],[placeholder]').forEach(el => {
+      ['title','aria-label','placeholder'].forEach(attr => {
+        const val = el.getAttribute(attr);
+        if(val && /Excel/i.test(val)) el.setAttribute(attr, scrubNoExcelText(val));
+      });
+    });
+  }
+
+  function sourceObjects(place){
+    return [safeV19(() => place._rawRow, null), place].filter(Boolean);
+  }
+
+  function getFieldByNorm(place, wantedNorms){
+    const wanted = new Set(wantedNorms.map(normV19));
+    for(const src of sourceObjects(place)){
+      for(const key of Object.keys(src || {})){
+        if(wanted.has(normV19(key))){
+          const val = cleanV19(src[key]);
+          if(val && val !== '-') return val;
+        }
+      }
+    }
+    return '';
+  }
+
+  function getKategoriHargaV19(place){
+    return getFieldByNorm(place, [
+      'Kategori Harga','Kategori_Harga','kategori_harga','kategori harga','KategoriHarga','Category Price','Price Category'
+    ]);
+  }
+
+  function getHargaTarifV19(place){
+    return getFieldByNorm(place, [
+      'Harga','Tarif','Biaya','Sewa','Harga/Tarif','Harga Tarif','Kisaran Harga','Rentang Harga','Price','price'
+    ]) || cleanV19(place && (place._priceDisplay || place.Harga || place.Tarif || place.Biaya || place.Sewa || place.price)) || '';
+  }
+
+  function isCheapKategoriHargaV19(place){
+    if(!place || !CHEAP_CATEGORIES_V19.has(place.category)) return false;
+    const kategoriHarga = getKategoriHargaV19(place).toLowerCase();
+    if(!kategoriHarga) return false;
+    return /(^|[^a-z])murah([^a-z]|$)/i.test(kategoriHarga);
+  }
+
+  function normalizeCheapV19(){
+    const arr = safeV19(() => Array.isArray(places) ? places : [], []);
+    arr.forEach(p => {
+      const kategoriHarga = getKategoriHargaV19(p);
+      const hargaTarif = getHargaTarifV19(p);
+      if(kategoriHarga){
+        p.Kategori_Harga = kategoriHarga;
+        p.kategori_harga = kategoriHarga;
+        p.categoryPrice = kategoriHarga;
+      }
+      if(hargaTarif){
+        p._priceDisplay = scrubNoExcelText(hargaTarif);
+        p.Harga = scrubNoExcelText(hargaTarif);
+        p.price = scrubNoExcelText(hargaTarif);
+      }
+      p.cheap = isCheapKategoriHargaV19(p);
+      p.cheapReason = p.cheap ? 'Masuk kategori harga murah.' : (CHEAP_CATEGORIES_V19.has(p.category) ? 'Tidak termasuk kategori harga murah.' : 'Filter murah tidak berlaku untuk kategori ini.');
+    });
+  }
+
+  function displayPriceV19(place){
+    return scrubNoExcelText(getHargaTarifV19(place) || 'Harga belum tersedia');
+  }
+
+  function displayCategoryPriceV19(place){
+    return scrubNoExcelText(getKategoriHargaV19(place) || '-');
+  }
+
+  function getDistanceKmV19(place){
+    return safeV19(() => distanceKm(upnLatLng[0], upnLatLng[1], Number(place.lat), Number(place.lng)), Number(place.distanceMeters || 0) / 1000);
+  }
+
+  function haystackV19(place){
+    return sourceObjects(place).map(obj => Object.values(obj || {}).join(' ')).join(' ').toLowerCase();
+  }
+
+  function selectedCatsV19(){
+    return safeV19(() => Array.from(state.categories || []), []);
+  }
+
+  function filteredPlacesV19(){
+    normalizeCheapV19();
+    const list = safeV19(() => Array.isArray(places) ? places : [], []);
+    const selected = selectedCatsV19();
+    const search = cleanV19(safeV19(() => state.search, '')).toLowerCase();
+    return list.filter(place => {
+      if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+      const matchSearch = !search || haystackV19(place).includes(search);
+      let matchCategory = false;
+      if(state && state.emergencyOnly) matchCategory = place.category === 'emergency';
+      else if(selected.length > 0) matchCategory = selected.includes(place.category);
+      else if(state && state.cheap) matchCategory = false; // harus pilih Kost atau Rumah Makan dulu, tidak otomatis menampilkan dua-duanya
+      else if(state && (state.open24 || state.nearCampus || state.search)) matchCategory = true;
+      else matchCategory = false;
+      const matchCheap = !(state && state.cheap) || (CHEAP_CATEGORIES_V19.has(place.category) && isCheapKategoriHargaV19(place));
+      const match24 = !(state && state.open24) || !!place.open24 || /^(ya|yes|true|1)$/i.test(cleanV19(place.Buka_24_Jam || place['Buka 24 Jam']));
+      const km = getDistanceKmV19(place);
+      const matchNear = !(state && state.nearCampus) || (Number.isFinite(km) && km <= 1);
+      const matchRadius = !Number.isFinite(km) || km <= 5.05;
+      return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+    });
+  }
+
+  function clearAllMarkersV19(){
+    safeV19(() => { if(window.__ssmV18ClusterGroup) window.__ssmV18ClusterGroup.clearLayers(); });
+    safeV19(() => { if(typeof layers !== 'undefined') Object.values(layers).forEach(layer => layer && layer.clearLayers && layer.clearLayers()); });
+  }
+
+  function getNameV19(place){
+    return cleanV19(place.displayName || place.name || place.Nama || place.Nama_Kost || place.Nama_Rumah_Makan || place.Nama_Laundry || place.Nama_Minimarket || place.Nama_Emergency || place['Nama Tempat'] || place['Nama Usaha'] || place.id || 'Lokasi');
+  }
+
+  function setDetailTextV19(place){
+    if(!place) return;
+    const category = safeV19(() => categories[place.category], {}) || {};
+    const priceEl = qsV19('#detailPrice');
+    if(priceEl){
+      priceEl.innerHTML = `<span class="service-icon"><i class="${escV19(category.icon || 'fa-solid fa-tags')}"></i></span><span><span class="service-label">Harga/Tarif</span>${escV19(displayPriceV19(place))}</span>`;
+    }
+    const meta = qsV19('#detailMeta');
+    const catPrice = displayCategoryPriceV19(place);
+    if(meta && catPrice && catPrice !== '-'){
+      let row = qsV19('#ssmV19KategoriHargaRow');
+      if(!row){
+        row = document.createElement('div');
+        row.id = 'ssmV19KategoriHargaRow';
+        row.className = 'detail-item ssm-v19-kategori-harga-row';
+        meta.prepend(row);
+      }
+      row.innerHTML = `<i class="fa-solid fa-tag"></i><div><span class="detail-label">Kategori Harga</span><span class="detail-value">${escV19(catPrice)}</span></div>`;
+    }
+    qsaV19('#detailPrice,#detailMeta,#infoPanel').forEach(el => {
+      if(/Excel/i.test(el.textContent || '')) scrubPageText();
+    });
+  }
+
+  function updateDetailV19(place){
+    if(!place) return;
+    normalizeCheapV19();
+    safeV19(() => { selectedPlace = place; });
+    const original = window.__SSM_V19_ORIG_UPDATE_DETAIL__ || window.updateDetail;
+    if(original && original !== updateDetailV19){
+      safeV19(() => original(place));
+    }
+    setTimeout(() => {
+      setDetailTextV19(place);
+      scrubPageText();
+      safeV19(() => { if(typeof showPanelV17 === 'function') showPanelV17('info'); });
+      safeV19(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+    }, 0);
+  }
+
+  function renderMarkersV19(){
+    normalizeCheapV19();
+    const routeActive = safeV19(() => (window.__ssmV13Route && window.__ssmV13Route.active && window.__ssmV13Route.destination) || (window.__ssmV10Route && window.__ssmV10Route.active && window.__ssmV10Route.destination), false);
+    if(routeActive){
+      const dest = safeV19(() => (window.__ssmV13Route && window.__ssmV13Route.destination) || (window.__ssmV10Route && window.__ssmV10Route.destination), null);
+      safeV19(() => { if(typeof focusOnlyRouteMarkers === 'function' && dest) focusOnlyRouteMarkers(dest); });
+      scrubPageText();
+      return;
+    }
+    clearAllMarkersV19();
+    const visible = filteredPlacesV19();
+    const cluster = safeV19(() => window.__ssmV18ClusterGroup && map.hasLayer(window.__ssmV18ClusterGroup) ? window.__ssmV18ClusterGroup : null, null);
+    visible.forEach(place => {
+      const icon = safeV19(() => createIcon(place), null) || safeV19(() => createIcon(place.category), null);
+      const marker = L.marker([Number(place.lat), Number(place.lng)], {
+        icon,
+        zIndexOffset: place.category === 'emergency' ? 3000 : 0,
+        keyboard: true,
+        title: getNameV19(place)
+      });
+      marker.__category = place.category;
+      marker.on('click', function(e){
+        if(e && e.originalEvent){ e.originalEvent.preventDefault(); e.originalEvent.stopPropagation(); }
+        safeV19(() => setDestinationPlace(place, true));
+        safeV19(() => { if(typeof showPanelV17 === 'function') showPanelV17('info'); });
+        updateDetailV19(place);
+      });
+      place.__ssmMarker = marker;
+      if(cluster) cluster.addLayer(marker);
+      else safeV19(() => {
+        if(!layers[place.category]) layers[place.category] = L.layerGroup().addTo(map);
+        layers[place.category].addLayer(marker);
+      });
+    });
+    const legend = qsV19('#legendText');
+    if(legend && state && state.cheap && !selectedCatsV19().some(c => CHEAP_CATEGORIES_V19.has(c))){
+      legend.textContent = 'Murah aktif: pilih kategori Kost atau Rumah Makan dulu.';
+    }
+    const hint = qsV19('#routeHint');
+    if(hint && visible.length === 0 && state && state.cheap){
+      hint.textContent = 'Tidak ada lokasi murah yang cocok. Pilih kategori Kost atau Rumah Makan, lalu aktifkan Murah.';
+    }
+    scrubPageText();
+  }
+
+  function patchFunctionsV19(){
+    normalizeCheapV19();
+    if(!window.__SSM_V19_ORIG_UPDATE_DETAIL__ && window.updateDetail && window.updateDetail !== updateDetailV19){
+      window.__SSM_V19_ORIG_UPDATE_DETAIL__ = window.updateDetail;
+    }
+    window.filteredPlaces = filteredPlaces = filteredPlacesV19;
+    window.renderMarkers = renderMarkers = renderMarkersV19;
+    window.updateDetail = updateDetail = updateDetailV19;
+    safeV19(() => { isCheapV18 = isCheapKategoriHargaV19; });
+    safeV19(() => { isCheapV17 = isCheapKategoriHargaV19; });
+    safeV19(() => { cheapByExcelPrice = isCheapKategoriHargaV19; });
+    safeV19(() => { cheapStudent = isCheapKategoriHargaV19; });
+    safeV19(() => { cheapByStudentStandard = isCheapKategoriHargaV19; });
+  }
+
+  function bindV19(){
+    if(window.__SSM_V19_EVENTS__) return;
+    window.__SSM_V19_EVENTS__ = true;
+    document.addEventListener('click', function(e){
+      const cheap = e.target.closest('[data-chip="murah"]');
+      if(cheap){
+        setTimeout(() => { patchFunctionsV19(); renderMarkersV19(); scrubPageText(); }, 30);
+        setTimeout(() => { patchFunctionsV19(); renderMarkersV19(); scrubPageText(); }, 180);
+      }
+      if(e.target.closest('.filter-item') || e.target.closest('#resetBtn') || e.target.closest('[data-chip]')){
+        setTimeout(() => { patchFunctionsV19(); renderMarkersV19(); scrubPageText(); }, 120);
+      }
+      if(e.target.closest('.leaflet-marker-icon')){
+        setTimeout(() => { scrubPageText(); }, 40);
+      }
+    }, true);
+  }
+
+  function removeTipsCepat(){
+    qsaV19('*').forEach(el => {
+      if(/^Tips Cepat$/i.test(cleanV19(el.textContent))){
+        const box = el.closest('.tutorial-card,.tutorial-tips,.tips-card,.tips-section,.tutorial-extra,div');
+        if(box) box.remove();
+      }
+    });
+    qsaV19('.tutorial-card,.tutorial-tips,.tips-card,.tips-section,.tutorial-extra').forEach(el => {
+      if(/Tips Cepat/i.test(el.textContent || '')) el.remove();
+    });
+  }
+
+  function styleV19(){
+    let style = qsV19('#ssm-v19-style');
+    if(!style){ style = document.createElement('style'); style.id = 'ssm-v19-style'; document.head.appendChild(style); }
+    style.textContent = `
+      .ssm-v19-kategori-harga-row{margin-bottom:10px !important;}
+      .ssm-v19-kategori-harga-row i{color:#C44545 !important;}
+      .tutorial-tips,.tips-card,.tips-section{display:none !important;}
+    `;
+  }
+
+  function bootV19(){
+    styleV19();
+    patchFunctionsV19();
+    bindV19();
+    removeTipsCepat();
+    scrubPageText();
+    safeV19(() => { if(typeof renderFilterList === 'function') renderFilterList(); });
+    safeV19(() => { if(typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+    safeV19(() => renderMarkersV19());
+  }
+
+  bootV19();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV19);
+  window.addEventListener('load', function(){
+    [100,300,800,1500,2500,4000,6500,9500,13000,18000,24000].forEach(ms => setTimeout(bootV19, ms));
+  });
+  let loops = 0;
+  const timer = setInterval(() => { bootV19(); if(++loops > 45) clearInterval(timer); }, 700);
+})();
+</script>
+
 </body>
 </html>
