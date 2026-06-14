@@ -20931,5 +20931,259 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<script id="ssm-v20-route-language-clean-patch">
+/* =========================================================
+   SSM V20 PATCH
+   - Memperbaiki arahan rute agar bahasa tidak campur.
+   - Bahasa Indonesia dan English diproses ulang setelah arahan rute muncul.
+   - Menghapus penyebutan Excel dari teks tampilan.
+   ========================================================= */
+(function(){
+  'use strict';
+  const qs = (s, root=document) => root.querySelector(s);
+  const qsa = (s, root=document) => Array.from(root.querySelectorAll(s));
+  const clean = v => String(v ?? '').replace(/<[^>]*>/g,' ').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+  const safe = (fn, fb) => { try { const v = fn(); return v === undefined ? fb : v; } catch(e){ return fb; } };
+
+  function scrubDisplayText(text){
+    return String(text ?? '')
+      .replace(/Harga belum tersedia\s+di\s+Excel/gi, 'Harga belum tersedia')
+      .replace(/Harga belum tersedia\s+di\s+data/gi, 'Harga belum tersedia')
+      .replace(/\bfile\s+Excel\b/gi, 'file data')
+      .replace(/\bdata\s+Excel\b/gi, 'data')
+      .replace(/\bkolom\s+Excel\b/gi, 'kolom data')
+      .replace(/\bExcel\b/gi, 'data')
+      .replace(/data\s+data/gi, 'data')
+      .replace(/berhasil dibaca\s*data/gi, 'berhasil dibaca');
+  }
+
+  function scrubVisibleNoExcel(){
+    if(!document.body) return;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node){
+        const p = node.parentElement;
+        if(!p) return NodeFilter.FILTER_REJECT;
+        if(['SCRIPT','STYLE','NOSCRIPT','TEXTAREA'].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n => {
+      if(/Excel/i.test(n.nodeValue || '')) n.nodeValue = scrubDisplayText(n.nodeValue);
+    });
+    qsa('[title],[aria-label],[placeholder]').forEach(el => {
+      ['title','aria-label','placeholder'].forEach(attr => {
+        const val = el.getAttribute(attr);
+        if(val && /Excel/i.test(val)) el.setAttribute(attr, scrubDisplayText(val));
+      });
+    });
+  }
+
+  function sideId(word){
+    const w = String(word || '').toLowerCase();
+    if(/right|kanan/.test(w)) return 'kanan';
+    if(/left|kiri/.test(w)) return 'kiri';
+    return word;
+  }
+  function sideEn(word){
+    const w = String(word || '').toLowerCase();
+    if(/kanan|right/.test(w)) return 'right';
+    if(/kiri|left/.test(w)) return 'left';
+    return word;
+  }
+  function compassId(word){
+    const map = {
+      north:'utara', south:'selatan', east:'timur', west:'barat',
+      northeast:'timur laut', northwest:'barat laut', southeast:'tenggara', southwest:'barat daya'
+    };
+    return map[String(word || '').toLowerCase()] || word;
+  }
+  function compassEn(word){
+    const map = {
+      'utara':'north', 'selatan':'south', 'timur':'east', 'barat':'west',
+      'timur laut':'northeast', 'barat laut':'northwest', 'tenggara':'southeast', 'barat daya':'southwest'
+    };
+    return map[String(word || '').toLowerCase()] || word;
+  }
+
+  function toIndonesianInstruction(text){
+    let s = clean(text);
+    if(!s) return 'Ikuti rute pada peta.';
+
+    // Bersihkan hasil campuran dari patch lama.
+    s = s
+      .replace(/,\s*di\s+the\s+kiri\b/gi, ', di sebelah kiri')
+      .replace(/,\s*di\s+the\s+kanan\b/gi, ', di sebelah kanan')
+      .replace(/,\s*on\s+the\s+left\b/gi, ', di sebelah kiri')
+      .replace(/,\s*on\s+the\s+right\b/gi, ', di sebelah kanan')
+      .replace(/\bthe\s+kiri\b/gi, 'sebelah kiri')
+      .replace(/\bthe\s+kanan\b/gi, 'sebelah kanan')
+      .replace(/\bon\s+the\s+left\b/gi, 'di sebelah kiri')
+      .replace(/\bon\s+the\s+right\b/gi, 'di sebelah kanan');
+
+    const rules = [
+      [/^You have arrived at your destination(?:,?\s*(?:di|on)?\s*(?:sebelah\s*)?(?:the\s*)?(left|right|kiri|kanan))?\.?$/i,
+        (m, side) => 'Anda sudah sampai di tujuan' + (side ? `, di sebelah ${sideId(side)}` : '')],
+      [/^Destination is on the (left|right)\.?$/i, (m, side) => `Tujuan berada di sebelah ${sideId(side)}`],
+      [/^Head (north|south|east|west|northeast|northwest|southeast|southwest) on (.+)$/i,
+        (m, dir, road) => `Jalan ke ${compassId(dir)} di ${road}`],
+      [/^Head (north|south|east|west|northeast|northwest|southeast|southwest)$/i,
+        (m, dir) => `Jalan ke ${compassId(dir)}`],
+      [/^Continue onto (.+)$/i, (m, road) => `Lanjutkan ke ${road}`],
+      [/^Continue on (.+)$/i, (m, road) => `Lanjutkan di ${road}`],
+      [/^Continue (?:straight )?for (.+)$/i, (m, dist) => `Lanjutkan lurus sejauh ${dist}`],
+      [/^Turn right onto (.+)$/i, (m, road) => `Belok kanan ke ${road}`],
+      [/^Turn left onto (.+)$/i, (m, road) => `Belok kiri ke ${road}`],
+      [/^Turn right$/i, () => 'Belok kanan'],
+      [/^Turn left$/i, () => 'Belok kiri'],
+      [/^Slight right onto (.+)$/i, (m, road) => `Belok sedikit ke kanan menuju ${road}`],
+      [/^Slight left onto (.+)$/i, (m, road) => `Belok sedikit ke kiri menuju ${road}`],
+      [/^Sharp right onto (.+)$/i, (m, road) => `Belok tajam ke kanan menuju ${road}`],
+      [/^Sharp left onto (.+)$/i, (m, road) => `Belok tajam ke kiri menuju ${road}`],
+      [/^Keep right onto (.+)$/i, (m, road) => `Tetap di kanan menuju ${road}`],
+      [/^Keep left onto (.+)$/i, (m, road) => `Tetap di kiri menuju ${road}`],
+      [/^Merge right onto (.+)$/i, (m, road) => `Bergabung ke kanan menuju ${road}`],
+      [/^Merge left onto (.+)$/i, (m, road) => `Bergabung ke kiri menuju ${road}`],
+      [/^Merge onto (.+)$/i, (m, road) => `Bergabung ke ${road}`],
+      [/^Menge kanan ke (.+)$/i, (m, road) => `Bergabung ke kanan menuju ${road}`],
+      [/^Menge kiri ke (.+)$/i, (m, road) => `Bergabung ke kiri menuju ${road}`],
+      [/^Make a U-turn(?: onto (.+))?$/i, (m, road) => road ? `Putar balik ke ${road}` : 'Putar balik'],
+      [/^At the roundabout, take the (.+) exit onto (.+)$/i, (m, exit, road) => `Di bundaran, ambil pintu keluar ${exit} menuju ${road}`],
+      [/^Enter the roundabout and take the (.+) exit onto (.+)$/i, (m, exit, road) => `Masuk bundaran lalu ambil pintu keluar ${exit} menuju ${road}`],
+      [/^Take the ramp(?: onto (.+))?$/i, (m, road) => road ? `Ambil jalur masuk menuju ${road}` : 'Ambil jalur masuk']
+    ];
+    for(const [re, out] of rules){
+      if(re.test(s)) return typeof out === 'function' ? s.replace(re, out) : s.replace(re, out);
+    }
+
+    // Terjemahan kata yang masih tersisa jika server memberi variasi instruksi.
+    return s
+      .replace(/^Head\b/gi, 'Ikuti arah')
+      .replace(/^Continue\b/gi, 'Lanjutkan')
+      .replace(/^Turn right\b/gi, 'Belok kanan')
+      .replace(/^Turn left\b/gi, 'Belok kiri')
+      .replace(/^Slight right\b/gi, 'Belok sedikit ke kanan')
+      .replace(/^Slight left\b/gi, 'Belok sedikit ke kiri')
+      .replace(/^Keep right\b/gi, 'Tetap di kanan')
+      .replace(/^Keep left\b/gi, 'Tetap di kiri')
+      .replace(/^Merge right\b/gi, 'Bergabung ke kanan')
+      .replace(/^Merge left\b/gi, 'Bergabung ke kiri')
+      .replace(/\bonto\b/gi, 'ke')
+      .replace(/\bon\b/gi, 'di')
+      .replace(/\bright\b/gi, 'kanan')
+      .replace(/\bleft\b/gi, 'kiri')
+      .replace(/\bnorth\b/gi, 'utara')
+      .replace(/\bsouth\b/gi, 'selatan')
+      .replace(/\beast\b/gi, 'timur')
+      .replace(/\bwest\b/gi, 'barat')
+      .replace(/\bthe\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function toEnglishInstruction(text){
+    let s = clean(text);
+    if(!s) return 'Follow the route on the map.';
+    s = s
+      .replace(/Anda sudah sampai di tujuan(?:,\s*di\s*sebelah\s*(kiri|kanan))?\.?/i, (m, side) => 'You have arrived at your destination' + (side ? `, on the ${sideEn(side)}` : ''))
+      .replace(/Tujuan berada di sebelah (kiri|kanan)\.?/i, (m, side) => `Destination is on the ${sideEn(side)}`)
+      .replace(/^Jalan ke (utara|selatan|timur|barat|timur laut|barat laut|tenggara|barat daya) di (.+)$/i, (m, dir, road) => `Head ${compassEn(dir)} on ${road}`)
+      .replace(/^Jalan ke (utara|selatan|timur|barat|timur laut|barat laut|tenggara|barat daya)$/i, (m, dir) => `Head ${compassEn(dir)}`)
+      .replace(/^Lanjutkan ke (.+)$/i, 'Continue onto $1')
+      .replace(/^Lanjutkan di (.+)$/i, 'Continue on $1')
+      .replace(/^Belok kanan ke (.+)$/i, 'Turn right onto $1')
+      .replace(/^Belok kiri ke (.+)$/i, 'Turn left onto $1')
+      .replace(/^Belok kanan$/i, 'Turn right')
+      .replace(/^Belok kiri$/i, 'Turn left')
+      .replace(/^Belok sedikit ke kanan menuju (.+)$/i, 'Slight right onto $1')
+      .replace(/^Belok sedikit ke kiri menuju (.+)$/i, 'Slight left onto $1')
+      .replace(/^Belok tajam ke kanan menuju (.+)$/i, 'Sharp right onto $1')
+      .replace(/^Belok tajam ke kiri menuju (.+)$/i, 'Sharp left onto $1')
+      .replace(/^Tetap di kanan menuju (.+)$/i, 'Keep right onto $1')
+      .replace(/^Tetap di kiri menuju (.+)$/i, 'Keep left onto $1')
+      .replace(/^Bergabung ke kanan menuju (.+)$/i, 'Merge right onto $1')
+      .replace(/^Bergabung ke kiri menuju (.+)$/i, 'Merge left onto $1')
+      .replace(/^Bergabung ke (.+)$/i, 'Merge onto $1')
+      .replace(/^Menge kanan ke (.+)$/i, 'Merge right onto $1')
+      .replace(/^Menge kiri ke (.+)$/i, 'Merge left onto $1')
+      .replace(/^Putar balik ke (.+)$/i, 'Make a U-turn onto $1')
+      .replace(/^Putar balik$/i, 'Make a U-turn')
+      .replace(/,\s*di\s+sebelah\s+kiri/gi, ', on the left')
+      .replace(/,\s*di\s+sebelah\s+kanan/gi, ', on the right');
+    return s;
+  }
+
+  function getRouteLang(){
+    return (qs('#routeLanguageSelect') && qs('#routeLanguageSelect').value) || 'id';
+  }
+
+  function findStepTextEl(li){
+    const candidates = Array.from(li.children || []).filter(el =>
+      !el.classList.contains('route-step-number') &&
+      !el.classList.contains('route-step-distance')
+    );
+    return candidates[0] || li.querySelector('span:nth-child(2)') || null;
+  }
+
+  function normalizeRouteDirectionsV20(){
+    if(window.__ssmV20Applying) return;
+    window.__ssmV20Applying = true;
+    try{
+      const lang = getRouteLang();
+      const title = qs('.route-directions-title span');
+      if(title){
+        title.innerHTML = lang === 'en'
+          ? '<i class="fa-solid fa-location-arrow"></i> Route Directions'
+          : '<i class="fa-solid fa-location-arrow"></i> Arahan Rute';
+      }
+      qsa('#routeSteps li').forEach(li => {
+        const textEl = findStepTextEl(li);
+        if(!textEl) return;
+        const current = clean(textEl.textContent);
+        if(!current) return;
+        const oldOriginal = clean(textEl.dataset.v20Original || textEl.dataset.originalEn || '');
+        // Simpan versi dasar. Kalau ada bahasa Inggris asli dari server, utamakan itu.
+        let base = oldOriginal;
+        if(!base || /^(Belok|Lanjutkan|Jalan|Anda|Tujuan|Bergabung|Tetap|Putar|Di bundaran|Masuk bundaran|Ikuti)/i.test(base)){
+          base = current;
+        }
+        textEl.dataset.v20Original = base;
+        textEl.textContent = lang === 'en' ? toEnglishInstruction(base) : toIndonesianInstruction(base);
+      });
+    } finally {
+      window.__ssmV20Applying = false;
+    }
+  }
+
+  function bindRouteLanguageV20(){
+    const sel = qs('#routeLanguageSelect');
+    if(sel && !sel.__ssmV20Bound){
+      sel.__ssmV20Bound = true;
+      sel.addEventListener('change', () => setTimeout(normalizeRouteDirectionsV20, 80));
+    }
+    const steps = qs('#routeSteps');
+    if(steps && !steps.__ssmV20Observed){
+      steps.__ssmV20Observed = true;
+      new MutationObserver(() => setTimeout(normalizeRouteDirectionsV20, 80)).observe(steps, { childList:true, subtree:true, characterData:true });
+    }
+  }
+
+  function bootV20(){
+    scrubVisibleNoExcel();
+    bindRouteLanguageV20();
+    normalizeRouteDirectionsV20();
+  }
+
+  bootV20();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV20);
+  window.addEventListener('load', () => [80,200,500,1000,2000,4000,7000,11000].forEach(ms => setTimeout(bootV20, ms)));
+  let n = 0;
+  const timer = setInterval(() => { bootV20(); if(++n > 60) clearInterval(timer); }, 650);
+})();
+</script>
+
 </body>
 </html>
