@@ -20150,5 +20150,473 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+
+
+<script id="ssm-v18-language-cluster-cheap-guide-patch">
+/* =========================================================
+   SSM V18 PATCH
+   - Pilihan bahasa arahan rute: Indonesia / English.
+   - Marker diperkecil + clustering saat zoom out agar tidak menumpuk.
+   - Filter Murah Rumah Makan membaca kolom Kategori Harga/Harga/Tarif/Price.
+   - Tips Cepat pada panduan dihapus.
+   ========================================================= */
+(function(){
+  'use strict';
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const safe = (fn, fallback) => { try { const v = fn(); return v === undefined ? fallback : v; } catch(e){ console.warn('SSM V18', e); return fallback; } };
+  const clean = (v) => String(v ?? '').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+  const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const CHEAP_CATS = new Set(['kost','rumah_makan']);
+
+  /* ---------- Route language ---------- */
+  const DIR_ID = 'id';
+  const DIR_EN = 'en';
+
+  function ensureRouteLanguageSelect(){
+    const planner = qs('#routePlanner');
+    const dest = qs('#destinationSelect');
+    if(!planner || qs('#routeLanguageSelect')) return;
+    const select = document.createElement('select');
+    select.id = 'routeLanguageSelect';
+    select.className = 'route-field ssm-route-lang';
+    select.title = 'Pilih bahasa arahan rute';
+    select.innerHTML = '<option value="id">Arahan: Bahasa Indonesia</option><option value="en">Directions: English</option>';
+    if(dest && dest.nextSibling) planner.insertBefore(select, dest.nextSibling);
+    else planner.insertBefore(select, qs('#routeNowBtn') || planner.firstChild);
+    select.addEventListener('change', applyRouteLanguage);
+  }
+
+  function translateInstructionToId(text){
+    let t = clean(text).replace(/^Head\s+/i,'Ikuti arah ').replace(/^Continue\s+/i,'Lanjutkan ');
+    const rules = [
+      [/^Head north on (.+)$/i, 'Jalan ke utara di $1'],
+      [/^Head south on (.+)$/i, 'Jalan ke selatan di $1'],
+      [/^Head east on (.+)$/i, 'Jalan ke timur di $1'],
+      [/^Head west on (.+)$/i, 'Jalan ke barat di $1'],
+      [/^Head northeast on (.+)$/i, 'Jalan ke timur laut di $1'],
+      [/^Head northwest on (.+)$/i, 'Jalan ke barat laut di $1'],
+      [/^Head southeast on (.+)$/i, 'Jalan ke tenggara di $1'],
+      [/^Head southwest on (.+)$/i, 'Jalan ke barat daya di $1'],
+      [/^Continue onto (.+)$/i, 'Lanjutkan ke $1'],
+      [/^Continue on (.+)$/i, 'Lanjutkan di $1'],
+      [/^Turn right onto (.+)$/i, 'Belok kanan ke $1'],
+      [/^Turn left onto (.+)$/i, 'Belok kiri ke $1'],
+      [/^Slight right onto (.+)$/i, 'Belok sedikit ke kanan menuju $1'],
+      [/^Slight left onto (.+)$/i, 'Belok sedikit ke kiri menuju $1'],
+      [/^Keep right onto (.+)$/i, 'Tetap di kanan menuju $1'],
+      [/^Keep left onto (.+)$/i, 'Tetap di kiri menuju $1'],
+      [/^Make a U-turn onto (.+)$/i, 'Putar balik ke $1'],
+      [/^Enter the roundabout and take the (.+) exit onto (.+)$/i, 'Masuk bundaran lalu ambil pintu keluar $1 menuju $2'],
+      [/^At the roundabout, take the (.+) exit onto (.+)$/i, 'Di bundaran, ambil pintu keluar $1 menuju $2'],
+      [/^You have arrived at your destination$/i, 'Anda sudah sampai di tujuan'],
+      [/^Destination is on the right$/i, 'Tujuan berada di sebelah kanan'],
+      [/^Destination is on the left$/i, 'Tujuan berada di sebelah kiri']
+    ];
+    for(const [re, out] of rules){
+      if(re.test(text)) return text.replace(re, out);
+    }
+    return t
+      .replace(/\bonto\b/gi,'ke')
+      .replace(/\bon\b/gi,'di')
+      .replace(/\bright\b/gi,'kanan')
+      .replace(/\bleft\b/gi,'kiri')
+      .replace(/\bnorth\b/gi,'utara')
+      .replace(/\bsouth\b/gi,'selatan')
+      .replace(/\beast\b/gi,'timur')
+      .replace(/\bwest\b/gi,'barat');
+  }
+
+  function applyRouteLanguage(){
+    const lang = qs('#routeLanguageSelect')?.value || DIR_ID;
+    const title = qs('.route-directions-title span');
+    if(title){
+      title.innerHTML = lang === DIR_EN
+        ? '<i class="fa-solid fa-location-arrow"></i> Route Directions'
+        : '<i class="fa-solid fa-location-arrow"></i> Arahan Rute';
+    }
+    qsa('#routeSteps li').forEach(li => {
+      const parts = Array.from(li.children);
+      const textEl = parts.find(el => !el.classList.contains('route-step-number') && !el.classList.contains('route-step-distance'));
+      if(!textEl) return;
+      if(!textEl.dataset.originalEn) textEl.dataset.originalEn = clean(textEl.textContent);
+      textEl.textContent = lang === DIR_EN ? textEl.dataset.originalEn : translateInstructionToId(textEl.dataset.originalEn);
+    });
+  }
+
+  function observeRouteSteps(){
+    const steps = qs('#routeSteps');
+    if(!steps || steps.__ssmV18Observed) return;
+    steps.__ssmV18Observed = true;
+    new MutationObserver(() => setTimeout(applyRouteLanguage, 20)).observe(steps, {childList:true, subtree:true, characterData:true});
+  }
+
+  /* ---------- Price / cheap logic ---------- */
+  function normalizeKey(key){ return clean(key).toLowerCase().replace(/[^a-z0-9]/g,''); }
+  function priceCandidateValues(place){
+    const sources = [];
+    if(place) sources.push(place);
+    if(place && place._rawRow) sources.push(place._rawRow);
+    const vals = [];
+    sources.forEach(src => {
+      Object.keys(src || {}).forEach(key => {
+        const nk = normalizeKey(key);
+        const isPriceKey = /(harga|tarif|biaya|sewa|price|cost|rent|kisaranharga|rentangharga|kategoriharga|kategoriharga)/i.test(nk);
+        const isBadKey = /(alamat|telepon|kontak|rating|ulasan|jamoperasional|harioperasional|link|maps|foto|gambar|dokumentasi|latitude|longitude|namatempat|namarumahmakan|namakost|id|uid|rute)/i.test(nk);
+        if(isPriceKey && !isBadKey){
+          const val = clean(src[key]);
+          if(val && val !== '-' && !/^tidak\s+tersedia$/i.test(val)) vals.push(val);
+        }
+      });
+    });
+    // Tambahan nama kolom yang sering dipakai di Excel rumah makan.
+    ['Kategori Harga','Kategori_Harga','kategori harga','kategori_harga','Harga','Tarif','Biaya','Harga/Tarif','Harga Tarif','Kisaran Harga','Rentang Harga','Price','price'].forEach(k => {
+      if(place && place[k] !== undefined && clean(place[k])) vals.push(clean(place[k]));
+      if(place && place._rawRow && place._rawRow[k] !== undefined && clean(place._rawRow[k])) vals.push(clean(place._rawRow[k]));
+    });
+    return [...new Set(vals)].filter(Boolean);
+  }
+
+  function parsePriceNumbers(text, category){
+    const src = clean(text).toLowerCase();
+    if(!src) return [];
+    if(/gratis|free/.test(src)) return [0];
+    const found = [];
+    const re = /(rp\s*)?(\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[,.]\d+)?)(\s*(?:juta|jt|ribu|rb|k))?/gi;
+    let m;
+    while((m = re.exec(src))){
+      let token = clean(m[2]);
+      let suffix = clean(m[3] || '').toLowerCase();
+      let n;
+      if(/^\d{1,3}([.\s]\d{3})+(,\d+)?$/.test(token)) n = Number(token.replace(/[.\s]/g,'').replace(',', '.'));
+      else n = Number(token.replace(',', '.'));
+      if(!Number.isFinite(n)) continue;
+      if(/juta|jt/.test(suffix)) n *= 1000000;
+      else if(/ribu|rb|k/.test(suffix)) n *= 1000;
+      else {
+        if(category === 'kost'){
+          if(n > 0 && n < 20) n *= 1000000;
+          else if(n >= 100 && n < 10000) n *= 1000;
+        }else if(category === 'rumah_makan'){
+          if(n > 0 && n < 1000) n *= 1000;
+        }
+      }
+      found.push(Math.round(n));
+    }
+    return found;
+  }
+
+  function isCheapCategoryText(text){
+    const t = clean(text).toLowerCase();
+    if(!t) return false;
+    if(/\b(mahal|premium|expensive|high)\b/.test(t)) return false;
+    return /\b(murah|hemat|terjangkau|ekonomis|low|cheap|mahasiswa|budget)\b/.test(t);
+  }
+
+  function isCheapV18(place){
+    if(!place || !CHEAP_CATS.has(place.category)) return false;
+    const vals = priceCandidateValues(place);
+    if(!vals.length) return false;
+    if(place.category === 'rumah_makan' && vals.some(isCheapCategoryText)) return true;
+    if(place.category === 'kost' && vals.some(isCheapCategoryText)) return true;
+    for(const val of vals){
+      const nums = parsePriceNumbers(val, place.category);
+      if(!nums.length) continue;
+      if(place.category === 'rumah_makan' && nums.some(n => n >= 0 && n <= 25000)) return true;
+      if(place.category === 'kost' && nums.some(n => n >= 200000 && n <= 1200000)) return true;
+    }
+    return false;
+  }
+
+  function priceTextV18(place){
+    return priceCandidateValues(place)[0] || 'Harga belum tersedia di Excel';
+  }
+
+  function normalizeCheapV18(){
+    safe(() => {
+      if(!Array.isArray(places)) return;
+      places.forEach(p => {
+        p.cheap = isCheapV18(p);
+        p.cheapReason = p.cheap
+          ? (p.category === 'rumah_makan'
+              ? 'Rumah makan termasuk murah berdasarkan kolom harga/kategori harga di Excel.'
+              : 'Kost termasuk murah berdasarkan kolom harga/sewa di Excel.')
+          : (CHEAP_CATS.has(p.category)
+              ? 'Tidak masuk kategori murah atau harga/kategori harga belum terbaca dari Excel.'
+              : 'Filter murah hanya berlaku untuk Kost dan Rumah Makan.');
+        const pt = priceTextV18(p);
+        if(pt && pt !== 'Harga belum tersedia di Excel'){
+          p._priceDisplay = pt;
+          p.Harga = pt;
+          p.price = pt;
+        }
+      });
+    });
+  }
+
+  function distanceKmV18(place){
+    return safe(() => distanceKm(upnLatLng[0], upnLatLng[1], Number(place.lat), Number(place.lng)), Number(place.distanceMeters || 0) / 1000);
+  }
+
+  function textHaystack(place){ return Object.values(place || {}).map(v => String(v ?? '')).join(' ').toLowerCase(); }
+  function filteredPlacesV18(){
+    normalizeCheapV18();
+    const list = safe(() => Array.isArray(places) ? places : [], []);
+    const search = clean(safe(() => state.search, '')).toLowerCase();
+    const selected = safe(() => Array.from(state.categories || []), []);
+    const allowedSelected = selected.filter(c => CHEAP_CATS.has(c));
+    return list.filter(place => {
+      if(!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) return false;
+      const matchSearch = !search || textHaystack(place).includes(search);
+      let matchCategory = false;
+      if(state && state.emergencyOnly) matchCategory = place.category === 'emergency';
+      else if(state && state.cheap) matchCategory = allowedSelected.length > 0 && allowedSelected.includes(place.category);
+      else if(selected.length > 0) matchCategory = selected.includes(place.category);
+      else if(state && (state.open24 || state.nearCampus || state.search)) matchCategory = true;
+      else matchCategory = false;
+      const matchCheap = !(state && state.cheap) || isCheapV18(place);
+      const match24 = !(state && state.open24) || !!place.open24 || /^(ya|yes|true|1)$/i.test(clean(place.Buka_24_Jam || place['Buka 24 Jam']));
+      const km = distanceKmV18(place);
+      const matchNear = !(state && state.nearCampus) || (Number.isFinite(km) && km <= 1);
+      const matchRadius = !Number.isFinite(km) || km <= 5.05;
+      return matchSearch && matchCategory && matchCheap && match24 && matchNear && matchRadius;
+    });
+  }
+
+  /* ---------- Marker clustering / small icons ---------- */
+  const markerColors = {
+    kost:'#7C3AED', rumah_makan:'#F97316', laundry:'#0284C7', minimarket:'#16A34A',
+    atm:'#EAB308', print_fotocopy:'#0891B2', fasilitas_kesehatan:'#E11D48', emergency:'#DC2626'
+  };
+  const markerIcons = {
+    kost:'fa-solid fa-house-chimney', rumah_makan:'fa-solid fa-utensils', laundry:'fa-solid fa-shirt', minimarket:'fa-solid fa-store',
+    atm:'fa-solid fa-money-bill-wave', print_fotocopy:'fa-solid fa-print', fasilitas_kesehatan:'fa-solid fa-kit-medical', emergency:'fa-solid fa-triangle-exclamation'
+  };
+
+  function currentMarkerSize(category){
+    const z = safe(() => map.getZoom(), 15);
+    if(category === 'emergency') return z <= 13 ? 20 : z <= 15 ? 24 : 30;
+    if(z <= 12) return 14;
+    if(z <= 13) return 16;
+    if(z <= 15) return 20;
+    return 24;
+  }
+
+  function createIconV18(placeOrCategory){
+    if(typeof L === 'undefined') return null;
+    const category = typeof placeOrCategory === 'string' ? placeOrCategory : (placeOrCategory && placeOrCategory.category) || 'lokasi';
+    const place = typeof placeOrCategory === 'object' ? placeOrCategory : null;
+    const cfg = safe(() => categories[category], {}) || {};
+    const color = markerColors[category] || cfg.color || '#5B7E3C';
+    const icon = markerIcons[category] || cfg.icon || 'fa-solid fa-location-dot';
+    const s = currentMarkerSize(category);
+    const point = Math.max(5, Math.round(s * .30));
+    const html = `<div class="marker-wrap ssm-v18-marker ssm-v18-${category} ${place && place.cheap ? 'ssm-v18-cheap' : ''}" style="--mcolor:${color};--msize:${s}px;--mpoint:${point}px;"><i class="${icon}"></i></div>`;
+    return L.divIcon({
+      className:'custom-div-icon ssm-v18-div-icon',
+      html,
+      iconSize:[s, s + point + 2],
+      iconAnchor:[s/2, s + point],
+      popupAnchor:[0, -s]
+    });
+  }
+
+  function loadClusterLibrary(){
+    if(window.__ssmV18ClusterLoading || safe(() => !!L.markerClusterGroup, false)) return;
+    window.__ssmV18ClusterLoading = true;
+    const css1 = document.createElement('link'); css1.rel='stylesheet'; css1.href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
+    const css2 = document.createElement('link'); css2.rel='stylesheet'; css2.href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
+    document.head.appendChild(css1); document.head.appendChild(css2);
+    const sc = document.createElement('script');
+    sc.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+    sc.onload = () => setTimeout(() => safe(() => renderMarkersV18()), 80);
+    document.head.appendChild(sc);
+  }
+
+  function clusterIcon(cluster){
+    const count = cluster.getChildCount();
+    return L.divIcon({
+      html:`<div class="ssm-v18-cluster"><span>${count}</span></div>`,
+      className:'ssm-v18-cluster-icon',
+      iconSize:[40,40]
+    });
+  }
+
+  function ensureClusterGroup(){
+    if(typeof L === 'undefined' || !safe(() => !!L.markerClusterGroup, false) || typeof map === 'undefined' || !map) return null;
+    if(!window.__ssmV18ClusterGroup){
+      window.__ssmV18ClusterGroup = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        spiderfyOnMaxZoom:true,
+        removeOutsideVisibleBounds:true,
+        disableClusteringAtZoom:17,
+        maxClusterRadius: zoom => zoom <= 12 ? 58 : zoom <= 14 ? 44 : 28,
+        iconCreateFunction:clusterIcon
+      });
+    }
+    if(!map.hasLayer(window.__ssmV18ClusterGroup)) map.addLayer(window.__ssmV18ClusterGroup);
+    return window.__ssmV18ClusterGroup;
+  }
+
+  function clearOldMarkers(){
+    safe(() => { if(window.__ssmV18ClusterGroup) window.__ssmV18ClusterGroup.clearLayers(); });
+    safe(() => { if(typeof layers !== 'undefined') Object.values(layers).forEach(layer => layer && layer.clearLayers && layer.clearLayers()); });
+  }
+
+  function getName(place){
+    return clean(place.displayName || place.name || place.Nama || place.Nama_Kost || place.Nama_Rumah_Makan || place.Nama_Laundry || place.Nama_Minimarket || place.Nama_Emergency || place['Nama Tempat'] || place['Nama Usaha'] || place.id || 'Lokasi');
+  }
+
+  function updateDetailOnly(place){
+    safe(() => setDestinationPlace(place, true));
+    safe(() => updateDetailV17 ? updateDetailV17(place) : updateDetail(place));
+    safe(() => { if(typeof map !== 'undefined' && map) map.closePopup(); });
+  }
+
+  function renderMarkersV18(){
+    normalizeCheapV18();
+    const routeActive = safe(() => (window.__ssmV13Route && window.__ssmV13Route.active && window.__ssmV13Route.destination) || (window.__ssmV10Route && window.__ssmV10Route.active && window.__ssmV10Route.destination), false);
+    if(routeActive){
+      const dest = safe(() => (window.__ssmV13Route && window.__ssmV13Route.destination) || (window.__ssmV10Route && window.__ssmV10Route.destination), null);
+      safe(() => { if(typeof focusOnlyRouteMarkers === 'function' && dest) focusOnlyRouteMarkers(dest); });
+      return;
+    }
+    clearOldMarkers();
+    const visible = filteredPlacesV18();
+    const cluster = ensureClusterGroup();
+    const addMarker = marker => {
+      if(cluster) cluster.addLayer(marker);
+      else safe(() => { if(!layers[marker.__category]) layers[marker.__category] = L.layerGroup().addTo(map); layers[marker.__category].addLayer(marker); });
+    };
+    visible.forEach(place => {
+      const marker = L.marker([Number(place.lat), Number(place.lng)], {
+        icon:createIconV18(place),
+        zIndexOffset: place.category === 'emergency' ? 3000 : 0,
+        keyboard:true,
+        title:getName(place)
+      });
+      marker.__category = place.category;
+      marker.on('click', function(e){
+        if(e && e.originalEvent){ e.originalEvent.preventDefault(); e.originalEvent.stopPropagation(); }
+        updateDetailOnly(place);
+      });
+      place.__ssmMarker = marker;
+      addMarker(marker);
+    });
+    const countEl = qs('#emergencyCount');
+    if(countEl) countEl.textContent = String(safe(() => (places || []).filter(p => p.category === 'emergency').length, 0));
+    const legend = qs('#legendText');
+    if(legend && state && state.cheap && !selectedAllowedCheapCategory()){
+      legend.textContent = 'Murah aktif: pilih Kost atau Rumah Makan dulu agar hasil sesuai pilihan.';
+    }
+  }
+
+  function selectedAllowedCheapCategory(){
+    return safe(() => Array.from(state.categories || []).some(c => CHEAP_CATS.has(c)), false);
+  }
+
+  function patchCheapClick(){
+    if(window.__ssmV18CheapBound) return;
+    window.__ssmV18CheapBound = true;
+    document.addEventListener('click', function(e){
+      const cheap = e.target.closest('[data-chip="murah"]');
+      if(!cheap) return;
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      safe(() => { state.cheap = !state.cheap; state.emergencyOnly = false; });
+      normalizeCheapV18();
+      safe(() => syncChips && syncChips());
+      safe(() => renderFilterList && renderFilterList());
+      safe(() => populateDestinationOptions && populateDestinationOptions());
+      renderMarkersV18();
+      safe(() => showPanelV17 ? showPanelV17('filter') : null);
+    }, true);
+  }
+
+  function removeQuickTips(){
+    qsa('*').forEach(el => {
+      const txt = clean(el.textContent);
+      if(/^Tips Cepat$/i.test(txt)){
+        const box = el.closest('.tutorial-card, .tutorial-tips, .tips-card, .tutorial-extra, .tips-section, div');
+        if(box) box.remove();
+      }
+    });
+    qsa('.tutorial-card, .tutorial-tips, .tips-card, .tutorial-extra, .tips-section').forEach(el => {
+      if(/Tips Cepat/i.test(el.textContent)) el.remove();
+    });
+  }
+
+  function installV18Style(){
+    let style = qs('#ssm-v18-style');
+    if(!style){ style = document.createElement('style'); style.id = 'ssm-v18-style'; document.head.appendChild(style); }
+    style.textContent = `
+      /* Bahasa arahan rute */
+      #routeLanguageSelect.ssm-route-lang{width:100% !important;min-height:42px !important;border-radius:14px !important;background:#FFFDF2 !important;border:1px solid rgba(91,126,60,.24) !important;color:#24331D !important;font-weight:800 !important;}
+
+      /* Marker kecil + konsisten */
+      .ssm-v18-marker{width:var(--msize) !important;height:var(--msize) !important;border-radius:50% 50% 50% 14% !important;transform:rotate(-45deg) !important;background:var(--mcolor) !important;border:1.8px solid #fff !important;box-shadow:0 5px 12px rgba(0,0,0,.35),0 0 0 1px rgba(20,30,16,.18) !important;display:flex !important;align-items:center !important;justify-content:center !important;}
+      .ssm-v18-marker i{transform:rotate(45deg) !important;color:#fff !important;font-size:calc(var(--msize) * .46) !important;text-shadow:0 1px 2px rgba(0,0,0,.55) !important;}
+      .ssm-v18-atm i{color:#26310F !important;text-shadow:0 1px 0 rgba(255,255,255,.6) !important;}
+      .ssm-v18-emergency{border:2px solid #FDE047 !important;box-shadow:0 0 0 2px rgba(220,38,38,.28),0 5px 13px rgba(0,0,0,.42) !important;}
+      .marker-wrap.ssm-cheap-pin::before,.marker-wrap.ssm-near-pin::before,.ssm-v18-marker::before,.ssm-v18-marker::after{display:none !important;}
+
+      /* Cluster marker: matcha-strawberry */
+      .ssm-v18-cluster-icon{background:transparent !important;border:0 !important;}
+      .ssm-v18-cluster{width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,#C44545 0%,#A83A3A 48%,#5B7E3C 100%);border:3px solid #E8F5BD;box-shadow:0 10px 22px rgba(0,0,0,.35),0 0 0 4px rgba(232,245,189,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:950;font-size:13px;}
+      .ssm-v18-cluster span{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);}
+
+      /* Jangan tampilkan tips cepat di panduan */
+      .tutorial-tips,.tips-card,.tips-section{display:none !important;}
+    `;
+  }
+
+  function patchGlobals(){
+    normalizeCheapV18();
+    window.isCheapV18 = isCheapV18;
+    window.priceTextV18 = priceTextV18;
+    window.filteredPlaces = filteredPlaces = filteredPlacesV18;
+    window.renderMarkers = renderMarkers = renderMarkersV18;
+    window.createIcon = createIcon = function(category){ return createIconV18(category); };
+    window.createSmartIcon = createSmartIcon = function(place){ return createIconV18(place); };
+    safe(() => { cheapByExcelPrice = isCheapV18; });
+    safe(() => { cheapStudent = isCheapV18; });
+    safe(() => { cheapByStudentStandard = isCheapV18; });
+  }
+
+  function bindZoom(){
+    if(window.__ssmV18ZoomBound || typeof map === 'undefined' || !map) return;
+    window.__ssmV18ZoomBound = true;
+    let timer = null;
+    map.on('zoomend', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => safe(() => renderMarkersV18()), 120);
+    });
+  }
+
+  function bootV18(){
+    installV18Style();
+    ensureRouteLanguageSelect();
+    observeRouteSteps();
+    removeQuickTips();
+    patchGlobals();
+    patchCheapClick();
+    loadClusterLibrary();
+    bindZoom();
+    safe(() => { if(typeof renderFilterList === 'function') renderFilterList(); });
+    safe(() => { if(typeof populateDestinationOptions === 'function') populateDestinationOptions(); });
+    safe(() => renderMarkersV18());
+    setTimeout(applyRouteLanguage, 60);
+  }
+
+  bootV18();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV18);
+  else setTimeout(bootV18, 0);
+  window.addEventListener('load', function(){
+    [200,800,1600,3200,6400,9600,12800,16800,22000].forEach(ms => setTimeout(bootV18, ms));
+  });
+  let count = 0;
+  const interval = setInterval(() => { bootV18(); if(++count > 28) clearInterval(interval); }, 800);
+})();
+</script>
+
 </body>
 </html>
