@@ -15851,7 +15851,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const guide=document.createElement('div');
     guide.id='mapChoiceGuide';
     guide.className='map-guide-card';
-    guide.innerHTML=`<h3>Mau cari fasilitas apa?</h3><p>Pilih kebutuhanmu dulu agar peta tidak penuh marker. Kamu bisa mulai dari kategori utama, cari yang murah, atau buka titik emergency terdekat.</p><div class="guide-buttons"><button class="primary" data-guide="filter"><i class="fa-solid fa-filter"></i> Pilih Kategori</button><button class="secondary" data-guide="cheap"><i class="fa-solid fa-tags"></i> Cari yang Murah</button><button class="ghost" data-guide="emergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency</button></div>`;
+    guide.innerHTML=`<h3>Mau cari fasilitas apa?</h3><p>Pilih kategori fasilitas terlebih dahulu atau tampilkan titik emergency terdekat agar peta tidak langsung penuh marker.</p><div class="guide-buttons"><button class="primary" data-guide="filter"><i class="fa-solid fa-filter"></i> Pilih Kategori</button><button class="ghost" data-guide="emergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency</button></div>`;
     document.getElementById('map').appendChild(guide);
     guide.addEventListener('click',e=>{
       const btn=e.target.closest('[data-guide]'); if(!btn) return;
@@ -17354,8 +17354,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>Pilih kategori lewat tombol <b>Filter</b>. Setelah kategori dipilih, marker tampil tanpa membuka ulang popup. Klik marker untuk detail, atau klik <b>Pilih Lokasi</b> untuk menjadikannya tujuan rute.</p>
           <div class="guide-actions">
             <button type="button" id="guideOpenFilter"><i class="fa-solid fa-filter"></i> Pilih Kategori</button>
-            <button type="button" class="secondary" id="guideShowCheap"><i class="fa-solid fa-tags"></i> Murah</button>
-            <button type="button" class="secondary" id="guideShowNear"><i class="fa-solid fa-location-dot"></i> Dekat Kampus</button>
             <button type="button" class="secondary" id="guideShowEmergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency</button>
           </div>`;
         $('#guideOpenFilter', guide)?.addEventListener('click', () => {
@@ -18667,9 +18665,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const h = guide.querySelector('h3');
     const p = guide.querySelector('p');
     if(h) h.textContent = 'Mulai dari kebutuhan utama';
-    if(p) p.textContent = 'Pilih kategori fasilitas, cari kost/rumah makan murah, atau tampilkan titik emergency. Filter Murah hanya memakai data harga dari Excel.';
-    const cheapBtn = guide.querySelector('[data-guide="cheap"]');
-    if(cheapBtn) cheapBtn.innerHTML = '<i class="fa-solid fa-tags"></i> Kost/Makan Murah';
+    if(p) p.textContent = 'Pilih kategori fasilitas terlebih dahulu atau tampilkan titik emergency terdekat. Gunakan filter lanjutan setelah kategori dipilih.';
   }
 
   function updateTutorialV12(){
@@ -19190,7 +19186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const guide = qs('#mapChoiceGuide');
     if(guide){
       const p = guide.querySelector('p');
-      if(p) p.textContent = 'Pilih kategori fasilitas terlebih dahulu. Untuk Murah, pilih Kost atau Rumah Makan, lalu aktifkan chip Murah agar hasilnya tidak bercampur.';
+      if(p) p.textContent = 'Pilih kategori fasilitas terlebih dahulu atau tampilkan titik emergency terdekat.';
       const cheap = guide.querySelector('[data-guide="cheap"]');
       if(cheap) cheap.innerHTML = '<i class="fa-solid fa-tags"></i> Pilih Kost/Rumah Makan Murah';
     }
@@ -21185,6 +21181,120 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('load', () => [80,200,500,1000,2000,4000,7000,11000].forEach(ms => setTimeout(bootV20, ms)));
   let n = 0;
   const timer = setInterval(() => { bootV20(); if(++n > 60) clearInterval(timer); }, 650);
+})();
+</script>
+
+
+
+<!-- SSM v22: polish cheap chip visual -->
+<style id="ssm-v22-cheap-chip-polish">
+  /* Merapikan chip Murah agar badge tidak turun baris/terlihat berantakan */
+  .chip[data-chip="murah"]{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:6px !important;
+    flex-wrap:nowrap !important;
+    white-space:nowrap !important;
+    min-height:46px !important;
+    padding:10px 12px !important;
+    line-height:1 !important;
+  }
+  .chip[data-chip="murah"] i{
+    flex:0 0 auto !important;
+    margin:0 !important;
+  }
+  .chip[data-chip="murah"]::after{
+    content:'Kost/RM' !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 auto !important;
+    width:auto !important;
+    max-width:none !important;
+    margin-left:2px !important;
+    padding:4px 7px !important;
+    border-radius:999px !important;
+    background:rgba(196,69,69,.10) !important;
+    border:1px solid rgba(196,69,69,.18) !important;
+    color:#7F1D1D !important;
+    font-size:8.5px !important;
+    font-weight:900 !important;
+    line-height:1 !important;
+    letter-spacing:.1px !important;
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+  }
+  .chip[data-chip="murah"].active::after{
+    background:rgba(255,255,255,.46) !important;
+    border-color:rgba(91,126,60,.28) !important;
+    color:#24331D !important;
+  }
+  @media (max-width: 520px){
+    .chip[data-chip="murah"]{
+      gap:5px !important;
+      padding:9px 10px !important;
+      min-height:44px !important;
+    }
+    .chip[data-chip="murah"]::after{
+      content:'Kost/RM' !important;
+      font-size:8px !important;
+      padding:3px 6px !important;
+      margin-left:1px !important;
+    }
+  }
+</style>
+
+
+<script id="ssm-v23-guide-only-filter-emergency">
+(function(){
+  function qs(sel, root){ return (root || document).querySelector(sel); }
+  function qsa(sel, root){ return Array.from((root || document).querySelectorAll(sel)); }
+  function cleanGuide(){
+    var guide = document.getElementById('mapChoiceGuide');
+    if(!guide) return;
+    var h = guide.querySelector('h3');
+    var p = guide.querySelector('p');
+    if(h) h.textContent = 'Mulai dari kebutuhan utama';
+    if(p) p.textContent = 'Pilih kategori fasilitas terlebih dahulu atau tampilkan titik emergency terdekat agar peta tidak langsung penuh marker.';
+    qsa('#guideShowCheap,#guideShowNear,[data-guide="cheap"],[data-guide="near"]', guide).forEach(function(el){ el.remove(); });
+    var actions = qs('.guide-actions,.guide-buttons', guide);
+    if(actions){
+      actions.classList.add('ssm-two-guide-buttons');
+      var filterBtn = qs('#guideOpenFilter,[data-guide="filter"]', actions);
+      var emergencyBtn = qs('#guideShowEmergency,[data-guide="emergency"]', actions);
+      if(filterBtn) filterBtn.innerHTML = '<i class="fa-solid fa-filter"></i> Pilih Kategori';
+      if(emergencyBtn) emergencyBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Emergency';
+    }
+  }
+  function injectCSS(){
+    if(document.getElementById('ssm-v23-guide-style')) return;
+    var st = document.createElement('style');
+    st.id = 'ssm-v23-guide-style';
+    st.textContent = `
+      #mapChoiceGuide .guide-actions.ssm-two-guide-buttons,
+      #mapChoiceGuide .guide-buttons.ssm-two-guide-buttons{
+        display:flex !important;
+        justify-content:center !important;
+        align-items:center !important;
+        gap:14px !important;
+        flex-wrap:wrap !important;
+      }
+      #mapChoiceGuide .guide-actions.ssm-two-guide-buttons button,
+      #mapChoiceGuide .guide-buttons.ssm-two-guide-buttons button{
+        min-width:170px !important;
+        justify-content:center !important;
+      }
+    `;
+    document.head.appendChild(st);
+  }
+  function run(){ injectCSS(); cleanGuide(); }
+  document.addEventListener('DOMContentLoaded', run);
+  window.addEventListener('load', run);
+  setTimeout(run, 200); setTimeout(run, 800); setTimeout(run, 1600);
+  new MutationObserver(run).observe(document.documentElement, {childList:true, subtree:true});
 })();
 </script>
 
